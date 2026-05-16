@@ -1,4 +1,14 @@
-﻿## [12.0.5.10] ##
+﻿## [12.0.5.11] ##
+### Fixed ###
+
+  * fix: remove `MapCanvasScrollControllerMixin` method replacements — direct writes to the mixin table tainted every frame using it, causing `SetPropagateMouseClicks` to fail in the secure pin-acquisition path (`secureexecuterange → AcquirePin → OnAcquired → UpdateMousePropagation`)
+  * fix: skip nameplate health/cast bar skinning entirely — `Base.SetBackdrop` writes onto restricted nameplate bar frames, tainting them; that taint propagated into `CompactUnitFrame_UpdateHealPrediction` causing `GetMinMaxValues()` to return "secret number value" errors
+  * fix: guard nameplate units in `CompactUnitFrame_UpdateHealthColor` hook — calling `SetStatusBarColor` on nameplate bars tainted the execution context and caused `GetMinMaxValues()` in `UpdateHealPrediction` to return "secret number value" errors
+  * fix: remove `GameTooltip_AddWidgetSet` global wrapper — replacing the global with an addon-owned function tainted execution before `RegisterForWidgetSet`, causing `GetUnscaledFrameRect` → `GetScaledRect` to return secret values in widget layout
+  * fix: remove `UIWidgetContainerMixin.CreateWidget` global `hooksecurefunc` — callbacks fired inside `CreateWidget` propagated taint into the synchronous `UpdateWidgetLayout → DefaultWidgetLayout → GetScaledRect` call chain for tooltip widget containers
+
+
+## [12.0.5.10] ##
 ### Fixed ###
   * fix: skip UIWidget skinning for nameplate `WidgetContainer` to prevent `GetScaledRect` taint in the secure `OnNamePlateAdded` call chain
   * fix: use `Color.button` for inactive `TabSystemButton` tabs so borders remain visible
@@ -567,7 +577,8 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.0.5.10...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.0.5.11...develop
+[12.0.5.11]: https://github.com/Gethe/Aurora/compare/12.0.5.10...12.0.5.11
 [12.0.5.10]: https://github.com/Gethe/Aurora/compare/12.0.5.9...12.0.5.10
 [12.0.5.9]: https://github.com/Gethe/Aurora/compare/12.0.5.8...12.0.5.9
 [12.0.5.8]: https://github.com/Gethe/Aurora/compare/12.0.5.7...12.0.5.8
