@@ -117,20 +117,13 @@ function private.SharedXML.SharedTooltipTemplates()
         end
     end
 
-    if _G.GameTooltip_AddWidgetSet then
-        local origAddWidgetSet = _G.GameTooltip_AddWidgetSet
-
-        -- Call origAddWidgetSet directly (no securecallfunction) so that
-        -- origAddWidgetSet's call to GameTooltip_InsertFrame resolves through
-        -- the addon-modified _G and picks up the SafeNumber replacement above.
-        -- securecallfunction causes origAddWidgetSet to run in a clean global
-        -- environment where the SafeNumber replacement is invisible, leaving
-        -- Blizzard's original GameTooltip_InsertFrame to hit secret-number
-        -- arithmetic at SharedTooltipTemplates.lua:202.
-        _G.GameTooltip_AddWidgetSet = function(self, widgetSetID, verticalPadding)
-            return origAddWidgetSet(self, widgetSetID, verticalPadding)
-        end
-    end
+    -- NOTE: Do NOT wrap GameTooltip_AddWidgetSet here.
+    -- Replacing the global with an addon-owned function taints the execution
+    -- before RegisterForWidgetSet is called, causing GetUnscaledFrameRect to
+    -- receive secret values from frame:GetScaledRect() and error on arithmetic.
+    -- The GameTooltip_InsertFrame replacement above is picked up via global
+    -- lookup by Blizzard's original GameTooltip_AddWidgetSet regardless of
+    -- execution context — securecallfunction shares the same _G as all code.
 
     -- Replace SetTooltipMoney to avoid taint: Aurora's GameTooltip
     -- skinning marks the tooltip hierarchy as addon-modified, causing

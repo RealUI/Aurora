@@ -179,7 +179,7 @@ end
 do --[[ AddOns\Blizzard_UIWidgets.lua ]]
     do --[[ Blizzard_UIWidgetManager ]]
         Hook.UIWidgetContainerMixin = {}
-        function Hook.UIWidgetContainerMixin:CreateWidget(widgetID, widgetType, widgetTypeInfo, widgetInfo)
+        function Hook.UIWidgetContainerMixin:CreateWidget(widgetID, widgetType, widgetTypeInfo)
             if IsTooltipWidgetContainer(self) then return end
             if IsRestrictedWidgetContainer(self) then return end
             if IsNamePlateWidgetContainer(self) then return end
@@ -410,26 +410,21 @@ function private.AddOns.Blizzard_UIWidgets()
         Hook.UIWidgetManagerMixin.OnWidgetContainerRegistered(_G.UIWidgetManager, widgetContainer)
     end)
 
-    if _G.UIWidgetContainerMixin and _G.UIWidgetContainerMixin.CreateWidget then
-        _G.hooksecurefunc(_G.UIWidgetContainerMixin, "CreateWidget", function(widgetContainer, widgetID, widgetType, widgetTypeInfo, widgetInfo)
-            Hook.UIWidgetContainerMixin.CreateWidget(widgetContainer, widgetID, widgetType, widgetTypeInfo, widgetInfo)
-        end)
-    end
-
-    -- NOTE: The hooksecurefunc on UIWidgetContainerMixin.RegisterForWidgetSet
-    -- that previously overwrote self.layoutFunc for tooltip containers has been
-    -- removed.  That write happened in addon taint context (all hooksecurefunc
-    -- callbacks run as addon code), tainting the layoutFunc field.  When
-    -- UpdateWidgetLayout then called the tainted layoutFunc, DefaultWidgetLayout
-    -- ran in tainted context causing GetEffectiveScale()→GetScaledRect() to
-    -- return secret numbers in ResizeLayoutMixin:Layout().
-    --
-    -- NOTE: GameTooltip_AddWidgetSet (SharedTooltipTemplates.lua) is an
-    -- addon-owned function.  Calls to it from AreaPoiUtil / tooltip show paths
-    -- propagate execution taint into RegisterForWidgetSet → ProcessAllWidgets →
-    -- UIWidgetTemplateStatusBar:Setup, causing self.Bar:SetWidth() to taint the
-    -- bar's width property.  The InitPartitions replacement above guards the
-    -- resulting secret GetWidth() with SafeNumber.
+    -- NOTE: Do NOT hook UIWidgetContainerMixin.CreateWidget globally via
+    -- hooksecurefunc.  RegisterForWidgetSet calls ProcessAllWidgets (line 275)
+    -- which calls CreateWidget for each widget and then IMMEDIATELY calls
+    -- UpdateWidgetLayout (line 569) — all within the same synchronous call chain.
+    -- Any hooksecurefunc callback that fires inside CreateWidget taints the
+    -- execution context, and that taint persists into UpdateWidgetLayout →
+    -- DefaultWidgetLayout → GetUnscaledFrameRect → frame:GetScaledRect(), which
+    -- then returns secret number values for widget frames managed by the C layout
+    -- system (including tooltip widget containers).
+    -- UIWidgetManager:OnWidgetContainerRegistered fires at line 284, AFTER
+    -- ProcessAllWidgets returns, so the hook there is safe and handles initial
+    -- widget skinning for non-tooltip containers.
+    -- UIWidgetBelowMinimapContainerFrame and UIWidgetTopCenterContainerFrame use
+    -- Util.Mixin to install CreateWidget directly on the frame instance, bypassing
+    -- the mixin's hooksecurefunc entirely.
 
     ----====#####################====----
     --  Blizzard_UIWidgetTemplateBase  --
@@ -870,7 +865,7 @@ function private.AddOns.Blizzard_UIWidgets()
             local biggestHeight = 0
             local totalWidth = 0
 
-            for index, currencyInfo in _G.ipairs(widgetInfo.currencies) do
+            for _, currencyInfo in _G.ipairs(widgetInfo.currencies) do
                 local currencyFrame = self.currencyPool:Acquire()
                 currencyFrame:Show()
 

@@ -11,6 +11,10 @@ local Hook = Aurora.Hook
 do --[[ FrameXML\CompactUnitFrame.lua ]]
     function Hook.CompactUnitFrame_UpdateHealthColor(frame)
         if frame:IsForbidden() then return end
+        -- Nameplate bars live in the restricted nameplate system; calling
+        -- SetStatusBarColor here taints the execution context and causes
+        -- GetMinMaxValues() in UpdateHealPrediction to return "secret number value".
+        if frame.unit and frame.unit:find("^nameplate") then return end
 
         if _G.UnitIsConnected(frame.unit) then
             local opts = frame.optionTable

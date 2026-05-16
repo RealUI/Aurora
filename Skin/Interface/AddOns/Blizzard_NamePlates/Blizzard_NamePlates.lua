@@ -2,21 +2,21 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 local Aurora = private.Aurora
-local Base, Skin = Aurora.Base, Aurora.Skin
+local Base = Aurora.Base
 
 --------------------------------------------------------------------------------
 -- Helpers
 --------------------------------------------------------------------------------
 
--- Skin a StatusBar (health or cast bar) with IsForbidden guard
-local function SkinBar(bar)
-    if not bar then return end
-    if bar.IsForbidden and bar:IsForbidden() then return end
-    if bar._auroraSkinned then return end
-
-    Skin.FrameTypeStatusBar(bar)
-    bar._auroraSkinned = true
-end
+-- Nameplate health/cast bars are managed by the restricted nameplate system.
+-- Base.SetBackdrop writes BackdropMixin functions and _backdropInfo directly
+-- onto the bar frame.  Those direct writes taint the bar; on the next nameplate
+-- reuse cycle, CompactUnitFrame_UpdateHealPrediction reads GetMinMaxValues()
+-- in a tainted context and gets a "secret number value" error.  The hooks
+-- installed by Skin.FrameTypeStatusBar also fire during CompactUnitFrame_UpdateAll
+-- and can propagate the taint into GetScaledRect() via the widget layout path.
+-- Skip bar skinning entirely for nameplates to keep those frames clean.
+local SkinBar = private.nop  --luacheck: ignore 231
 
 -- Skin a single aura icon frame (NameplateAuraItemTemplate)
 local function SkinAuraIcon(auraFrame)
