@@ -1,4 +1,11 @@
-﻿## [12.0.5.11] ##
+﻿## [12.0.5.12] ##
+### Fixed ###
+
+  * fix: track skinned `UIWidget` frames in a separate weak-key table instead of writing `_auroraSkinned` onto the frame to prevent `GetScaledRect()` taint in the secure `OnNamePlateAdded` path
+  * fix: remove `SetPoint` and `SetHeight` calls from `QueueStatusEntry` hooks — layout writes on pool entry sub-frames taint frame geometry and crash `QueueStatusEntry_SetMinimalDisplay`
+
+
+## [12.0.5.11] ##
 ### Fixed ###
 
   * fix: remove `MapCanvasScrollControllerMixin` method replacements — direct writes to the mixin table tainted every frame using it, causing `SetPropagateMouseClicks` to fail in the secure pin-acquisition path (`secureexecuterange → AcquirePin → OnAcquired → UpdateMousePropagation`)
@@ -577,7 +584,8 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.0.5.11...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.0.5.12...develop
+[12.0.5.12]: https://github.com/Gethe/Aurora/compare/12.0.5.11...12.0.5.12
 [12.0.5.11]: https://github.com/Gethe/Aurora/compare/12.0.5.10...12.0.5.11
 [12.0.5.10]: https://github.com/Gethe/Aurora/compare/12.0.5.9...12.0.5.10
 [12.0.5.9]: https://github.com/Gethe/Aurora/compare/12.0.5.8...12.0.5.9
