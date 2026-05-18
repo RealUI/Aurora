@@ -106,6 +106,7 @@ local function LoadLFGFunctions()
     local LfgSearchResultData = {
         searchResultID = dungeonId,
         activityID = dungeonId,
+        activityIDs = { dungeonId },
         leaderName = "leaderName",
         name = subTypeIDs[subTypeID],
         comment = "comment",
@@ -308,7 +309,7 @@ function commands.test()
                     -- _G.MoneyWonAlertSystem:AddAlert(amount)
 
                     local rollType, lootSpec = _G.LOOT_ROLL_TYPE_NEED, 268 --[[ Brewmaster ]]
-                    local currencyID = 823 -- Apexis Crystals
+                    local currencyID = 1792 -- Honor
                     local bonusPrompt, bonusDuration = 244782, 10
                     local rewardType, rewardQuantity = "item", 1
                     local bonusResults = {
@@ -468,6 +469,7 @@ function commands.test()
                                 name = "Store Purchase",
                                 desc = "StorePurchaseAlertSystem",
                                 type = "execute",
+                                hidden = not _G.StorePurchaseAlertSystem,
                                 func = function()
                                     _G.StorePurchaseAlertSystem:AddAlert(testItem.texture, testItem.name, testItem.id)
                                 end,
@@ -543,7 +545,7 @@ function commands.test()
                                 desc = "GarrisonMissionAlertSystem",
                                 type = "execute",
                                 func = function()
-                                    local mission = _G.C_Garrison.GetAvailableMissions(_G.LE_FOLLOWER_TYPE_GARRISON_7_0)[1]
+                                    local mission = _G.C_Garrison.GetAvailableMissions(_G.Enum.GarrisonFollowerType.FollowerType_7_0_GarrisonFollower)[1]
                                     _G.GarrisonMissionAlertSystem:AddAlert(mission)
                                 end,
                                 order = 3,
@@ -553,7 +555,7 @@ function commands.test()
                                 desc = "GarrisonRandomMissionAlertSystem",
                                 type = "execute",
                                 func = function()
-                                    local mission = _G.C_Garrison.GetAvailableMissions(_G.LE_FOLLOWER_TYPE_GARRISON_7_0)[1]
+                                    local mission = _G.C_Garrison.GetAvailableMissions(_G.Enum.GarrisonFollowerType.FollowerType_7_0_GarrisonFollower)[1]
                                     _G.GarrisonRandomMissionAlertSystem:AddAlert(mission)
                                 end,
                                 order = 3,
@@ -564,7 +566,7 @@ function commands.test()
                                 disabled = not isDraenorGarrison(),
                                 type = "execute",
                                 func = function()
-                                    local mission = _G.C_Garrison.GetAvailableMissions(_G.LE_FOLLOWER_TYPE_SHIPYARD_6_2)[1]
+                                    local mission = _G.C_Garrison.GetAvailableMissions(_G.Enum.GarrisonFollowerType.FollowerType_6_0_Boat)[1]
                                     _G.GarrisonShipMissionAlertSystem:AddAlert(mission.missionID)
                                 end,
                                 order = 3,
@@ -588,7 +590,7 @@ function commands.test()
                                 desc = "GarrisonTalentAlertSystem",
                                 type = "execute",
                                 func = function()
-                                    _G.GarrisonTalentAlertSystem:AddAlert(_G.LE_GARRISON_TYPE_7_0, _G.C_Garrison.GetTalent(talentID))
+                                    _G.GarrisonTalentAlertSystem:AddAlert(_G.Enum.GarrisonType.Type_7_0_Garrison, _G.C_Garrison.GetTalentInfo(talentID))
                                 end,
                                 order = 5,
                             },
@@ -622,7 +624,10 @@ function commands.test()
                             customMessageTime = "number",
                             note = "string",
                             rafLinkType = "RafLinkType",
-                            gameAccountInfo = "BNetGameAccountInfo",
+                            gameAccountInfo = {
+                                clientProgram = "WoW",
+                                characterName = "TestCharacter",
+                            },
                         }
                         function _G.C_BattleNet.GetAccountInfoByID(bnetAccountID, wowAccountGUID)
                             local info = CopyTable(BNetAccountInfo)
@@ -640,13 +645,12 @@ function commands.test()
                                 get = function() return toastType end,
                                 set = function(info, value)
                                     toastType = value
-                                    local _, online = _G.BNGetNumFriends()
                                     if toastTypes[toastType] == "online" then
-                                        toastInfo = _G.BNGetFriendInfo(online + 1)
+                                        toastInfo = 1
                                     elseif toastTypes[toastType] == "offline" then
-                                        toastInfo = _G.BNGetFriendInfo(online + 1)
+                                        toastInfo = 1
                                     elseif toastTypes[toastType] == "broadcast" then
-                                        toastInfo = _G.BNGetFriendInfo(online + 1)
+                                        toastInfo = 1
                                     elseif toastTypes[toastType] == "pending" then
                                         toastInfo = 4
                                     elseif toastTypes[toastType] == "new" then
@@ -820,7 +824,7 @@ function commands.test()
                         hideOnEscape = true,
                         OnShow = function(dialog, data)
                             if addedFrame == 3 then
-                                _G.MoneyFrame_Update(dialog.moneyFrame, 123456)
+                                _G.MoneyFrame_Update(dialog.MoneyFrame, 123456)
                             end
                         end,
                     }
@@ -1540,12 +1544,12 @@ function commands.test()
                 function _G.C_PvP.GetPostMatchCurrencyRewards()
                     local rewards = {}
                     local info = CopyTable(PVPPostMatchCurrencyReward)
-                    info.currencyType = _G.Constant.Currency.Honor
+                    info.currencyType = _G.Constants.CurrencyConsts.HONOR_CURRENCY_ID
                     info.quantityChanged = 123
                     rewards[1] = info
 
                     info = CopyTable(PVPPostMatchCurrencyReward)
-                    info.currencyType = _G.Constant.Currency.Conquest
+                    info.currencyType = _G.Constants.CurrencyConsts.CONQUEST_CURRENCY_ID
                     info.quantityChanged = 456
                     rewards[2] = info
                     return rewards
@@ -1658,12 +1662,15 @@ function commands.test()
                             desc = "PVPReadyPopup",
                             type = "execute",
                             func = function()
-                                _G.StaticPopupSpecial_Show(_G.PVPReadyPopup):OnEvent("PVP_ROLE_POPUP_SHOW", {
-                                    PvpRoles.GUIDE,
-                                    PvpRoles.TANK,
-                                    PvpRoles.HEALER,
-                                    PvpRoles.DAMAGER,
-                                })
+                                local popup = _G.StaticPopupSpecial_Show(_G.PVPReadyPopup)
+                                if popup then
+                                    popup:OnEvent("PVP_ROLE_POPUP_SHOW", {
+                                        PvpRoles.GUIDE,
+                                        PvpRoles.TANK,
+                                        PvpRoles.HEALER,
+                                        PvpRoles.DAMAGER,
+                                    })
+                                end
                             end,
                             order = 3,
                         },
