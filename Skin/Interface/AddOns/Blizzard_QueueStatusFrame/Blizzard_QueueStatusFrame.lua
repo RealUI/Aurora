@@ -10,7 +10,7 @@ local Base = Aurora.Base
 local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Util = Aurora.Util
 do --[[ AddOns\Blizzard_QueueStatusFrame\Blizzard_QueueStatusFrame.lua ]]
-    function Hook.QueueStatusEntry_SetFullDisplay(entry, title, queuedTime, myWait, isTank, isHealer, isDPS, totalTanks, totalHealers, totalDPS, tankNeeds, healerNeeds, dpsNeeds, subTitle, extraText)
+    function Hook.QueueStatusEntry_SetFullDisplay(entry, _, _, _, isTank, isHealer, isDPS)
         local nextRoleIcon = 1
         if isDPS then
             local icon = entry["RoleIcon"..nextRoleIcon]
@@ -37,16 +37,14 @@ do --[[ AddOns\Blizzard_QueueStatusFrame\Blizzard_QueueStatusFrame.lua ]]
                 icon._auroraBG:Hide()
             end
         end
-
-        if entry.HealersFound:IsShown() then
-            local point, anchor, relPoint, x, y = entry.HealersFound:GetPoint()
-            entry.HealersFound:SetPoint(point, anchor, relPoint, x + 0.5, y)
-        end
+        -- NOTE: do NOT call SetPoint on HealersFound or any entry sub-frame here.
+        -- SetPoint on pool entry children taints their layout metrics permanently,
+        -- causing entry.Status:GetHeight() to return a secret number and crashing
+        -- Blizzard's arithmetic in QueueStatusEntry_SetMinimalDisplay:1119.
     end
 end
 
 do --[[ AddOns\Blizzard_QueueStatusFrame\Blizzard_QueueStatusFrame.xml ]]
-    -- NEEDS REWORK...
     function Skin.QueueStatusRoleCountTemplate(Frame)
         local debugName = Frame:GetDebugName()
         if debugName:find("HealersFound") then
@@ -58,13 +56,10 @@ do --[[ AddOns\Blizzard_QueueStatusFrame\Blizzard_QueueStatusFrame.xml ]]
         end
     end
     function Skin.QueueStatusEntryTemplate(Frame)
-        Util.PositionRelative("TOPRIGHT", Frame, "TOPRIGHT", -5, -5, 3, "Left", {
-            Frame.RoleIcon1,
-            Frame.RoleIcon2,
-            Frame.RoleIcon3,
-        })
-
-        Frame.EntrySeparator:SetHeight(1)
+        -- NOTE: do NOT call SetPoint or SetHeight on any entry sub-frame here.
+        -- Pool entry frames are used in protected call chains; any layout modification
+        -- from addon code permanently taints the frame's geometry, causing GetHeight()
+        -- on sibling FontStrings to return secret numbers (see above).
         Skin.QueueStatusRoleCountTemplate(Frame.HealersFound)
         Skin.QueueStatusRoleCountTemplate(Frame.TanksFound)
         Skin.QueueStatusRoleCountTemplate(Frame.DamagersFound)
