@@ -12,6 +12,14 @@ local Util = Aurora.Util
 
 local FORCE_WIDGET_CHAT_DEBUG = false
 
+-- Track skinned widget frames without writing to the frame's Lua table.
+-- Direct table writes (frame._auroraSkinned = true) persist when WoW's global
+-- widget pool recycles frames from non-nameplate containers into nameplate
+-- containers.  The tainted field then causes GetScaledRect() to fail with
+-- "Can't measure restricted regions" inside the secure OnNamePlateAdded path.
+-- Weak keys let the GC collect released frames normally.
+local skinnedWidgetFrames = _G.setmetatable({}, {__mode = "k"})
+
 local function IsSecret(value)
     if _G.issecretvalue and _G.issecretvalue(value) then
         return true
@@ -198,12 +206,12 @@ do --[[ AddOns\Blizzard_UIWidgets.lua ]]
 
             if Skin[template] then
                 DebugUIWidgets("Skinning template for UIWidgetContainerMixin", SafeDebugName(widgetFrame), template)
-                if not widgetFrame._auroraSkinned then
+                if not skinnedWidgetFrames[widgetFrame] then
                     local ok, err = _G.pcall(Skin[template], widgetFrame)
                     if not ok then
                         DebugUIWidgets("Error skinning template", template, SafeDebugName(widgetFrame), err)
                     end
-                    widgetFrame._auroraSkinned = true
+                    skinnedWidgetFrames[widgetFrame] = true
                     if IsBelowMinimapContainer(self) then
                         DebugBelowMinimap("Skinned template", template, SafeDebugName(widgetFrame))
                     end
