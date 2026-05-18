@@ -1,4 +1,10 @@
-﻿## [12.0.5.12] ##
+﻿## [12.0.5.13] ##
+### Fixed ###
+
+  * fix: remove `UIWidgetBaseStatusBarTemplateMixin.InitPartitions` replacement — writing an addon-owned slot on the mixin taints the execution context when nameplate widgets call it from the secure `OnNamePlateAdded` path, causing `GetScaledRect()` to fail
+
+
+## [12.0.5.12] ##
 ### Fixed ###
 
   * fix: track skinned `UIWidget` frames in a separate weak-key table instead of writing `_auroraSkinned` onto the frame to prevent `GetScaledRect()` taint in the secure `OnNamePlateAdded` path
@@ -584,7 +590,8 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.0.5.12...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.0.5.13...develop
+[12.0.5.13]: https://github.com/Gethe/Aurora/compare/12.0.5.12...12.0.5.13
 [12.0.5.12]: https://github.com/Gethe/Aurora/compare/12.0.5.11...12.0.5.12
 [12.0.5.11]: https://github.com/Gethe/Aurora/compare/12.0.5.10...12.0.5.11
 [12.0.5.10]: https://github.com/Gethe/Aurora/compare/12.0.5.9...12.0.5.10
