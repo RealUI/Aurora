@@ -437,26 +437,18 @@ function private.AddOns.Blizzard_UIWidgets()
     ----====#####################====----
     --  Blizzard_UIWidgetTemplateBase  --
     ----====#####################====----
-    if _G.UIWidgetBaseStatusBarTemplateMixin and _G.UIWidgetBaseStatusBarTemplateMixin.InitPartitions then
-        -- Replace InitPartitions to guard against secret-number arithmetic:
-        -- self.Bar:SetWidth() in UIWidgetTemplateStatusBarMixin:Setup runs inside
-        -- Aurora's tainted GameTooltip_AddWidgetSet wrapper, tainting the bar
-        -- frame's width so GetWidth() returns a secret number at line 1030.
-        -- SafeNumber falls back to DEFAULT_BAR_WIDTH (215) so partition ticks are
-        -- placed at approximate positions rather than throwing an error.
-        _G.UIWidgetBaseStatusBarTemplateMixin.InitPartitions = function(self, partitionValues, textureKit)
-            local barWidth = SafeNumber(self:GetWidth(), 215)
-            for _, partitionValue in _G.ipairs(partitionValues) do
-                partitionValue = _G.Clamp(partitionValue, self.barMin, self.barMax)
-                local partitionFrame = self.partitionPool:Acquire()
-                partitionFrame:Setup(partitionValue, textureKit)
-                local partitionPercent = _G.ClampedPercentageBetween(partitionValue, self.barMin, self.barMax)
-                local xOffset = barWidth * partitionPercent
-                partitionFrame:SetPoint("CENTER", self:GetStatusBarTexture(), "LEFT", xOffset, 0)
-                partitionFrame:Show()
-            end
-        end
-    end
+    -- NOTE: Do NOT replace UIWidgetBaseStatusBarTemplateMixin.InitPartitions here.
+    -- Replacing the global mixin writes an addon-owned slot. When a nameplate
+    -- StatusBar widget calls InitPartitions from the secure [C] OnNamePlateAdded
+    -- → ProcessAllWidgets chain, hitting the addon-owned slot taints the execution
+    -- context and the subsequent UpdateWidgetLayout → GetScaledRect() fails with
+    -- "Can't measure restricted regions".
+    --
+    -- The replacement was originally added to guard against GetWidth() returning a
+    -- secret number when Aurora wrapped GameTooltip_AddWidgetSet. That wrapper was
+    -- removed (see SharedTooltipTemplates.lua: "Do NOT wrap GameTooltip_AddWidgetSet").
+    -- StatusBar frames in tooltip widget containers are not restricted, so GetWidth()
+    -- returns a normal number and the original Blizzard InitPartitions works correctly.
 
     ----====################%%########====----
     -- Blizzard_UIWidgetTemplateIconAndText --
