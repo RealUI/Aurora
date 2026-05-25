@@ -53,6 +53,24 @@ do --[[ AddOns\Blizzard_StaticPopup_Game\GameDialog.lua ]]
             Skin.FrameTypeEditBox(Frame.EditBox)
         end
 
+        -- Progress bar used for dialogs with countdown timers (e.g. cinematic skip).
+        -- The XML draws fill (subLevel -6) behind border (-5); the LFG atlas border
+        -- has a transparent centre letting the fill show through. With solid Aurora
+        -- textures the border would cover the fill, so raise the fill above the border.
+        local border = Frame.ProgressBarBorder
+        local fill   = Frame.ProgressBarFill
+        if border and fill then
+            border:SetAtlas("")
+            border:SetTexture("Interface\\Buttons\\White8x8")
+            border:SetVertexColor(Color.button:GetRGB())
+            border:SetTexCoord(0, 1, 0, 1)
+
+            fill:SetDrawLayer("BACKGROUND", -4)
+            fill:SetAtlas("")
+            fill:SetTexture("Interface\\Buttons\\White8x8")
+            fill:SetVertexColor(Color.highlight:GetRGB())
+        end
+
         Skin.SmallMoneyFrameTemplate(Frame.MoneyFrame)
         Skin.MoneyInputFrameTemplate(Frame.MoneyInputFrame)
 
