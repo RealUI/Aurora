@@ -1,0 +1,35 @@
+name: Create Nightly Package
+
+on:
+  create:
+
+env:
+  GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  is_nightly:
+    if: contains(github.ref, 'nightly') == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check
+        run: echo ${{ github.ref }}
+
+  package:
+    needs: is_nightly
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Remove Changelog
+        run: rm -f CHANGELOG.md
+
+      - name: Create Nightly Package
+        uses: BigWigsMods/packager@842112a80d0d8faec9f61295c5e89944311d8a5d # v2.5.1
+        # No CF_API_KEY or WAGO_API_TOKEN — GitHub release only
+
+      - name: Mark as pre-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${GITHUB_REF#refs/tags/}" --prerelease --repo "$GITHUB_REPOSITORY"
