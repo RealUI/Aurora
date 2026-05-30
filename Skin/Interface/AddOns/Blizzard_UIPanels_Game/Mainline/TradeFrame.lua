@@ -108,6 +108,7 @@ function private.FrameXML.TradeFrame()
     end
     _G.TradeRecipientBotLeftCorner:Hide()
     _G.TradeRecipientLeftBorder:Hide()
+    _G.TradeRecipientBG:Hide()
 
     _G.TradeRecipientBG:SetPoint("TOPLEFT", _G.TradeFrame, "TOPRIGHT", -172, 0)
 
