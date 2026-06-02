@@ -6,6 +6,40 @@ local Base, Hook, Skin = Aurora.Base, Aurora.Hook, Aurora.Skin
 local Util = Aurora.Util
 
 do --[[ AddOns\Blizzard_ProfessionsCustomerOrders.lua ]]
+    -- Skin tabs on the customer orders frame and reposition them.
+    --
+    -- Blizzard ships two tabs (BrowseTab, OrdersTab), but third-party addons
+    -- such as Myu's Knowledge Points Tracker insert additional tabs on the
+    -- frame. Without an explicit pass here, those tabs render with vanilla
+    -- Blizzard sizing (too wide, hit area extending past the frame edge,
+    -- mouseover offset). We discover tabs by walking the frame's children
+    -- and identifying anything inheriting PanelTabButtonTemplate (detected
+    -- via the LeftActive region), so this works for any number of tabs.
+    function Skin.ProfessionsCustomerOrdersFrameTabTemplate(Button)
+        Skin.PanelTabButtonTemplate(Button)
+        -- _auroraTabResize is already set by PanelTabButtonTemplate; mark
+        -- the button so we don't re-skin it on subsequent OnShow passes.
+        Button._auroraOrderTabSkinned = true
+    end
+
+    function Hook.ProfessionsCustomerOrdersFrame_RefreshTabs(Frame)
+        local tabs = {}
+        for _, child in next, { Frame:GetChildren() } do
+            -- PanelTabButtonTemplate exposes a LeftActive region; this is a
+            -- stable shape-test for "is this a tab" without depending on
+            -- frame names.
+            if child.LeftActive and child.GetText then
+                if not child._auroraOrderTabSkinned then
+                    Skin.ProfessionsCustomerOrdersFrameTabTemplate(child)
+                end
+                tabs[#tabs + 1] = child
+            end
+        end
+        if #tabs > 0 then
+            Util.PositionRelative("TOPLEFT", Frame, "BOTTOMLEFT", 20, -1, 1, "Right", tabs)
+        end
+    end
+
     -- Skin a recipe list row acquired from the ScrollBox element factory.
     local function SkinRecipeListRow(button)
         if not button or button._auroraSkinned then return end
@@ -62,6 +96,21 @@ function private.AddOns.Blizzard_ProfessionsCustomerOrders()
     -- Main frame (PortraitFrameTemplate)
     ------------------------------------
     Skin.FrameTypeFrame(Frame)
+
+    ------------------------------------
+    -- Tabs
+    ------------------------------------
+    -- Skin Blizzard's known tabs immediately so they look right on first show.
+    if Frame.BrowseTab then
+        Skin.ProfessionsCustomerOrdersFrameTabTemplate(Frame.BrowseTab)
+    end
+    if Frame.OrdersTab then
+        Skin.ProfessionsCustomerOrdersFrameTabTemplate(Frame.OrdersTab)
+    end
+    -- Reposition (and pick up any third-party tabs) on first show, and on every
+    -- subsequent show in case other addons add or remove tabs at runtime.
+    Hook.ProfessionsCustomerOrdersFrame_RefreshTabs(Frame)
+    Frame:HookScript("OnShow", Hook.ProfessionsCustomerOrdersFrame_RefreshTabs)
 
     ------------------------------------
     -- Money frame inset
