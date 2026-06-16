@@ -1,4 +1,19 @@
-﻿## [12.0.5.13] ##
+﻿## [12.0.7.0] ##
+### Added ###
+
+  * add: skin `Blizzard_ExpansionLandingPage`
+
+### Changed ###
+
+  * chg: update progress bar style for dialogs with countdown timers
+  * chg: guard `Blizzard_ProfessionsCustomerOrders` tab layout against third-party tab insertions and layout modifications
+
+### Fixed ###
+
+  * fix: hide `TradeRecipientBG` white overlay that made the recipient side of the trade frame appear lighter
+
+
+## [12.0.5.13] ##
 ### Fixed ###
 
   * fix: remove `UIWidgetBaseStatusBarTemplateMixin.InitPartitions` replacement — writing an addon-owned slot on the mixin taints the execution context when nameplate widgets call it from the secure `OnNamePlateAdded` path, causing `GetScaledRect()` to fail
@@ -590,7 +605,8 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.0.5.13...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.0.7.0...develop
+[12.0.7.0]: https://github.com/Gethe/Aurora/compare/12.0.5.13...12.0.7.0
 [12.0.5.13]: https://github.com/Gethe/Aurora/compare/12.0.5.12...12.0.5.13
 [12.0.5.12]: https://github.com/Gethe/Aurora/compare/12.0.5.11...12.0.5.12
 [12.0.5.11]: https://github.com/Gethe/Aurora/compare/12.0.5.10...12.0.5.11
