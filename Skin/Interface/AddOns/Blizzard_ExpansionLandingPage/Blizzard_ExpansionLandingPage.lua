@@ -29,8 +29,8 @@ function private.AddOns.Blizzard_ExpansionLandingPage()
             -- ApplyLayout is called on each OnShow and re-adds atlas decorations.
             -- Hook it to re-strip every time.
             if runesFrame.ApplyLayout then
-                hooksecurefunc(runesFrame, "ApplyLayout", function(self)
-                    StripRunesOfPowerDecorations(self)
+                _G.hooksecurefunc(runesFrame, "ApplyLayout", function(frame)
+                    StripRunesOfPowerDecorations(frame)
                 end)
             end
         end
