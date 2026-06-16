@@ -204,6 +204,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_EndOfMatchUI\Blizzard_EndOfMatchUI.lua"/>
     <!--Script file="Blizzard_EnvironmentCleanup\Blizzard_EnvironmentCleanup.lua"/-->
     <Script file="Blizzard_EventTrace\Blizzard_EventTrace.lua"/>
+    <Script file="Blizzard_ExpansionLandingPage\Blizzard_ExpansionLandingPage.lua"/>
     <Script file="Blizzard_ExpansionTrial\Blizzard_ExpansionTrial.lua"/>
     <Script file="Blizzard_FlightMap\Blizzard_FlightMap.lua"/>
     <Script file="Blizzard_Flyout\Blizzard_Flyout.lua"/>
