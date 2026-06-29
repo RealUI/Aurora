@@ -1,0 +1,24 @@
+## Interface: 20505, 20506
+## X-Min-Interface: 20505
+## Title: Aurora
+## IconAtlas: callings-backhighlight-full
+## Notes: Minimalistic window theme.
+## Author: Haleth/Lightsword, Gethe, Hanshi/arnvid
+## Version: 12.0.7.1
+## OptionalDeps: Ace3, LibTextDump-1.0, BugSack, WagoAnalytics
+## SavedVariables: AuroraConfig
+## X-Website: http://www.wowinterface.com/downloads/info18589.html
+## X-Curse-Project-ID: 278735
+## X-WoWI-ID: 18589
+## X-Wago-ID: JZKbRK19
+
+libs\Libs.xml
+Skin\skin.xml
+Skin\Interface\AddOns\AddOns_TBC.xml
+
+config.lua
+analytics.lua
+compatibility.lua
+integration.lua
+aurora.lua
+gui.lua

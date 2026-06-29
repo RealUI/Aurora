@@ -1,0 +1,308 @@
+local _, private = ...
+if private.shouldSkip() then return end
+
+--[[ Lua Globals ]]
+-- luacheck: globals
+
+--[[ Core ]]
+local Aurora = private.Aurora
+local Base = Aurora.Base
+local Hook, Skin = Aurora.Hook, Aurora.Skin
+local Color, Util = Aurora.Color, Aurora.Util
+
+do --[[ FrameXML\UIDropDownMenu.lua ]]
+    do --[[ UIDropDownMenu.lua ]]
+        local skinnedLevels, skinnedButtons = 2, 1 -- mirrors for UIDROPDOWNMENU_MAXLEVELS and UIDROPDOWNMENU_MAXBUTTONS
+        function Hook.UIDropDownMenu_CreateFrames(level, index)
+            while level > skinnedLevels do
+                -- New list frames have been created, skin them!
+                skinnedLevels = skinnedLevels + 1
+                local listFrameName = "DropDownList"..skinnedLevels
+                Skin.UIDropDownListTemplate(_G[listFrameName])
+                for i = 1, skinnedButtons do
+                    Skin.UIDropDownMenuButtonTemplate(_G[listFrameName.."Button"..i])
+                end
+            end
+
+            while index > skinnedButtons do
+                skinnedButtons = skinnedButtons + 1
+                for i = 1, skinnedLevels do
+                    local listFrameName = "DropDownList"..i
+                    Skin.UIDropDownMenuButtonTemplate(_G[listFrameName.."Button"..skinnedButtons])
+                end
+            end
+        end
+        function Hook.UIDropDownMenu_AddButton(info, level)
+            if not level then level = 1 end
+
+            local listFrameName = "DropDownList"..level
+            local listFrame = _G[listFrameName]
+            if not listFrame then return end
+            local index = listFrame.numButtons
+            if not index then return end
+
+            local menuButtonName = listFrameName.."Button"..index
+            local menuButton = _G[menuButtonName]
+            if not menuButton then return end
+
+            local checkBox = menuButton._auroraCheckBox
+            if not checkBox then return end
+
+            if not info.notCheckable then
+                local check = checkBox.check
+                local hasCustomIcon = false
+
+                checkBox:Show()
+                check:SetTexCoord(0, 1, 0, 1)
+                check:SetDesaturated(true)
+                check:SetVertexColor(Color.highlight:GetRGB())
+                if info.customCheckIconAtlas or info.customCheckIconTexture then
+                    checkBox:Hide()
+                    check:SetDesaturated(false)
+                    check:SetVertexColor(Color.white:GetRGB())
+                    check:SetSize(16, 16)
+                    hasCustomIcon = true
+
+                    if info.customCheckIconAtlas then
+                        check:SetAtlas(info.customCheckIconAtlas)
+                    else
+                        check:SetTexture(info.customCheckIconTexture)
+                    end
+                elseif info.isNotRadio then
+                    checkBox:SetSize(12, 12)
+                    checkBox:SetPoint("LEFT")
+                    check:SetTexture([[Interface\Buttons\UI-CheckBox-Check]])
+                    check:SetSize(20, 20)
+                    check:SetAlpha(1)
+                else
+                    checkBox:SetSize(8, 8)
+                    checkBox:SetPoint("LEFT", 4, 0)
+                    check:SetTexture(private.textures.plain)
+                    check:SetSize(6, 6)
+                    check:SetAlpha(0.6)
+                end
+
+                local checked = info.checked
+                if _G.type(checked) == "function" then
+                    checked = checked(menuButton)
+                end
+
+                if checked or hasCustomIcon then
+                    check:Show()
+                else
+                    check:Hide()
+                end
+
+                local uncheck = _G[menuButtonName.."UnCheck"]
+                if uncheck then
+                    uncheck:Hide()
+                end
+            else
+                checkBox:Hide()
+            end
+        end
+        function Hook.UIDropDownMenu_SetIconImage(icon, texture, info)
+            if texture and texture:find("Divider") then
+                icon:SetColorTexture(1, 1, 1, .2) -- static: not a theme color
+                icon:SetHeight(1)
+            end
+        end
+        function Hook.UIDropDownMenuButton_OnClick(self)
+            if not self._auroraCheckBox then return end
+
+            if self.checked then
+                self._auroraCheckBox.check:Show()
+            else
+                self._auroraCheckBox.check:Hide()
+            end
+
+            local uncheck = _G[self:GetName().."UnCheck"]
+            if uncheck then
+                uncheck:Hide()
+            end
+        end
+
+        function Hook.UIDropDownMenu_SetWidth(frame, width, padding)
+            if frame and frame.SetBackdropOption then
+                local offsets = frame:GetBackdropOption("offsets")
+                if offsets then
+                    frame:SetBackdropOption("offsets", {
+                        left = offsets.left,
+                        right = 20,
+                        top = offsets.top,
+                        bottom = offsets.bottom,
+                    })
+                end
+            end
+        end
+
+        function Hook.UIDropDownMenu_DisableDropDown(dropDown)
+            if not dropDown then return end
+            if dropDown.Button and dropDown.Button.GetButtonColor then
+                local _, disabledColor = dropDown.Button:GetButtonColor()
+                Base.SetBackdropColor(dropDown, disabledColor)
+            end
+        end
+        function Hook.UIDropDownMenu_EnableDropDown(dropDown)
+            if not dropDown then return end
+            if dropDown.Button and dropDown.Button.GetButtonColor then
+                Base.SetBackdropColor(dropDown, (dropDown.Button:GetButtonColor()))
+            end
+        end
+    end
+end
+
+do --[[ FrameXML\UIDropDownMenu.xml ]]
+    do --[[ UIDropDownMenuTemplates.xml ]]
+        function Skin.ColorSwatchTemplate(Button)
+            if not Button then return end
+            local name = Button:GetName()
+            if Button.SwatchBg then
+                Button.SwatchBg:Hide()
+                if Button.InnerBorder then
+                    Button.InnerBorder:SetColorTexture(Color.button:GetRGB())
+                end
+            elseif name then
+                local bg = _G[name.."SwatchBg"]
+                if bg then
+                    bg:SetColorTexture(Color.button:GetRGB())
+                    bg:SetAllPoints()
+
+                    local texture = Button:GetNormalTexture()
+                    if texture then
+                        texture:SetColorTexture(1, 1, 1) -- static: not a theme color
+                        texture:SetPoint("TOPLEFT", bg, 1, -1)
+                        texture:SetPoint("BOTTOMRIGHT", bg, -1, 1)
+                    end
+                end
+            end
+        end
+        function Skin.UIDropDownMenuButtonTemplate(Button)
+            if not Button then return end
+            local listFrame = Button:GetParent()
+            if not listFrame then return end
+            local name = Button:GetName()
+            if not name then return end
+
+            local highlight = _G[name.."Highlight"]
+            if highlight then
+                highlight:ClearAllPoints()
+                highlight:SetPoint("LEFT", listFrame, 6, 0)
+                highlight:SetPoint("RIGHT", listFrame, -6, 0)
+                highlight:SetPoint("TOP", 0, 0)
+                highlight:SetPoint("BOTTOM", 0, 0)
+                Util.SetHighlightColor(highlight, .2)
+            end
+
+            local checkBox = _G.CreateFrame("Frame", nil, Button)
+            checkBox:SetFrameLevel(Button:GetFrameLevel())
+            Base.SetBackdrop(checkBox, Color.button)
+            Button._auroraCheckBox = checkBox
+
+            local check = _G[name.."Check"]
+            if check then
+                check:SetDesaturated(true)
+                check:SetVertexColor(Color.highlight:GetRGB())
+                check:ClearAllPoints()
+                check:SetPoint("CENTER", checkBox)
+                checkBox.check = check
+            end
+
+            local arrow = _G[name.."ExpandArrow"]
+            if arrow then
+                arrow:SetSize(5, 10)
+                arrow:SetPoint("RIGHT", -2, 0)
+                local normalTex = arrow:GetNormalTexture()
+                if normalTex then
+                    Base.SetTexture(normalTex, "arrowRight")
+                end
+            end
+
+            Button:HookScript("OnClick", Hook.UIDropDownMenuButton_OnClick)
+        end
+        function Skin.UIDropDownListTemplate(Frame)
+            if not Frame then return end
+            local name = Frame:GetName()
+            if not name then return end
+
+            -- In TBC Classic, dropdown lists use Backdrop and MenuBackdrop named children
+            -- rather than a .Border key. Apply Base.SetBackdrop directly.
+            local backdrop = _G[name.."Backdrop"]
+            if backdrop then
+                Base.SetBackdrop(backdrop, Color.frame)
+            end
+            local menuBackdrop = _G[name.."MenuBackdrop"]
+            if menuBackdrop then
+                Base.SetBackdrop(menuBackdrop, Color.frame)
+            end
+
+            Skin.UIDropDownMenuButtonTemplate(_G[name.."Button1"])
+        end
+        function Skin.UIDropDownMenuTemplate(Frame)
+            if not Frame then return end
+            local rightOfs = -105
+            if _G.Round and _G.Round(Frame:GetWidth()) > 40 then
+                -- Adjust offset when the frame is wider than the default
+                rightOfs = 20
+            end
+
+            Base.SetBackdrop(Frame, Color.button)
+            Frame:SetBackdropOption("offsets", {
+                left = 21,
+                right = rightOfs,
+                top = 5,
+                bottom = 9,
+            })
+            Frame._auroraWidth = nil
+
+            if Frame.Left then
+                Frame.Left:SetAlpha(0)
+            end
+            if Frame.Middle then
+                Frame.Middle:SetAlpha(0)
+            end
+            if Frame.Right then
+                Frame.Right:SetAlpha(0)
+            end
+
+            local Button = Frame.Button
+            if Button then
+                Skin.FrameTypeButton(Button)
+                Button:SetBackdropOption("offsets", {
+                    left = 2,
+                    right = 4,
+                    top = 4,
+                    bottom = 2,
+                })
+
+                local bg = Frame:GetBackdropTexture("bg")
+                if Frame.Text and bg then
+                    Frame.Text:ClearAllPoints()
+                    Frame.Text:SetPoint("LEFT", bg, 3, 0)
+                    Frame.Text:SetPoint("RIGHT", bg, -20, 0)
+                end
+
+                local buttonBg = Button:GetBackdropTexture("bg")
+                if buttonBg then
+                    local arrow = Button:CreateTexture(nil, "ARTWORK")
+                    arrow:SetPoint("TOPLEFT", buttonBg, 3, -6)
+                    arrow:SetPoint("BOTTOMRIGHT", buttonBg, -3, 5)
+                    Base.SetTexture(arrow, "arrowDown")
+                    Button._auroraTextures = {arrow}
+                end
+            end
+        end
+    end
+end
+
+function private.SharedXML.UIDropDownMenu()
+    _G.hooksecurefunc("UIDropDownMenu_CreateFrames", Hook.UIDropDownMenu_CreateFrames)
+    _G.hooksecurefunc("UIDropDownMenu_AddButton", Hook.UIDropDownMenu_AddButton)
+    _G.hooksecurefunc("UIDropDownMenu_SetIconImage", Hook.UIDropDownMenu_SetIconImage)
+    _G.hooksecurefunc("UIDropDownMenu_SetWidth", Hook.UIDropDownMenu_SetWidth)
+    _G.hooksecurefunc("UIDropDownMenu_DisableDropDown", Hook.UIDropDownMenu_DisableDropDown)
+    _G.hooksecurefunc("UIDropDownMenu_EnableDropDown", Hook.UIDropDownMenu_EnableDropDown)
+
+    Skin.UIDropDownListTemplate(_G.DropDownList1)
+    Skin.UIDropDownListTemplate(_G.DropDownList2)
+end

@@ -1,0 +1,286 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
+
+    <Script>
+        _G.AURORA_DEBUG_PROJECT = 20
+    </Script>
+
+    <!-- ================================================================
+         Aurora AddOns skin manifest for Classic Anniversary (TBC)
+         Only includes addons that exist in Classic Anniversary.
+
+         Addons marked [NEEDS TBC ADAPTATION] have Mainline-specific skin
+         files that reference frame structures not present in TBC Classic.
+         These need TBC-specific skin code before uncommenting.
+
+         Addons marked [MAINLINE ONLY] do not exist in TBC Classic at all
+         and must not be enabled here.
+         ================================================================ -->
+
+    <!-- [MAINLINE ONLY] Blizzard_AchievementUI — achievements are Wrath+ (3.0) -->
+    <!--Script file="Blizzard_AchievementUI\Blizzard_AchievementUI.lua"/-->
+    <!-- [NEEDS TBC ADAPTATION] Blizzard_ActionBar — PetActionBar skin is Mainline-specific -->
+    <!--Script file="Blizzard_ActionBar\Mainline\PetActionBar.lua"/-->
+    <Script file="Blizzard_ActionBar\Shared\VehicleLeaveButton.lua"/>
+    <Script file="Blizzard_ActionBarController\Blizzard_ActionBarController.lua"/>
+    <Script file="Blizzard_AddOnList\Blizzard_AddOnList.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_ArchaeologyUI — archaeology is Cataclysm+ -->
+    <!--Script file="Blizzard_ArchaeologyUI\Blizzard_ArchaeologyUI.lua"/-->
+    <!-- [MAINLINE ONLY] Blizzard_AuctionHouseUI — TBC uses Blizzard_AuctionUI (different addon) -->
+    <!--Script file="Blizzard_AuctionHouseUI\Blizzard_AuctionHouseUI.lua"/-->
+    <Script file="Blizzard_AuctionUI\Blizzard_AuctionUI.lua"/>
+    <Script file="Blizzard_AutoComplete\Blizzard_AutoComplete.lua"/>
+    <Script file="Blizzard_AutoCompletePopupList\Blizzard_AutoCompletePopupList.lua"/>
+    <Script file="Blizzard_BarbershopUI\Blizzard_BarbershopUI.lua"/>
+    <Script file="Blizzard_BattlefieldMap\Blizzard_BattlefieldMap.lua"/>
+    <Script file="Blizzard_BindingUI\Blizzard_BindingUI.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_BlackMarketUI — MoP+ -->
+    <!--Script file="Blizzard_BlackMarketUI\Blizzard_BlackMarketUI.lua"/-->
+    <Script file="Blizzard_BuffFrame\Blizzard_BuffFrame.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_Calendar — added in Wrath (3.0) -->
+    <!--Script file="Blizzard_Calendar\Blizzard_Calendar.lua"/-->
+    <!-- [MAINLINE ONLY] Blizzard_ChallengesUI — MoP+ (Challenge Mode / Mythic+) -->
+    <!--Script file="Blizzard_ChallengesUI\Blizzard_ChallengesUI.lua"/-->
+    <Script file="Blizzard_Channels\Blizzard_Channels.lua"/>
+    <!-- Blizzard_ChatFrame -->
+    <!--Script file="Blizzard_ChatFrame\Mainline\ChatConfigFrame.lua"/-->
+    <Script file="Blizzard_ChatFrame\TBC\ChatConfigFrame.lua"/>
+    <!-- Blizzard_ChatFrameBase -->
+    <!--Script file="Blizzard_ChatFrameBase\Mainline\ChatFrame.lua"/-->
+    <!--Script file="Blizzard_ChatFrameBase\Mainline\FloatingChatFrame.lua"/-->
+    <Script file="Blizzard_ChatFrameBase\TBC\ChatFrame.lua"/>
+    <Script file="Blizzard_ChatFrameBase\TBC\FloatingChatFrame.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_Collections — WoD+ (transmog, toys, heirlooms) -->
+    <!--Script file="Blizzard_Collections\Blizzard_Collections.lua"/-->
+    <!-- [MAINLINE ONLY] Blizzard_CombatLog — not a separate addon in TBC Classic -->
+    <!--Script file="Blizzard_CombatLog\Blizzard_CombatLog.lua"/-->
+    <!-- [MAINLINE ONLY] Blizzard_Communities — BFA+ (guild communities) -->
+    <!--Script file="Blizzard_Communities\Blizzard_Communities.lua"/-->
+    <!-- [MAINLINE ONLY] Blizzard_CompactRaidFrames — Cataclysm+ -->
+    <!--Script file="Blizzard_CompactRaidFrames\Blizzard_CompactRaidFrames.lua"/-->
+    <!-- [MAINLINE ONLY] Blizzard_CooldownViewer — Midnight (12.0)+ -->
+    <!--Script file="Blizzard_CooldownViewer\Blizzard_CooldownViewer.lua"/-->
+    <Script file="Blizzard_CraftUI\Blizzard_CraftUI.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_CustomizationUI — Shadowlands+ -->
+    <!--Script file="Blizzard_CustomizationUI\Blizzard_CustomizationUI.lua"/-->
+    <Script file="Blizzard_DebugTools\Blizzard_DebugTools.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_EncounterJournal — Cataclysm+ -->
+    <!--Script file="Blizzard_EncounterJournal\Blizzard_EncounterJournal.lua"/-->
+    <Script file="Blizzard_EngravingUI\Blizzard_EngravingUI.lua"/>
+    <Script file="Blizzard_EventTrace\Blizzard_EventTrace.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_Flyout — Dragonflight+ -->
+    <!--Script file="Blizzard_Flyout\Blizzard_Flyout.lua"/-->
+    <Script file="Blizzard_Fonts_Shared\Blizzard_Fonts_Shared.lua"/>
+    <!-- [NEEDS TBC ADAPTATION] Blizzard_FrameXML — many skins in Mainline\ subdir -->
+    <!-- [MAINLINE ONLY] BattlePetTooltip — pet battles are MoP+ -->
+    <!--Script file="Blizzard_FrameXML\Mainline\BattlePetTooltip.lua"/-->
+    <Script file="Blizzard_FrameXML\BossBannerToast.lua"/>
+    <Script file="Blizzard_FrameXML\DeprecatedTemplates.lua"/>
+    <Script file="Blizzard_FrameXML\EquipmentFlyout.lua"/>
+    <Script file="Blizzard_FrameXML\EventToastManager.lua"/>
+    <!-- [MAINLINE ONLY] FloatingPetBattleTooltip — pet battles are MoP+ -->
+    <!--Script file="Blizzard_FrameXML\Mainline\FloatingPetBattleTooltip.lua"/-->
+    <Script file="Blizzard_FrameXML\GhostFrame.lua"/>
+    <Script file="Blizzard_FrameXML\GuildInviteFrame.lua"/>
+    <Script file="Blizzard_FrameXML\MovieFrame.lua"/>
+    <Script file="Blizzard_FrameXML\PVPHonorSystem.lua"/>
+    <Script file="Blizzard_FrameXML\PVPUITemplates.lua"/>
+    <Script file="Blizzard_FrameXML\RolePoll.lua"/>
+    <!-- [MAINLINE ONLY] SharedPetBattleTemplates — pet battles are MoP+ -->
+    <!--Script file="Blizzard_FrameXML\Mainline\SharedPetBattleTemplates.lua"/-->
+    <Script file="Blizzard_FrameXML\SplashFrame.lua"/>
+    <!-- [MAINLINE ONLY] TalentFrameBase — modern talent system (Dragonflight+) -->
+    <!--Script file="Blizzard_FrameXML\Mainline\TalentFrameBase.lua"/-->
+    <!-- [MAINLINE ONLY] TalentFrameTemplates — modern talent system (Dragonflight+) -->
+    <!--Script file="Blizzard_FrameXML\Mainline\TalentFrameTemplates.lua"/-->
+    <Script file="Blizzard_FrameXML\TalkingHeadUI.lua"/>
+    <Script file="Blizzard_FrameXML\Timer.lua"/>
+    <!-- [MAINLINE ONLY] WardrobeCustomSets — transmog is WoD+ -->
+    <!--Script file="Blizzard_FrameXML\Mainline\WardrobeCustomSets.lua"/-->
+    <!--Script file="Blizzard_FrameXML\Mainline\AlertFrames.lua"/-->
+    <!--Script file="Blizzard_FrameXML\Mainline\AlertFrameSystems.lua"/-->
+    <Script file="Blizzard_FrameXML\TBC\AlertFrames.lua"/>
+    <!--Script file="Blizzard_FrameXML\Mainline\ColorPickerFrame.lua"/-->
+    <Script file="Blizzard_FrameXML\TBC\ColorPickerFrame.lua"/>
+    <!--Script file="Blizzard_FrameXML\Mainline\LootHistory.lua"/-->
+    <!--Script file="Blizzard_FrameXML\Mainline\NavigationBar.lua"/-->
+    <!--Script file="Blizzard_FrameXML\Mainline\RatingMenuFrame.lua"/-->
+    <!--Script file="Blizzard_FrameXML\Mainline\ReadyCheck.lua"/-->
+    <Script file="Blizzard_FrameXML\TBC\ReadyCheck.lua"/>
+    <!--Script file="Blizzard_FrameXML\Mainline\StackSplitFrame.lua"/-->
+    <Script file="Blizzard_FrameXML\TBC\StackSplitFrame.lua"/>
+    <!--Script file="Blizzard_FrameXML\Mainline\TutorialFrame.lua"/-->
+    <Script file="Blizzard_FrameXML\Shared\CinematicFrame.lua"/>
+    <!-- Blizzard_FrameXMLBase — uses flavor-specific XML includes -->
+    <Script file="Blizzard_FrameXMLBase\Shared\Constants.lua"/>
+    <Script file="Blizzard_GameMenu\Blizzard_GameMenu.lua"/>
+    <Script file="Blizzard_GameTooltip\Blizzard_GameTooltip.lua"/>
+    <Script file="Blizzard_GlyphUI\Blizzard_GlyphUI.lua"/>
+    <!-- [NEEDS TBC ADAPTATION] Blizzard_GroupFinder — skins are in Mainline\ subdir -->
+    <!--Script file="Blizzard_GroupFinder\Mainline\PVEFrame.lua"/-->
+    <!--Script file="Blizzard_GroupFinder\Mainline\LFGFrame.lua"/-->
+    <Script file="Blizzard_GroupFinder\TBC\LFGFrame.lua"/>
+    <!--Script file="Blizzard_GroupFinder\Mainline\LFDFrame.lua"/-->
+    <Script file="Blizzard_GroupFinder\TBC\LFDFrame.lua"/>
+    <!--Script file="Blizzard_GroupFinder\Shared\RaidFinder.lua"/-->
+    <Script file="Blizzard_GroupFinder\TBC\RaidFinder.lua"/>
+    <!--Script file="Blizzard_GroupFinder\Mainline\LFGList.lua"/-->
+    <!--Script file="Blizzard_GroupFinder\Mainline\PvpPopup.lua"/-->
+    <Script file="Blizzard_GroupFinder\TBC\PvpPopup.lua"/>
+    <!--Script file="Blizzard_GroupFinder\Mainline\PVPHelper.lua"/-->
+    <Script file="Blizzard_GuildBankUI\Blizzard_GuildBankUI.lua"/>
+    <Script file="Blizzard_GuildControlUI\Blizzard_GuildControlUI.lua"/>
+    <Script file="Blizzard_GuildRename\Blizzard_GuildRename.lua"/>
+    <Script file="Blizzard_HelpFrame\Blizzard_HelpFrame.lua"/>
+    <Script file="Blizzard_HelpPlate\Blizzard_HelpPlate.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_HousingModelPreview — TWW+ -->
+    <!--Script file="Blizzard_HousingModelPreview\Blizzard_HousingModelPreview.lua"/-->
+    <Script file="Blizzard_InspectUI\Blizzard_InspectUI.lua"/>
+    <Script file="Blizzard_ItemButton\Blizzard_ItemButton.lua"/>
+    <Script file="Blizzard_ItemSocketingUI\Blizzard_ItemSocketingUI.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_ItemUpgradeUI — MoP+ -->
+    <!--Script file="Blizzard_ItemUpgradeUI\Blizzard_ItemUpgradeUI.lua"/-->
+    <Script file="Blizzard_MacroUI\Blizzard_MacroUI.lua"/>
+    <Script file="Blizzard_MailFrame\TBC\MailFrame.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_MainMenuBarBagButtons — Dragonflight+ -->
+    <!--Script file="Blizzard_MainMenuBarBagButtons\Blizzard_MainMenuBarBagButtons.lua"/-->
+    <!-- [MAINLINE ONLY] Blizzard_MapCanvas — modern map framework, Retail -->
+    <!--Script file="Blizzard_MapCanvas\Blizzard_MapCanvas.lua"/-->
+    <!-- [MAINLINE ONLY] Blizzard_MatchmakingQueueDisplay — Retail -->
+    <!--Script file="Blizzard_MatchmakingQueueDisplay\Blizzard_MatchmakingQueueDisplay.lua"/-->
+    <!-- [NEEDS TBC ADAPTATION] Blizzard_Menu — skins are in Mainline\ subdir -->
+    <!--Script file="Blizzard_Menu\Mainline\MenuConstants.lua"/-->
+    <!--Script file="Blizzard_Menu\Mainline\MenuVariants.lua"/-->
+    <Script file="Blizzard_Menu\Compositor.lua"/>
+    <Script file="Blizzard_Menu\Menu.lua"/>
+    <Script file="Blizzard_Menu\DropdownButton.lua"/>
+    <Script file="Blizzard_Menu\MenuTemplates.lua"/>
+    <!--Script file="Blizzard_Menu\Mainline\MenuTemplates.lua"/-->
+    <!-- Blizzard_MoneyFrame -->
+    <!--Script file="Blizzard_MoneyFrame\Mainline\MoneyFrame.lua"/-->
+    <!--Script file="Blizzard_MoneyFrame\Mainline\MoneyInputFrame.lua"/-->
+    <Script file="Blizzard_MoneyFrame\TBC\MoneyFrame.lua"/>
+    <Script file="Blizzard_MoneyFrame\TBC\MoneyInputFrame.lua"/>
+    <Script file="Blizzard_NamePlates\Blizzard_NamePlates.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_PetBattleUI — MoP+ -->
+    <!--Script file="Blizzard_PetBattleUI\Blizzard_PetBattleUI.lua"/-->
+    <!-- [MAINLINE ONLY] Blizzard_PlunderstormPrematchUI — Retail seasonal -->
+    <!--Script file="Blizzard_PlunderstormPrematchUI\Blizzard_PlunderstormPrematchUI.lua"/-->
+    <!-- [MAINLINE ONLY] Blizzard_PVPUI — modern PvP UI, not in TBC -->
+    <!--Script file="Blizzard_PVPUI\Blizzard_PVPUI.lua"/-->
+    <Script file="Blizzard_QuestTimer\Blizzard_QuestTimer.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_QueueStatusFrame — modern queue UI, Retail -->
+    <!--Script file="Blizzard_QueueStatusFrame\Blizzard_QueueStatusFrame.lua"/-->
+    <!-- [MAINLINE ONLY] Blizzard_QuickKeybind — Shadowlands+ -->
+    <!--Script file="Blizzard_QuickKeybind\Blizzard_QuickKeybind.lua"/-->
+    <Script file="Blizzard_RaidFrame\Blizzard_RaidFrame.lua"/>
+    <Script file="Blizzard_RaidUI\Blizzard_RaidUI.lua"/>
+    <Script file="Blizzard_ReforgingUI\Blizzard_ReforgingUI.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_ReportFrame — modern reporting system, Retail -->
+    <!--Script file="Blizzard_ReportFrame\Blizzard_ReportFrame.lua"/-->
+    <Script file="Blizzard_ScriptErrorsFrame\Blizzard_ScriptErrorsFrame.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_SharedMapDataProviders — Retail map system -->
+    <!--Script file="Blizzard_SharedMapDataProviders\Blizzard_SharedMapDataProviders.lua"/-->
+    <!-- [MAINLINE ONLY] Blizzard_SharedTalentUI — Dragonflight+ talent system -->
+    <!--Script file="Blizzard_SharedTalentUI\Blizzard_SharedTalentUI.lua"/-->
+    <!-- [NEEDS TBC ADAPTATION] Blizzard_SharedXML — several skins in Mainline\ subdir -->
+    <Script file="Blizzard_SharedXML\SharedColorConstants.lua"/>
+    <Script file="Blizzard_SharedXML\NineSlice.lua"/>
+    <Script file="Blizzard_SharedXML\Shared\Scroll\ScrollBox.lua"/>
+    <Script file="Blizzard_SharedXML\Shared\Scroll\ScrollBar.lua"/>
+    <Script file="Blizzard_SharedXML\Shared\Scroll\ScrollTemplates.lua"/>
+    <Script file="Blizzard_SharedXML\Shared\Scroll\TrimScrollBar.lua"/>
+    <!--Script file="Blizzard_SharedXML\Mainline\Scroll\OribosScrollBar.lua"/-->
+    <Script file="Blizzard_SharedXML\Shared\Scroll\MinimalScrollBar.lua"/>
+    <Script file="Blizzard_SharedXML\Shared\Selector\Blizzard_SelectorUI.lua"/>
+    <Script file="Blizzard_SharedXML\Shared\Selector\Blizzard_ScrollBoxSelector.lua"/>
+    <Script file="Blizzard_SharedXML\Shared\TabSystem\TabSystemTemplates.lua"/>
+    <Script file="Blizzard_SharedXML\HelpTip.lua"/>
+    <Script file="Blizzard_SharedXML\HybridScrollFrame.lua"/>
+    <Script file="Blizzard_SharedXML\ModelPreviewFrame.lua"/>
+    <Script file="Blizzard_SharedXML\ModelSceneTemplates.lua"/>
+    <Script file="Blizzard_SharedXML\PropertyButton.lua"/>
+    <Script file="Blizzard_SharedXML\PropertySlider.lua"/>
+    <Script file="Blizzard_SharedXML\SecureScrollTemplates.lua"/>
+    <Script file="Blizzard_SharedXML\SecureUIPanelTemplates.lua"/>
+    <Script file="Blizzard_SharedXML\SharedBasicControls.lua"/>
+    <Script file="Blizzard_SharedXML\SharedTooltipTemplates.lua"/>
+    <Script file="Blizzard_SharedXML\TemplatedList.lua"/>
+    <!--Script file="Blizzard_SharedXML\Mainline\SharedUIPanelTemplates.lua"/-->
+    <Script file="Blizzard_SharedXML\TBC\SharedUIPanelTemplates.lua"/>
+    <!--Script file="Blizzard_SharedXML\Mainline\UIDropDownMenu.lua"/-->
+    <Script file="Blizzard_SharedXML\TBC\UIDropDownMenu.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_SocialToast — Retail -->
+    <!--Script file="Blizzard_SocialToast\Blizzard_SocialToast.lua"/-->
+    <Script file="Blizzard_StaticPopup\Blizzard_StaticPopup.lua"/>
+    <!-- [NEEDS TBC ADAPTATION] Blizzard_StaticPopup_Game — StaticPopupSpecial is Mainline-specific -->
+    <Script file="Blizzard_StaticPopup_Game\GameDialog.lua"/>
+    <!--Script file="Blizzard_StaticPopup_Game\Mainline\StaticPopupSpecial.lua"/-->
+    <Script file="Blizzard_StoreUI\Blizzard_StoreUI.lua"/>
+    <Script file="Blizzard_Subtitles\Blizzard_Subtitles.lua"/>
+    <!-- Blizzard_SharedTalentUI is replaced by Blizzard_TalentUI on Classic -->
+    <Script file="Blizzard_TalentUI\Blizzard_TalentUI.lua"/>
+    <Script file="Blizzard_TimeManager\Blizzard_TimeManager.lua"/>
+    <Script file="Blizzard_TokenUI\Blizzard_TokenUI.lua"/>
+    <Script file="Blizzard_TradeSkillUI\Blizzard_TradeSkillUI.lua"/>
+    <Script file="Blizzard_TrainerUI\Blizzard_TrainerUI.lua"/>
+    <!-- Blizzard_UIPanels_Game — many skins in Mainline\ subdir -->
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\CastingBarFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\CastingBarFrame.lua"/>
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\DressUpFrames.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\DressUpFrames.lua"/>
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\CharacterFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\CharacterFrame.lua"/>
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\PaperDollFrame.lua"/-->
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\ReputationFrame.lua"/-->
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\QuestFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\QuestFrame.lua"/>
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\QuestInfo.lua"/-->
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\MerchantFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\MerchantFrame.lua"/>
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\TradeFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\TradeFrame.lua"/>
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\ContainerFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\ContainerFrame.lua"/>
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\ScrollingFlatPanel.lua"/-->
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\LootFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\LootFrame.lua"/>
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\GroupLootFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\GroupLootFrame.lua"/>
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\ItemTextFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\ItemTextFrame.lua"/>
+    <Script file="Blizzard_UIPanels_Game\Shared\TaxiFrame.lua"/>
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\BankFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\BankFrame.lua"/>
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\ItemRef.lua"/-->
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\WorldMapFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\WorldMapFrame.lua"/>
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\WarCampaignTemplates.lua"/-->
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\CampaignOverview.lua"/-->
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\QuestMapFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\QuestMapFrame.lua"/>
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\TabardFrame.lua"/-->
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\GuildRegistrarFrame.lua"/-->
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\PetitionFrame.lua"/-->
+    <!--Script file="Blizzard_UIPanels_Game\Mainline\GossipFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\GossipFrame.lua"/>
+    <!-- Blizzard_UIPanelTemplates -->
+    <!--Script file="Blizzard_UIPanelTemplates\Mainline\UIPanelTemplates.lua"/-->
+    <Script file="Blizzard_UIPanelTemplates\TBC\UIPanelTemplates.lua"/>
+    <!-- Blizzard_UIParent -->
+    <Script file="Blizzard_UIParent\ChatBubbleTemplates.lua"/>
+    <!--Script file="Blizzard_UIParent\Mainline\UIParent.lua"/-->
+    <Script file="Blizzard_UIParent\TBC\UIParent.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_UIWidgets — BFA+ -->
+    <!--Script file="Blizzard_UIWidgets\Blizzard_UIWidgets.lua"/-->
+    <Script file="Blizzard_UnitFrame\Blizzard_UnitFrame.lua"/>
+    <Script file="Blizzard_UnitPopup\UnitPopupSlider.lua"/>
+    <Script file="Blizzard_UnitPopup\UnitPopupCustomControls.lua"/>
+    <!-- [MAINLINE ONLY] Blizzard_VoiceToggleButton — BFA+ (voice chat) -->
+    <!--Script file="Blizzard_VoiceToggleButton\Blizzard_VoiceToggleButton.lua"/-->
+    <!-- [MAINLINE ONLY] Blizzard_WorldLootObjectList — TWW+ -->
+    <!--Script file="Blizzard_WorldLootObjectList\Blizzard_WorldLootObjectList.lua"/-->
+    <!-- [MAINLINE ONLY] Blizzard_WorldMap — modern WorldMap addon, Retail (TBC uses old full-screen map) -->
+    <!--Script file="Blizzard_WorldMap\Blizzard_WorldMap.lua"/-->
+
+</Ui>
