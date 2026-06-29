@@ -21,10 +21,25 @@ do --[[ FrameXML\RolePoll.xml ]]
 end
 
 function private.FrameXML.RolePoll()
-    Skin.DialogBorderTemplate(_G.RolePollPopup.Border)
-    Skin.UIPanelCloseButton(_G.RolePollPopupCloseButton)
-    Skin.LFGRoleButtonTemplate(_G.RolePollPopupRoleButtonTank)
-    Skin.LFGRoleButtonTemplate(_G.RolePollPopupRoleButtonHealer)
-    Skin.LFGRoleButtonTemplate(_G.RolePollPopupRoleButtonDPS)
-    Skin.UIPanelButtonTemplate(_G.RolePollPopupAcceptButton)
+    -- RolePollPopup may not exist on all Classic flavors
+    if not _G.RolePollPopup then return end
+
+    if _G.RolePollPopup.Border then
+        Skin.DialogBorderTemplate(_G.RolePollPopup.Border)
+    end
+    if _G.RolePollPopupCloseButton then
+        Skin.UIPanelCloseButton(_G.RolePollPopupCloseButton)
+    end
+    if _G.RolePollPopupRoleButtonTank then
+        Skin.LFGRoleButtonTemplate(_G.RolePollPopupRoleButtonTank)
+    end
+    if _G.RolePollPopupRoleButtonHealer then
+        Skin.LFGRoleButtonTemplate(_G.RolePollPopupRoleButtonHealer)
+    end
+    if _G.RolePollPopupRoleButtonDPS then
+        Skin.LFGRoleButtonTemplate(_G.RolePollPopupRoleButtonDPS)
+    end
+    if _G.RolePollPopupAcceptButton then
+        Skin.UIPanelButtonTemplate(_G.RolePollPopupAcceptButton)
+    end
 end

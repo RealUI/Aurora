@@ -100,13 +100,16 @@ end
 
 function private.AddOns.Blizzard_InspectUI()
     local InspectFrame = _G.InspectFrame
+    if not InspectFrame then return end
     ----====####################====----
     --       Blizzard_InspectUI       --
     ----====####################====----
     Skin.ButtonFrameTemplate(InspectFrame)
     Skin.PanelTabButtonTemplate(_G.InspectFrameTab1)
     Skin.PanelTabButtonTemplate(_G.InspectFrameTab2)
-    Skin.PanelTabButtonTemplate(_G.InspectFrameTab3)
+    if _G.InspectFrameTab3 then
+        Skin.PanelTabButtonTemplate(_G.InspectFrameTab3)
+    end
     Util.PositionRelative("TOPLEFT", InspectFrame, "BOTTOMLEFT", 20, -1, 1, "Right", {
         _G.InspectFrameTab1,
         _G.InspectFrameTab2,
@@ -116,31 +119,51 @@ function private.AddOns.Blizzard_InspectUI()
     ----====#####################====----
     --      InspectPaperDollFrame      --
     ----====#####################====----
-    _G.hooksecurefunc("InspectPaperDollFrame_OnShow", Hook.InspectPaperDollFrame_OnShow)
+    if _G.InspectPaperDollFrame_OnShow then
+        _G.hooksecurefunc("InspectPaperDollFrame_OnShow", Hook.InspectPaperDollFrame_OnShow)
+    end
 
     local InspectPaperDollFrame = _G.InspectPaperDollFrame
-    InspectPaperDollFrame:HookScript("OnShow", Hook.InspectPaperDollFrame_OnShow)
+    if InspectPaperDollFrame then
+        InspectPaperDollFrame:HookScript("OnShow", Hook.InspectPaperDollFrame_OnShow)
 
-    Skin.UIPanelButtonTemplate(InspectPaperDollFrame.ViewButton)
+        -- ViewButton is Mainline-only (Dressing Room integration)
+        if InspectPaperDollFrame.ViewButton then
+            Skin.UIPanelButtonTemplate(InspectPaperDollFrame.ViewButton)
+        end
+    end
 
     local InspectPaperDollItemsFrame = _G.InspectPaperDollItemsFrame
-    Skin.UIPanelButtonTemplate(InspectPaperDollItemsFrame.InspectTalents)
+    if InspectPaperDollItemsFrame and InspectPaperDollItemsFrame.InspectTalents then
+        Skin.UIPanelButtonTemplate(InspectPaperDollItemsFrame.InspectTalents)
+    end
 
-    local bg = InspectFrame.NineSlice:GetBackdropTexture("bg")
-    local classBG = InspectPaperDollFrame:CreateTexture(nil, "BORDER")
-    classBG:SetAtlas("dressingroom-background-"..private.charClass.token)
-    classBG:SetPoint("TOPLEFT", bg)
-    classBG:SetPoint("BOTTOM", bg)
-    classBG:SetPoint("RIGHT", InspectFrame.Inset, 4, 0)
-    InspectPaperDollFrame._classBG = classBG
+    -- Class background atlas — modern pattern (may not exist in TBC)
+    if InspectFrame.NineSlice and InspectFrame.NineSlice.GetBackdropTexture then
+        local bg = InspectFrame.NineSlice:GetBackdropTexture("bg")
+        if bg and InspectPaperDollFrame then
+            local classBG = InspectPaperDollFrame:CreateTexture(nil, "BORDER")
+            classBG:SetAtlas("dressingroom-background-"..private.charClass.token)
+            classBG:SetPoint("TOPLEFT", bg)
+            classBG:SetPoint("BOTTOM", bg)
+            if InspectFrame.Inset then
+                classBG:SetPoint("RIGHT", InspectFrame.Inset, 4, 0)
+            end
+            InspectPaperDollFrame._classBG = classBG
 
-    local settings = private.CLASS_BACKGROUND_SETTINGS[private.charClass.token] or private.CLASS_BACKGROUND_SETTINGS["DEFAULT"];
-    classBG:SetDesaturation(settings.desaturation)
-    classBG:SetAlpha(settings.alpha)
+            local settings = private.CLASS_BACKGROUND_SETTINGS[private.charClass.token] or private.CLASS_BACKGROUND_SETTINGS["DEFAULT"];
+            classBG:SetDesaturation(settings.desaturation)
+            classBG:SetAlpha(settings.alpha)
+        end
+    end
 
-    _G.InspectModelFrame:DisableDrawLayer("BACKGROUND")
-    _G.InspectModelFrame.BackgroundOverlay:Hide()
-    _G.InspectModelFrame:DisableDrawLayer("OVERLAY")
+    if _G.InspectModelFrame then
+        _G.InspectModelFrame:DisableDrawLayer("BACKGROUND")
+        if _G.InspectModelFrame.BackgroundOverlay then
+            _G.InspectModelFrame.BackgroundOverlay:Hide()
+        end
+        _G.InspectModelFrame:DisableDrawLayer("OVERLAY")
+    end
 
     local EquipmentSlots = {
         "InspectHeadSlot", "InspectNeckSlot", "InspectShoulderSlot", "InspectBackSlot", "InspectChestSlot", "InspectShirtSlot", "InspectTabardSlot", "InspectWristSlot",
@@ -153,82 +176,86 @@ function private.AddOns.Blizzard_InspectUI()
     local slotsPerSide, prevSlot = 8
     for i = 1, #EquipmentSlots do
         local button = _G[EquipmentSlots[i]]
-        button:ClearAllPoints()
-        local isLeftSide = button.IsLeftSide or i <= slotsPerSide
+        if button then
+            button:ClearAllPoints()
+            local isLeftSide = button.IsLeftSide or i <= slotsPerSide
 
-        if i % slotsPerSide == 1 then
-            if isLeftSide then
-                button:SetPoint("TOPLEFT", InspectFrame.Inset, 4, 22)
+            if i % slotsPerSide == 1 then
+                if isLeftSide then
+                    if InspectFrame.Inset then
+                        button:SetPoint("TOPLEFT", InspectFrame.Inset, 4, 22)
+                    end
+                else
+                    if InspectFrame.Inset then
+                        button:SetPoint("TOPRIGHT", InspectFrame.Inset, -4, 22)
+                    end
+                end
             else
-                button:SetPoint("TOPRIGHT", InspectFrame.Inset, -4, 22)
+                if prevSlot then
+                    button:SetPoint("TOPLEFT", prevSlot, "BOTTOMLEFT", 0, -6)
+                end
             end
-        else
-            button:SetPoint("TOPLEFT", prevSlot, "BOTTOMLEFT", 0, -6)
-        end
 
-        if isLeftSide then
-            Skin.InspectPaperDollItemSlotButtonLeftTemplate(button)
-        elseif isLeftSide == false then
-            Skin.InspectPaperDollItemSlotButtonRightTemplate(button)
-        end
+            if isLeftSide then
+                Skin.InspectPaperDollItemSlotButtonLeftTemplate(button)
+            elseif isLeftSide == false then
+                Skin.InspectPaperDollItemSlotButtonRightTemplate(button)
+            end
 
-        prevSlot = button
+            prevSlot = button
+        end
     end
 
     for i = 1, #WeaponSlots do
         local button = _G[WeaponSlots[i]]
+        if button then
+            if i == 1 then
+                -- main hand
+                button:SetPoint("BOTTOMLEFT", 130, 8)
+            end
 
-        if i == 1 then
-            -- main hand
-            button:SetPoint("BOTTOMLEFT", 130, 8)
+            _G.select(button:GetNumRegions(), button:GetRegions()):Hide()
+            Skin.InspectPaperDollItemSlotButtonBottomTemplate(button)
         end
-
-        _G.select(button:GetNumRegions(), button:GetRegions()):Hide()
-        Skin.InspectPaperDollItemSlotButtonBottomTemplate(button)
     end
 
     ----====#####################====----
     --         InspectPVPFrame         --
     ----====#####################====----
+    -- InspectPVPFrame with Slots is Mainline-only (PVP talent inspect)
     local InspectPVPFrame = _G.InspectPVPFrame
-    InspectPVPFrame.BG:SetTexCoord(0.00390625, 0.3115234375, 0.34375, 0.87890625)
-    InspectPVPFrame.BG:SetDesaturated(true)
-    InspectPVPFrame.BG:SetBlendMode("ADD")
-    InspectPVPFrame.BG:SetAllPoints(bg)
+    if InspectPVPFrame then
+        if InspectPVPFrame.BG then
+            local bg = InspectFrame.NineSlice and InspectFrame.NineSlice:GetBackdropTexture("bg")
+            if bg then
+                InspectPVPFrame.BG:SetTexCoord(0.00390625, 0.3115234375, 0.34375, 0.87890625)
+                InspectPVPFrame.BG:SetDesaturated(true)
+                InspectPVPFrame.BG:SetBlendMode("ADD")
+                InspectPVPFrame.BG:SetAllPoints(bg)
+            end
+        end
 
-    InspectPVPFrame.RatedBG:SetPoint("TOPLEFT", InspectPVPFrame, 8, -124)
-    InspectPVPFrame.Slots[1]:SetPoint("TOPRIGHT", InspectPVPFrame, -46, -124)
-    for i = 1, #InspectPVPFrame.Slots do
-        Skin.InspectPvpTalentSlotTemplate(InspectPVPFrame.Slots[i])
+        if InspectPVPFrame.RatedBG then
+            InspectPVPFrame.RatedBG:SetPoint("TOPLEFT", InspectPVPFrame, 8, -124)
+        end
+        if InspectPVPFrame.Slots then
+            if InspectPVPFrame.Slots[1] then
+                InspectPVPFrame.Slots[1]:SetPoint("TOPRIGHT", InspectPVPFrame, -46, -124)
+            end
+            for i = 1, #InspectPVPFrame.Slots do
+                Skin.InspectPvpTalentSlotTemplate(InspectPVPFrame.Slots[i])
+            end
+        end
     end
 
     ----====####################====----
     --       InspectTalentFrame       --
     ----====####################====----
-    -- _G.hooksecurefunc("InspectTalentFrameSpec_OnShow", Hook.InspectTalentFrameSpec_OnShow)
-
-    -- local InspectTalentFrame = _G.InspectTalentFrame
-    -- local talentBG, talentTile = InspectTalentFrame:GetRegions()
-    -- talentBG:Hide()
-    -- talentTile:Hide()
-
-    -- local InspectSpec = InspectTalentFrame.InspectSpec
-    -- InspectSpec:HookScript("OnShow", Hook.InspectTalentFrameSpec_OnShow)
-    -- InspectSpec.ring:Hide()
-    -- Base.CropIcon(InspectSpec.specIcon, InspectSpec)
-
-    -- local InspectTalents = InspectTalentFrame.InspectTalents
-    -- Skin.InspectTalentRowTemplate(InspectTalents.tier1)
-    -- Skin.InspectTalentRowTemplate(InspectTalents.tier2)
-    -- Skin.InspectTalentRowTemplate(InspectTalents.tier3)
-    -- Skin.InspectTalentRowTemplate(InspectTalents.tier4)
-    -- Skin.InspectTalentRowTemplate(InspectTalents.tier5)
-    -- Skin.InspectTalentRowTemplate(InspectTalents.tier6)
-    -- Skin.InspectTalentRowTemplate(InspectTalents.tier7)
 
     ----====#####################====----
     --        InspectGuildFrame        --
     ----====#####################====----
-    --local InspectGuildFrame = _G.InspectGuildFrame
-    _G.InspectGuildFrameBG:Hide()
+    if _G.InspectGuildFrameBG then
+        _G.InspectGuildFrameBG:Hide()
+    end
 end

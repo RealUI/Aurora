@@ -25,5 +25,7 @@ do --[[ FrameXML\Timer.xml ]]
 end
 
 function private.FrameXML.Timer()
-    _G.hooksecurefunc("StartTimer_SetGoTexture", Hook.StartTimer_SetGoTexture)
+    if _G.StartTimer_SetGoTexture then
+        _G.hooksecurefunc("StartTimer_SetGoTexture", Hook.StartTimer_SetGoTexture)
+    end
 end

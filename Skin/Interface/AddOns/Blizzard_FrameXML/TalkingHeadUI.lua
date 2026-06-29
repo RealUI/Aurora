@@ -64,7 +64,11 @@ end
 
 function private.FrameXML.TalkingHeadUI()
     local talkingHeadFrame = _G.TalkingHeadFrame
+    if not talkingHeadFrame then return end
+
     SkinTalkingHeadFrame(talkingHeadFrame)
 
-    _G.hooksecurefunc(talkingHeadFrame, "PlayCurrent", SkinTalkingHeadFrame)
+    if talkingHeadFrame.PlayCurrent then
+        _G.hooksecurefunc(talkingHeadFrame, "PlayCurrent", SkinTalkingHeadFrame)
+    end
 end

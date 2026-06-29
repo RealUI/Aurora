@@ -10,7 +10,7 @@ local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Color = Aurora.Color
 
 local function GetSafeSenderName(sender)
-    if _G.issecretvalue(sender) or _G.issecrettable(sender) then
+    if (_G.issecretvalue and _G.issecretvalue(sender)) or (_G.issecrettable and _G.issecrettable(sender)) then
         return ""
     end
 
@@ -22,7 +22,7 @@ local function GetSafeSenderName(sender)
 end
 
 local function GetSafeMessageText(message)
-    if _G.issecretvalue(message) or _G.issecrettable(message) then
+    if (_G.issecretvalue and _G.issecretvalue(message)) or (_G.issecrettable and _G.issecrettable(message)) then
         return nil
     end
 
@@ -49,6 +49,11 @@ do --[[ FrameXML\Backdrop.lua ]]
     local function FindChatBubble(msg)
         msg = GetSafeMessageText(msg)
         if not msg then
+            return
+        end
+
+        -- C_ChatBubbles may not exist on all Classic flavors
+        if not _G.C_ChatBubbles or not _G.C_ChatBubbles.GetAllChatBubbles then
             return
         end
 

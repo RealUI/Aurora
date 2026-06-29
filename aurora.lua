@@ -214,21 +214,27 @@ function private.OnLoad()
 
     -- Skip CharacterFrame modifications if Chonky Character Sheet is loaded
     if AuroraConfig.characterSheet and not _G.C_AddOns.IsAddOnLoaded("ChonkyCharacterSheet") then
-        _G.hooksecurefunc(private.FrameXML, "CharacterFrame", function()
-            _G.CharacterStatsPane.ItemLevelFrame:SetPoint("TOP", 0, -12)
-            _G.CharacterStatsPane.ItemLevelFrame.Background:Hide()
-            _G.CharacterStatsPane.ItemLevelFrame.Value:SetFontObject("SystemFont_Outline_WTF2")
+        if type(private.FrameXML.CharacterFrame) == "function" then
+            _G.hooksecurefunc(private.FrameXML, "CharacterFrame", function()
+                -- CharacterStatsPane.ItemLevelFrame only exists on Retail
+                if not _G.CharacterStatsPane or not _G.CharacterStatsPane.ItemLevelFrame then return end
 
-            _G.hooksecurefunc("PaperDollFrame_UpdateStats", function()
-                if ( _G.UnitLevel("player") >= _G.MIN_PLAYER_LEVEL_FOR_ITEM_LEVEL_DISPLAY ) then
-                    _G.CharacterStatsPane.ItemLevelCategory:Hide()
-                    _G.CharacterStatsPane.AttributesCategory:SetPoint("TOP", 0, -40)
-                end
+                _G.CharacterStatsPane.ItemLevelFrame:SetPoint("TOP", 0, -12)
+                _G.CharacterStatsPane.ItemLevelFrame.Background:Hide()
+                _G.CharacterStatsPane.ItemLevelFrame.Value:SetFontObject("SystemFont_Outline_WTF2")
+
+                _G.hooksecurefunc("PaperDollFrame_UpdateStats", function()
+                    if ( _G.UnitLevel("player") >= _G.MIN_PLAYER_LEVEL_FOR_ITEM_LEVEL_DISPLAY ) then
+                        _G.CharacterStatsPane.ItemLevelCategory:Hide()
+                        _G.CharacterStatsPane.AttributesCategory:SetPoint("TOP", 0, -40)
+                    end
+                end)
             end)
-        end)
+        end
     end
 
-    _G.hooksecurefunc(private.FrameXML, "FriendsFrame", function()
+    if type(private.FrameXML.FriendsFrame) == "function" then
+        _G.hooksecurefunc(private.FrameXML, "FriendsFrame", function()
         local FriendsFrame = _G.FriendsFrame
         local titleText = FriendsFrame.TitleText or FriendsFrame:GetTitleText()
 
@@ -264,6 +270,7 @@ function private.OnLoad()
             end
         end)
     end)
+    end
 
     -- Disable skins as per user settings
     private.disabled.bags = not AuroraConfig.bags

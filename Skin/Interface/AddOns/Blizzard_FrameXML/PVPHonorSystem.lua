@@ -38,5 +38,9 @@ do --[[ FrameXML\PVPHonorSystem.xml ]]
 end
 
 function private.FrameXML.PVPHonorSystem()
-    _G.hooksecurefunc("PVPHonorXPBar_Update", Hook.PVPHonorXPBar_Update)
+    -- PVPHonorXPBar_Update is a Mainline-only global function (honor XP bar
+    -- was added in Legion). On TBC Classic this function does not exist.
+    if _G.PVPHonorXPBar_Update then
+        _G.hooksecurefunc("PVPHonorXPBar_Update", Hook.PVPHonorXPBar_Update)
+    end
 end

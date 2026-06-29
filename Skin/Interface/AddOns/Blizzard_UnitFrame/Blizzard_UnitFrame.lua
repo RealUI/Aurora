@@ -37,5 +37,8 @@ end
 --end
 
 function private.FrameXML.CompactUnitFrame()
-    _G.hooksecurefunc("CompactUnitFrame_UpdateHealthColor", Hook.CompactUnitFrame_UpdateHealthColor)
+    -- CompactUnitFrame_UpdateHealthColor is Cataclysm+ (compact raid frames)
+    if _G.CompactUnitFrame_UpdateHealthColor then
+        _G.hooksecurefunc("CompactUnitFrame_UpdateHealthColor", Hook.CompactUnitFrame_UpdateHealthColor)
+    end
 end

@@ -15,6 +15,9 @@ local Base, Skin = Aurora.Base, Aurora.Skin
 --end
 
 function private.FrameXML.GhostFrame()
+    if not _G.GhostFrame then return end
     Skin.UIPanelLargeSilverButton(_G.GhostFrame)
-    Base.CropIcon(_G.GhostFrameContentsFrameIcon, _G.GhostFrameContentsFrame)
+    if _G.GhostFrameContentsFrameIcon and _G.GhostFrameContentsFrame then
+        Base.CropIcon(_G.GhostFrameContentsFrameIcon, _G.GhostFrameContentsFrame)
+    end
 end

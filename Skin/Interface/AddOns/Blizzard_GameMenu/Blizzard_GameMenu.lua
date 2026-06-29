@@ -87,7 +87,13 @@ end
 
 function private.FrameXML.GameMenuFrame()
     local GameMenuFrame = _G.GameMenuFrame
-    _G.hooksecurefunc(GameMenuFrame,"InitButtons", Hook.GameMenuInitButtons)
+    if not GameMenuFrame then return end
+
+    -- InitButtons / buttonPool is the modern (Mainline) game menu pattern.
+    -- TBC Classic uses static named buttons (GameMenuButtonLogout, etc.)
+    if GameMenuFrame.InitButtons then
+        _G.hooksecurefunc(GameMenuFrame,"InitButtons", Hook.GameMenuInitButtons)
+    end
     Util.Mixin(GameMenuFrame, Hook.GameMenuFrameMixin)
     Skin.GameMenuFrameTemplate(GameMenuFrame)
 end

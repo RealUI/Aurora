@@ -17,9 +17,19 @@ end
 
 function private.FrameXML.SplashFrame()
     local SplashFrame = _G.SplashFrame
-    Skin.UIPanelButtonTemplate(SplashFrame.BottomCloseButton)
+    if not SplashFrame then return end
 
-    Skin.UIPanelCloseButton(SplashFrame.TopCloseButton)
-    Skin.SplashFeatureFrameTemplate(SplashFrame.Feature1)
-    Skin.SplashFeatureFrameTemplate(SplashFrame.Feature2)
+    if SplashFrame.BottomCloseButton then
+        Skin.UIPanelButtonTemplate(SplashFrame.BottomCloseButton)
+    end
+
+    if SplashFrame.TopCloseButton then
+        Skin.UIPanelCloseButton(SplashFrame.TopCloseButton)
+    end
+    if SplashFrame.Feature1 then
+        Skin.SplashFeatureFrameTemplate(SplashFrame.Feature1)
+    end
+    if SplashFrame.Feature2 then
+        Skin.SplashFeatureFrameTemplate(SplashFrame.Feature2)
+    end
 end

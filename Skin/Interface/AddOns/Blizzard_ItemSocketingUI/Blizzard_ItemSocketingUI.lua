@@ -63,19 +63,32 @@ do --[[ AddOns\Blizzard_ItemSocketingUI.lua ]]
     }
 
     function Hook.ItemSocketingFrame_Update()
+        -- C_ItemSocketInfo is the modern API; TBC uses GetSocketTypes() directly
+        local GetSocketTypes = _G.C_ItemSocketInfo and _G.C_ItemSocketInfo.GetSocketTypes or _G.GetSocketTypes
+        local GetNumSockets = _G.C_ItemSocketInfo and _G.C_ItemSocketInfo.GetNumSockets or _G.GetNumSockets
+
+        if not GetSocketTypes or not _G.ItemSocketingFrame.SocketingContainer then return end
+
         for i, socket in ipairs(_G.ItemSocketingFrame.SocketingContainer) do
-            local gemInfo = GEM_TYPE_INFO[_G.C_ItemSocketInfo.GetSocketTypes(i)] or default
-            socket.Background:SetTexCoord(gemInfo.coords[1], gemInfo.coords[2], gemInfo.coords[3], gemInfo.coords[4])
-            socket:SetBackdropBorderColor(gemInfo.color, 1)
+            local gemInfo = GEM_TYPE_INFO[GetSocketTypes(i)] or default
+            if socket.Background then
+                socket.Background:SetTexCoord(gemInfo.coords[1], gemInfo.coords[2], gemInfo.coords[3], gemInfo.coords[4])
+            end
+            if socket.SetBackdropBorderColor then
+                socket:SetBackdropBorderColor(gemInfo.color, 1)
+            end
         end
 
-        local num = _G.C_ItemSocketInfo.GetNumSockets()
-        if num == 3 then
-            _G.ItemSocketingFrame.SocketingContainer['Socket1']:SetPoint("BOTTOM", _G.ItemSocketingFrame, "BOTTOM", -80, 39)
-        elseif num == 2 then
-            _G.ItemSocketingFrame.SocketingContainer['Socket1']:SetPoint("BOTTOM", _G.ItemSocketingFrame, "BOTTOM", -40, 39)
-        else
-            _G.ItemSocketingFrame.SocketingContainer['Socket1']:SetPoint("BOTTOM", _G.ItemSocketingFrame, "BOTTOM", 0, 39)
+        local num = GetNumSockets and GetNumSockets() or 0
+        local socket1 = _G.ItemSocketingFrame.SocketingContainer['Socket1']
+        if socket1 then
+            if num == 3 then
+                socket1:SetPoint("BOTTOM", _G.ItemSocketingFrame, "BOTTOM", -80, 39)
+            elseif num == 2 then
+                socket1:SetPoint("BOTTOM", _G.ItemSocketingFrame, "BOTTOM", -40, 39)
+            else
+                socket1:SetPoint("BOTTOM", _G.ItemSocketingFrame, "BOTTOM", 0, 39)
+            end
         end
     end
 end
@@ -84,10 +97,14 @@ do --[[ AddOns\Blizzard_ItemSocketingUI.xml ]]
     function Skin.ItemSocketingSocketButtonTemplate(Button, index)
         local LeftFiligree = Button.LeftFiligree
         local RightFiligree = Button.RightFiligree
-        if LeftFiligree then LeftFiligree:Hide() end
-        if RightFiligree then RightFiligree:Hide() end
-        LeftFiligree:SetAlpha(0)
-        RightFiligree:SetAlpha(0)
+        if LeftFiligree then
+            LeftFiligree:Hide()
+            LeftFiligree:SetAlpha(0)
+        end
+        if RightFiligree then
+            RightFiligree:Hide()
+            RightFiligree:SetAlpha(0)
+        end
         select(2, Button:GetRegions()):Hide() -- drop shadow
 
         Base.CreateBackdrop(Button, {
@@ -96,21 +113,31 @@ do --[[ AddOns\Blizzard_ItemSocketingUI.xml ]]
             insets = {left = 1, right = 1, top = 1, bottom = 1}
         }, {bg = Button.Background})
 
-        Base.CropIcon(Button.Icon)
-        Button.Icon:ClearAllPoints()
-        Button.Icon:SetPoint("TOPLEFT", 1, -1)
-        Button.Icon:SetPoint("BOTTOMRIGHT", -1, 1)
+        if Button.Icon then
+            Base.CropIcon(Button.Icon)
+            Button.Icon:ClearAllPoints()
+            Button.Icon:SetPoint("TOPLEFT", 1, -1)
+            Button.Icon:SetPoint("BOTTOMRIGHT", -1, 1)
+        end
 
         local shine = Button.Shine
-        shine:ClearAllPoints()
-        shine:SetAllPoints(Button.icon)
+        if shine then
+            shine:ClearAllPoints()
+            shine:SetAllPoints(Button.icon or Button.Icon)
+        end
 
         local BracketFrame = Button.BracketFrame
-        BracketFrame:ClearAllPoints()
-        BracketFrame:SetPoint("TOPLEFT", -4, 4)
-        BracketFrame:SetPoint("BOTTOMRIGHT", 4, -4)
-        BracketFrame.ClosedBracket:SetAllPoints()
-        BracketFrame.OpenBracket:SetAllPoints()
+        if BracketFrame then
+            BracketFrame:ClearAllPoints()
+            BracketFrame:SetPoint("TOPLEFT", -4, 4)
+            BracketFrame:SetPoint("BOTTOMRIGHT", 4, -4)
+            if BracketFrame.ClosedBracket then
+                BracketFrame.ClosedBracket:SetAllPoints()
+            end
+            if BracketFrame.OpenBracket then
+                BracketFrame.OpenBracket:SetAllPoints()
+            end
+        end
 
         Base.CropIcon(Button:GetPushedTexture())
         Base.CropIcon(Button:GetHighlightTexture())
@@ -118,56 +145,53 @@ do --[[ AddOns\Blizzard_ItemSocketingUI.xml ]]
 end
 
 function private.AddOns.Blizzard_ItemSocketingUI()
-    _G.hooksecurefunc("ItemSocketingFrame_Update", Hook.ItemSocketingFrame_Update)
+    if _G.ItemSocketingFrame_Update then
+        _G.hooksecurefunc("ItemSocketingFrame_Update", Hook.ItemSocketingFrame_Update)
+    end
     local ItemSocketingFrame = _G.ItemSocketingFrame
+    if not ItemSocketingFrame then return end
 
     Skin.ButtonFrameTemplate(ItemSocketingFrame)
-    do -- Hide textures
-        ItemSocketingFrame["ParchmentFrame-Top"]:Hide()
-        ItemSocketingFrame["ParchmentFrame-Bottom"]:Hide()
-        ItemSocketingFrame["ParchmentFrame-Left"]:Hide()
-        ItemSocketingFrame["ParchmentFrame-Right"]:Hide()
+    do -- Hide textures (nil-safe)
+        local texNames = {
+            "ParchmentFrame-Top", "ParchmentFrame-Bottom", "ParchmentFrame-Left", "ParchmentFrame-Right",
+            "SocketFrame-Left", "SocketFrame-Right",
+            "ButtonFrame-Left", "ButtonFrame-Right", "ButtonBorder-Mid",
+            "GoldBorder-BottomRight", "GoldBorder-BottomLeft", "GoldBorder-TopRight", "GoldBorder-TopLeft",
+            "GoldBorder-Left", "GoldBorder-Right", "GoldBorder-Top", "GoldBorder-Bottom",
+            "BorderShadow-TopLeftCorner", "BorderShadow-TopRightCorner",
+            "BorderShadow-BottomLeftCorner", "BorderShadow-BottomRightCorner",
+            "BorderShadow-Top", "BorderShadow-Left", "BorderShadow-Bottom", "BorderShadow-Right",
+        }
+        for _, name in ipairs(texNames) do
+            if ItemSocketingFrame[name] then
+                ItemSocketingFrame[name]:Hide()
+            end
+        end
 
-        ItemSocketingFrame["SocketFrame-Left"]:Hide()
-        ItemSocketingFrame["SocketFrame-Right"]:Hide()
-
-        ItemSocketingFrame["ButtonFrame-Left"]:Hide()
-        ItemSocketingFrame["ButtonFrame-Right"]:Hide()
-        ItemSocketingFrame["ButtonBorder-Mid"]:Hide()
-
-        ItemSocketingFrame["GoldBorder-BottomRight"]:Hide()
-        ItemSocketingFrame["GoldBorder-BottomLeft"]:Hide()
-        ItemSocketingFrame["GoldBorder-TopRight"]:Hide()
-        ItemSocketingFrame["GoldBorder-TopLeft"]:Hide()
-        ItemSocketingFrame["GoldBorder-Left"]:Hide()
-        ItemSocketingFrame["GoldBorder-Right"]:Hide()
-        ItemSocketingFrame["GoldBorder-Top"]:Hide()
-        ItemSocketingFrame["GoldBorder-Bottom"]:Hide()
-
-        ItemSocketingFrame.BackgroundColor:Hide()
-        ItemSocketingFrame.BackgroundHighlight:Hide()
-
-        ItemSocketingFrame["BorderShadow-TopLeftCorner"]:Hide()
-        ItemSocketingFrame["BorderShadow-TopRightCorner"]:Hide()
-        ItemSocketingFrame["BorderShadow-BottomLeftCorner"]:Hide()
-        ItemSocketingFrame["BorderShadow-BottomRightCorner"]:Hide()
-        ItemSocketingFrame["BorderShadow-Top"]:Hide()
-        ItemSocketingFrame["BorderShadow-Left"]:Hide()
-        ItemSocketingFrame["BorderShadow-Bottom"]:Hide()
-        ItemSocketingFrame["BorderShadow-Right"]:Hide()
-
-        ItemSocketingFrame.BottomLeftNub:Hide()
-        ItemSocketingFrame.BottomRightNub:Hide()
-        ItemSocketingFrame.MiddleLeftNub:Hide()
-        ItemSocketingFrame.MiddleRightNub:Hide()
-        ItemSocketingFrame.TopLeftNub:Hide()
-        ItemSocketingFrame.TopRightNub:Hide()
+        if ItemSocketingFrame.BackgroundColor then ItemSocketingFrame.BackgroundColor:Hide() end
+        if ItemSocketingFrame.BackgroundHighlight then ItemSocketingFrame.BackgroundHighlight:Hide() end
+        if ItemSocketingFrame.BottomLeftNub then ItemSocketingFrame.BottomLeftNub:Hide() end
+        if ItemSocketingFrame.BottomRightNub then ItemSocketingFrame.BottomRightNub:Hide() end
+        if ItemSocketingFrame.MiddleLeftNub then ItemSocketingFrame.MiddleLeftNub:Hide() end
+        if ItemSocketingFrame.MiddleRightNub then ItemSocketingFrame.MiddleRightNub:Hide() end
+        if ItemSocketingFrame.TopLeftNub then ItemSocketingFrame.TopLeftNub:Hide() end
+        if ItemSocketingFrame.TopRightNub then ItemSocketingFrame.TopRightNub:Hide() end
     end
 
-    Skin.ScrollFrameTemplate(_G.ItemSocketingScrollFrame)
-    for i = 1, _G.MAX_NUM_SOCKETS do
-        Skin.ItemSocketingSocketButtonTemplate(_G.ItemSocketingFrame.SocketingContainer['Socket'..i], i)
+    if _G.ItemSocketingScrollFrame then
+        Skin.ScrollFrameTemplate(_G.ItemSocketingScrollFrame)
     end
-    local ApplySocketsButton = ItemSocketingFrame.SocketingContainer.ApplySocketsButton
-    Skin.UIPanelButtonTemplate(ApplySocketsButton)
+    if ItemSocketingFrame.SocketingContainer then
+        for i = 1, _G.MAX_NUM_SOCKETS or 3 do
+            local socket = ItemSocketingFrame.SocketingContainer['Socket'..i]
+            if socket then
+                Skin.ItemSocketingSocketButtonTemplate(socket, i)
+            end
+        end
+        local ApplySocketsButton = ItemSocketingFrame.SocketingContainer.ApplySocketsButton
+        if ApplySocketsButton then
+            Skin.UIPanelButtonTemplate(ApplySocketsButton)
+        end
+    end
 end

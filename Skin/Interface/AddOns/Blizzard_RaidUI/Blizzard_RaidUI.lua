@@ -66,15 +66,27 @@ do --[[ AddOns\Blizzard_RaidUI.xml ]]
 end
 
 function private.AddOns.Blizzard_RaidUI()
-    _G.hooksecurefunc("RaidGroupFrame_Update", Hook.RaidGroupFrame_Update)
-
-    _G.RaidGroup1:SetPoint("TOPLEFT", 5, -58)
-    _G.RaidGroup2:SetPoint("LEFT", _G.RaidGroup1, "RIGHT", 4, 0)
-    for groupID = 1, _G.NUM_RAID_GROUPS do
-        Skin.RaidGroupTemplate(_G["RaidGroup"..groupID])
+    if _G.RaidGroupFrame_Update then
+        _G.hooksecurefunc("RaidGroupFrame_Update", Hook.RaidGroupFrame_Update)
     end
 
-    for memberID = 1, _G.MAX_RAID_MEMBERS do
-        Skin.RaidGroupButtonTemplate(_G["RaidGroupButton"..memberID])
+    if _G.RaidGroup1 then
+        _G.RaidGroup1:SetPoint("TOPLEFT", 5, -58)
+    end
+    if _G.RaidGroup1 and _G.RaidGroup2 then
+        _G.RaidGroup2:SetPoint("LEFT", _G.RaidGroup1, "RIGHT", 4, 0)
+    end
+    for groupID = 1, _G.NUM_RAID_GROUPS or 8 do
+        local group = _G["RaidGroup"..groupID]
+        if group then
+            Skin.RaidGroupTemplate(group)
+        end
+    end
+
+    for memberID = 1, _G.MAX_RAID_MEMBERS or 40 do
+        local button = _G["RaidGroupButton"..memberID]
+        if button then
+            Skin.RaidGroupButtonTemplate(button)
+        end
     end
 end

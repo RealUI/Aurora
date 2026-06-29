@@ -18,29 +18,58 @@ do --[[ FrameXML\RaidFrame.xml ]]
 end
 
 function private.FrameXML.RaidFrame()
-    Skin.RoleCountTemplate(_G.RaidFrame.RoleCount)
-    Skin.UICheckButtonTemplate(_G.RaidFrameAllAssistCheckButton)
-    Skin.UIPanelButtonTemplate(_G.RaidFrameConvertToRaidButton)
-    Skin.UIPanelButtonTemplate(_G.RaidFrameRaidInfoButton)
+    -- RaidFrame.RoleCount is a modern (Classic Anniversary+) addition
+    if _G.RaidFrame and _G.RaidFrame.RoleCount then
+        Skin.RoleCountTemplate(_G.RaidFrame.RoleCount)
+    end
+    if _G.RaidFrameAllAssistCheckButton then
+        Skin.UICheckButtonTemplate(_G.RaidFrameAllAssistCheckButton)
+    end
+    if _G.RaidFrameConvertToRaidButton then
+        Skin.UIPanelButtonTemplate(_G.RaidFrameConvertToRaidButton)
+    end
+    if _G.RaidFrameRaidInfoButton then
+        Skin.UIPanelButtonTemplate(_G.RaidFrameRaidInfoButton)
+    end
 
 
     -------------------
     -- RaidInfoFrame --
     -------------------
     local RaidInfoFrame = _G.RaidInfoFrame
+    if not RaidInfoFrame then return end
+
     RaidInfoFrame:SetPoint("TOPLEFT", _G.RaidFrame, "TOPRIGHT", 1, -28)
-    Skin.DialogBorderDarkTemplate(RaidInfoFrame.Border)
-    Skin.DialogHeaderTemplate(RaidInfoFrame.Header)
+    if RaidInfoFrame.Border then
+        Skin.DialogBorderDarkTemplate(RaidInfoFrame.Border)
+    end
+    if RaidInfoFrame.Header then
+        Skin.DialogHeaderTemplate(RaidInfoFrame.Header)
+    end
 
-    _G.RaidInfoDetailHeader:Hide()
-    _G.RaidInfoDetailFooter:Hide()
+    if _G.RaidInfoDetailHeader then _G.RaidInfoDetailHeader:Hide() end
+    if _G.RaidInfoDetailFooter then _G.RaidInfoDetailFooter:Hide() end
 
-    Skin.RaidInfoHeaderTemplate(_G.RaidInfoInstanceLabel)
-    Skin.RaidInfoHeaderTemplate(_G.RaidInfoIDLabel)
+    if _G.RaidInfoInstanceLabel then
+        Skin.RaidInfoHeaderTemplate(_G.RaidInfoInstanceLabel)
+    end
+    if _G.RaidInfoIDLabel then
+        Skin.RaidInfoHeaderTemplate(_G.RaidInfoIDLabel)
+    end
 
-    Skin.UIPanelCloseButton(_G.RaidInfoCloseButton)
-    Skin.WowScrollBoxList(RaidInfoFrame.ScrollBox)
-    Skin.MinimalScrollBar(RaidInfoFrame.ScrollBar)
-    Skin.UIPanelButtonTemplate(_G.RaidInfoExtendButton)
-    Skin.UIPanelButtonTemplate(_G.RaidInfoCancelButton)
+    if _G.RaidInfoCloseButton then
+        Skin.UIPanelCloseButton(_G.RaidInfoCloseButton)
+    end
+    if RaidInfoFrame.ScrollBox then
+        Skin.WowScrollBoxList(RaidInfoFrame.ScrollBox)
+    end
+    if RaidInfoFrame.ScrollBar then
+        Skin.MinimalScrollBar(RaidInfoFrame.ScrollBar)
+    end
+    if _G.RaidInfoExtendButton then
+        Skin.UIPanelButtonTemplate(_G.RaidInfoExtendButton)
+    end
+    if _G.RaidInfoCancelButton then
+        Skin.UIPanelButtonTemplate(_G.RaidInfoCancelButton)
+    end
 end

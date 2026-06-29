@@ -21,6 +21,9 @@ end
 --end
 
 function private.FrameXML.EventToastManager()
+    -- EventToastManagerFrame is Mainline-only (added in Shadowlands)
+    if not _G.EventToastManagerFrame then return end
+
     local Util = Aurora.Util
     Util.Mixin(_G.EventToastManagerFrame, Hook.EventToastManagerFrameMixin)
 end

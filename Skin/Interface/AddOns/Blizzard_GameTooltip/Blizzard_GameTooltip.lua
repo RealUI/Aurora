@@ -124,14 +124,29 @@ end
 function private.FrameXML.GameTooltip()
     if private.disabled.tooltips then return end
 
-    _G.hooksecurefunc("EmbeddedItemTooltip_Clear", Hook.EmbeddedItemTooltip_Clear)
-    _G.hooksecurefunc("EmbeddedItemTooltip_PrepareForItem", Hook.EmbeddedItemTooltip_PrepareForItem)
-    _G.hooksecurefunc("EmbeddedItemTooltip_PrepareForSpell", Hook.EmbeddedItemTooltip_PrepareForSpell)
-    _G.hooksecurefunc("GameTooltip_ShowStatusBar", Hook.GameTooltip_ShowStatusBar)
-    _G.hooksecurefunc("GameTooltip_ShowProgressBar", Hook.GameTooltip_ShowProgressBar)
+    -- These global functions may not exist on all Classic flavors
+    if _G.EmbeddedItemTooltip_Clear then
+        _G.hooksecurefunc("EmbeddedItemTooltip_Clear", Hook.EmbeddedItemTooltip_Clear)
+    end
+    if _G.EmbeddedItemTooltip_PrepareForItem then
+        _G.hooksecurefunc("EmbeddedItemTooltip_PrepareForItem", Hook.EmbeddedItemTooltip_PrepareForItem)
+    end
+    if _G.EmbeddedItemTooltip_PrepareForSpell then
+        _G.hooksecurefunc("EmbeddedItemTooltip_PrepareForSpell", Hook.EmbeddedItemTooltip_PrepareForSpell)
+    end
+    if _G.GameTooltip_ShowStatusBar then
+        _G.hooksecurefunc("GameTooltip_ShowStatusBar", Hook.GameTooltip_ShowStatusBar)
+    end
+    if _G.GameTooltip_ShowProgressBar then
+        _G.hooksecurefunc("GameTooltip_ShowProgressBar", Hook.GameTooltip_ShowProgressBar)
+    end
 
-    Skin.ShoppingTooltipTemplate(_G.ShoppingTooltip1)
-    Skin.ShoppingTooltipTemplate(_G.ShoppingTooltip2)
+    if _G.ShoppingTooltip1 then
+        Skin.ShoppingTooltipTemplate(_G.ShoppingTooltip1)
+    end
+    if _G.ShoppingTooltip2 then
+        Skin.ShoppingTooltipTemplate(_G.ShoppingTooltip2)
+    end
 
     -- Taint-safe GameTooltip skin: the standard Skin.GameTooltipTemplate
     -- calls Skin.NineSlicePanelTemplate (sets _auroraNineSlice, enabling
@@ -143,32 +158,42 @@ function private.FrameXML.GameTooltip()
     -- GetWidth/GetScaledRect to return "secret number" values that break
     -- widget set processing in GameTooltip_AddWidgetSet (AreaPOI tooltips).
     do
-        local ns = _G.GameTooltip.NineSlice
-        -- Hide border pieces; keep Center visible for backdrop color.
-        -- SetAlpha does not get reset by NineSliceUtil.ApplyLayout.
-        local borderPieces = {
-            "TopLeftCorner", "TopRightCorner",
-            "BottomLeftCorner", "BottomRightCorner",
-            "TopEdge", "BottomEdge", "LeftEdge", "RightEdge",
-        }
-        for _, name in next, borderPieces do
-            local piece = ns[name]
-            if piece then
-                piece:SetAlpha(0)
+        local ns = _G.GameTooltip and _G.GameTooltip.NineSlice
+        if ns then
+            -- Hide border pieces; keep Center visible for backdrop color.
+            -- SetAlpha does not get reset by NineSliceUtil.ApplyLayout.
+            local borderPieces = {
+                "TopLeftCorner", "TopRightCorner",
+                "BottomLeftCorner", "BottomRightCorner",
+                "TopEdge", "BottomEdge", "LeftEdge", "RightEdge",
+            }
+            for _, name in next, borderPieces do
+                local piece = ns[name]
+                if piece then
+                    piece:SetAlpha(0)
+                end
+            end
+            if ns.SetCenterColor then
+                local r, g, b = Color.frame:GetRGB()
+                ns:SetCenterColor(r, g, b, Util.GetFrameAlpha())
+            end
+            -- Do NOT set ns._auroraNineSlice — this would enable the heavy
+            -- NineSlice hook (Base.SetBackdrop) on every tooltip display.
+            -- Do NOT skin GameTooltipStatusBar — Base.SetBackdrop creates
+            -- textures/writes methods, and SetPoint creates a tainted anchor.
+            -- Tell the SharedTooltip_SetBackdropStyle hook to skip this tooltip
+            -- so it doesn't call NineSlice:SetCenterColor from addon context
+            -- during the tooltip display flow.
+            if Hook.SetTaintSafe then
+                Hook.SetTaintSafe(_G.GameTooltip)
             end
         end
-        local r, g, b = Color.frame:GetRGB()
-        ns:SetCenterColor(r, g, b, Util.GetFrameAlpha())
-        -- Do NOT set ns._auroraNineSlice — this would enable the heavy
-        -- NineSlice hook (Base.SetBackdrop) on every tooltip display.
-        -- Do NOT skin GameTooltipStatusBar — Base.SetBackdrop creates
-        -- textures/writes methods, and SetPoint creates a tainted anchor.
-        -- Tell the SharedTooltip_SetBackdropStyle hook to skip this tooltip
-        -- so it doesn't call NineSlice:SetCenterColor from addon context
-        -- during the tooltip display flow.
-        Hook.SetTaintSafe(_G.GameTooltip)
     end
 
-    Skin.GameTooltipTemplate(_G.EmbeddedItemTooltip)
-    Skin.InternalEmbeddedItemTooltipTemplate(_G.EmbeddedItemTooltip.ItemTooltip)
+    if _G.EmbeddedItemTooltip then
+        Skin.GameTooltipTemplate(_G.EmbeddedItemTooltip)
+        if _G.EmbeddedItemTooltip.ItemTooltip then
+            Skin.InternalEmbeddedItemTooltipTemplate(_G.EmbeddedItemTooltip.ItemTooltip)
+        end
+    end
 end

@@ -11,32 +11,66 @@ local Color = Aurora.Color
 local Skin = Aurora.Skin
 
 function private.AddOns.Blizzard_TimeManager()
-    _G.TimeManagerGlobe:Hide()
-    _G.StopwatchFrameBackgroundLeft:Hide()
-    _G.select(2, _G.StopwatchFrame:GetRegions()):Hide()
-    _G.StopwatchTabFrameLeft:Hide()
-    _G.StopwatchTabFrameMiddle:Hide()
-    _G.StopwatchTabFrameRight:Hide()
+    if _G.TimeManagerGlobe then
+        _G.TimeManagerGlobe:Hide()
+    end
+    if _G.StopwatchFrameBackgroundLeft then
+        _G.StopwatchFrameBackgroundLeft:Hide()
+    end
+    if _G.StopwatchFrame then
+        _G.select(2, _G.StopwatchFrame:GetRegions()):Hide()
+    end
+    if _G.StopwatchTabFrameLeft then _G.StopwatchTabFrameLeft:Hide() end
+    if _G.StopwatchTabFrameMiddle then _G.StopwatchTabFrameMiddle:Hide() end
+    if _G.StopwatchTabFrameRight then _G.StopwatchTabFrameRight:Hide() end
 
-    Skin.UICheckButtonTemplate(_G.TimeManagerStopwatchCheck)
+    if _G.TimeManagerStopwatchCheck then
+        Skin.UICheckButtonTemplate(_G.TimeManagerStopwatchCheck)
+    end
 
-    _G.TimeManagerFrame.AlarmTimeFrame.HourDropdown:SetWidth(80)
-    _G.TimeManagerFrame.AlarmTimeFrame.MinuteDropdown:SetWidth(80)
-    _G.TimeManagerFrame.AlarmTimeFrame.AMPMDropdown:SetWidth(90)
+    -- Modern dropdown API (Classic Anniversary uses the new Menu dropdown)
+    local AlarmTimeFrame = _G.TimeManagerFrame and _G.TimeManagerFrame.AlarmTimeFrame
+    if AlarmTimeFrame then
+        if AlarmTimeFrame.HourDropdown then
+            AlarmTimeFrame.HourDropdown:SetWidth(80)
+            Skin.DropdownButton(AlarmTimeFrame.HourDropdown)
+        end
+        if AlarmTimeFrame.MinuteDropdown then
+            AlarmTimeFrame.MinuteDropdown:SetWidth(80)
+            Skin.DropdownButton(AlarmTimeFrame.MinuteDropdown)
+        end
+        if AlarmTimeFrame.AMPMDropdown then
+            AlarmTimeFrame.AMPMDropdown:SetWidth(90)
+            Skin.DropdownButton(AlarmTimeFrame.AMPMDropdown)
+        end
+    end
 
-    Skin.ButtonFrameTemplate(_G.TimeManagerFrame)
-    Skin.FrameTypeFrame(_G.StopwatchFrame)
-    Skin.DropdownButton(_G.TimeManagerFrame.AlarmTimeFrame.HourDropdown)
-    Skin.DropdownButton(_G.TimeManagerFrame.AlarmTimeFrame.MinuteDropdown)
-    Skin.DropdownButton(_G.TimeManagerFrame.AlarmTimeFrame.AMPMDropdown)
-    Skin.InputBoxTemplate(_G.TimeManagerAlarmMessageEditBox)
-    Skin.UICheckButtonTemplate(_G.TimeManagerAlarmEnabledButton)
-    Skin.UICheckButtonTemplate(_G.TimeManagerMilitaryTimeCheck)
-    Skin.UICheckButtonTemplate(_G.TimeManagerLocalTimeCheck)
-    Skin.UIPanelCloseButton(_G.StopwatchCloseButton) -- , "TOPRIGHT", _G.StopwatchFrame, "TOPRIGHT", -2, -2)
+    if _G.TimeManagerFrame then
+        Skin.ButtonFrameTemplate(_G.TimeManagerFrame)
+    end
+    if _G.StopwatchFrame then
+        Skin.FrameTypeFrame(_G.StopwatchFrame)
+    end
+    if _G.TimeManagerAlarmMessageEditBox then
+        Skin.InputBoxTemplate(_G.TimeManagerAlarmMessageEditBox)
+    end
+    if _G.TimeManagerAlarmEnabledButton then
+        Skin.UICheckButtonTemplate(_G.TimeManagerAlarmEnabledButton)
+    end
+    if _G.TimeManagerMilitaryTimeCheck then
+        Skin.UICheckButtonTemplate(_G.TimeManagerMilitaryTimeCheck)
+    end
+    if _G.TimeManagerLocalTimeCheck then
+        Skin.UICheckButtonTemplate(_G.TimeManagerLocalTimeCheck)
+    end
+    if _G.StopwatchCloseButton then
+        Skin.UIPanelCloseButton(_G.StopwatchCloseButton)
+    end
 
     local resetBtn = _G.StopwatchResetButton
     local playBtn = _G.StopwatchPlayPauseButton
+
+    if not resetBtn or not playBtn then return end
 
     local function SkinStopwatchButton(Button)
         Button:SetSize(16, 16)

@@ -18,5 +18,8 @@ end
 --end
 
 function private.FrameXML.BossBannerToast()
-    _G.hooksecurefunc("BossBanner_ConfigureLootFrame", Hook.BossBanner_ConfigureLootFrame)
+    -- BossBanner_ConfigureLootFrame is Mainline-only (boss kill banners)
+    if _G.BossBanner_ConfigureLootFrame then
+        _G.hooksecurefunc("BossBanner_ConfigureLootFrame", Hook.BossBanner_ConfigureLootFrame)
+    end
 end

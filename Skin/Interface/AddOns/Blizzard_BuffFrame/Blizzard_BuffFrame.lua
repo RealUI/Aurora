@@ -40,6 +40,32 @@ end
 -- hooks on AuraFrame_OnLoad and UpdateAuraButtons.
 
 function private.AddOns.Blizzard_BuffFrame()
+    -- AuraFrameMixin is the modern (Mainline) buff/debuff system.
+    -- TBC Classic uses the legacy buff frame with individually-named buttons.
+    if not _G.AuraFrameMixin then
+        -- TBC Classic: skin legacy buff buttons directly
+        local function SkinLegacyBuffButtons()
+            for i = 1, _G.BUFF_MAX_DISPLAY or 40 do
+                local button = _G["BuffButton"..i]
+                SkinAuraButton(button)
+            end
+            for i = 1, _G.DEBUFF_MAX_DISPLAY or 16 do
+                local button = _G["DebuffButton"..i]
+                SkinAuraButton(button)
+            end
+            for i = 1, _G.NUM_TEMP_ENCHANT_FRAMES or 3 do
+                local button = _G["TempEnchant"..i]
+                SkinAuraButton(button)
+            end
+        end
+        SkinLegacyBuffButtons()
+        -- Hook BuffFrame_UpdateAllBuffAnchors to catch newly created buttons
+        if _G.BuffFrame_UpdateAllBuffAnchors then
+            _G.hooksecurefunc("BuffFrame_UpdateAllBuffAnchors", SkinLegacyBuffButtons)
+        end
+        return
+    end
+
     ------------------------------------------------
     -- Hook AuraFrameMixin:AuraFrame_OnLoad to skin
     -- the initial batch of aura buttons created via

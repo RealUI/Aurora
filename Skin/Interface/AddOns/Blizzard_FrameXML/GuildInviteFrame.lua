@@ -15,16 +15,30 @@ local Skin = Aurora.Skin
 --end
 
 function private.FrameXML.GuildInviteFrame()
+    if not _G.GuildInviteFrame then return end
+
     Skin.TranslucentFrameTemplate(_G.GuildInviteFrame)
 
-    _G.GuildInviteFrameBackground:Hide()
+    if _G.GuildInviteFrameBackground then
+        _G.GuildInviteFrameBackground:Hide()
+    end
 
-    _G.GuildInviteFrameInviterName:SetPoint("TOP", 0, -20)
-    _G.GuildInviteFrameTabardBorder:SetPoint("TOPLEFT", "$parentTabardBackground", 0, 0)
-    _G.GuildInviteFrameTabardBorder:SetSize(62, 62)
+    if _G.GuildInviteFrameInviterName then
+        _G.GuildInviteFrameInviterName:SetPoint("TOP", 0, -20)
+    end
+    if _G.GuildInviteFrameTabardBorder then
+        _G.GuildInviteFrameTabardBorder:SetPoint("TOPLEFT", "$parentTabardBackground", 0, 0)
+        _G.GuildInviteFrameTabardBorder:SetSize(62, 62)
+    end
 
-    _G.GuildInviteFrameTabardRing:Hide()
+    if _G.GuildInviteFrameTabardRing then
+        _G.GuildInviteFrameTabardRing:Hide()
+    end
 
-    Skin.UIPanelButtonTemplate(_G.GuildInviteFrameJoinButton)
-    Skin.UIPanelButtonTemplate(_G.GuildInviteFrameDeclineButton)
+    if _G.GuildInviteFrameJoinButton then
+        Skin.UIPanelButtonTemplate(_G.GuildInviteFrameJoinButton)
+    end
+    if _G.GuildInviteFrameDeclineButton then
+        Skin.UIPanelButtonTemplate(_G.GuildInviteFrameDeclineButton)
+    end
 end

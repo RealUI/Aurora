@@ -22,33 +22,58 @@ end
 
 function private.AddOns.Blizzard_TrainerUI()
     local ClassTrainerFrame = _G.ClassTrainerFrame
+    if not ClassTrainerFrame then return end
+
     Skin.ButtonFrameTemplate(ClassTrainerFrame)
 
-    _G.ClassTrainerFrameMoneyBg:Hide()
-    ClassTrainerFrame.BG:Hide()
+    if _G.ClassTrainerFrameMoneyBg then
+        _G.ClassTrainerFrameMoneyBg:Hide()
+    end
+    if ClassTrainerFrame.BG then
+        ClassTrainerFrame.BG:Hide()
+    end
 
-    Skin.FrameTypeStatusBar(_G.ClassTrainerStatusBar)
-    _G.ClassTrainerStatusBarLeft:Hide()
-    _G.ClassTrainerStatusBarRight:Hide()
-    _G.ClassTrainerStatusBarMiddle:Hide()
-    _G.ClassTrainerStatusBarBackground:Hide()
-    _G.ClassTrainerStatusBar:SetPoint("TOPLEFT", 8, -35)
-    _G.ClassTrainerStatusBar:SetSize(192, 18)
+    if _G.ClassTrainerStatusBar then
+        Skin.FrameTypeStatusBar(_G.ClassTrainerStatusBar)
+        if _G.ClassTrainerStatusBarLeft then _G.ClassTrainerStatusBarLeft:Hide() end
+        if _G.ClassTrainerStatusBarRight then _G.ClassTrainerStatusBarRight:Hide() end
+        if _G.ClassTrainerStatusBarMiddle then _G.ClassTrainerStatusBarMiddle:Hide() end
+        if _G.ClassTrainerStatusBarBackground then _G.ClassTrainerStatusBarBackground:Hide() end
+        _G.ClassTrainerStatusBar:SetPoint("TOPLEFT", 8, -35)
+        _G.ClassTrainerStatusBar:SetSize(192, 18)
+    end
 
-    Skin.DropdownButton(ClassTrainerFrame.FilterDropdown)
+    -- FilterDropdown is the modern dropdown (Classic Anniversary+)
+    if ClassTrainerFrame.FilterDropdown then
+        Skin.DropdownButton(ClassTrainerFrame.FilterDropdown)
+    end
+
     local ClassTrainerTrainButton = _G.ClassTrainerTrainButton
-    Skin.MagicButtonTemplate(ClassTrainerTrainButton)
+    if ClassTrainerTrainButton then
+        Skin.MagicButtonTemplate(ClassTrainerTrainButton)
+    end
 
     local moneyBG = _G.CreateFrame("Frame", nil, ClassTrainerFrame)
     moneyBG:SetSize(142, 18)
     moneyBG:SetPoint("BOTTOMLEFT", 8, 5)
     Base.SetBackdrop(moneyBG, Color.frame)
     moneyBG:SetBackdropBorderColor(Color.yellow)
-    Skin.SmallMoneyFrameTemplate(_G.ClassTrainerFrameMoneyFrame)
-    _G.ClassTrainerFrameMoneyFrame:SetPoint("RIGHT", moneyBG, 11, 0)
+    if _G.ClassTrainerFrameMoneyFrame then
+        Skin.SmallMoneyFrameTemplate(_G.ClassTrainerFrameMoneyFrame)
+        _G.ClassTrainerFrameMoneyFrame:SetPoint("RIGHT", moneyBG, 11, 0)
+    end
 
-    Skin.ClassTrainerSkillButtonTemplate(ClassTrainerFrame.skillStepButton)
-    Skin.WowScrollBoxList(ClassTrainerFrame.ScrollBox)
-    Skin.MinimalScrollBar(ClassTrainerFrame.ScrollBar)
-    Skin.InsetFrameTemplate(ClassTrainerFrame.bottomInset)
+    -- skillStepButton, ScrollBox, ScrollBar are the modern pattern
+    if ClassTrainerFrame.skillStepButton then
+        Skin.ClassTrainerSkillButtonTemplate(ClassTrainerFrame.skillStepButton)
+    end
+    if ClassTrainerFrame.ScrollBox then
+        Skin.WowScrollBoxList(ClassTrainerFrame.ScrollBox)
+    end
+    if ClassTrainerFrame.ScrollBar then
+        Skin.MinimalScrollBar(ClassTrainerFrame.ScrollBar)
+    end
+    if ClassTrainerFrame.bottomInset then
+        Skin.InsetFrameTemplate(ClassTrainerFrame.bottomInset)
+    end
 end

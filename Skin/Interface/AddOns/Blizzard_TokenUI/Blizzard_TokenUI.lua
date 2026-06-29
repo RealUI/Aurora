@@ -80,36 +80,69 @@ end
 
 function private.FrameXML.Blizzard_TokenUI()
     local TokenFrame = _G.TokenFrame
-    Skin.WowScrollBoxList(TokenFrame.ScrollBox)
-    _G.hooksecurefunc(TokenFrame.ScrollBox, 'Update', Hook.UpdateCurrencyScrollBox)
-    Hook.UpdateCurrencyScrollBox(TokenFrame.ScrollBox)
-    TokenFrame.ScrollBox:SetPoint("TOPLEFT", _G.CharacterFrame.Inset, 4, -35)
-    Skin.DropdownButton(TokenFrame.filterDropdown)
-    TokenFrame.filterDropdown:ClearAllPoints()
-    TokenFrame.filterDropdown:SetPoint("TOPLEFT", 18,  -30)
-    TokenFrame.CurrencyTransferLogToggleButton:SetPoint("TOPRIGHT", -10, -30)
+    if not TokenFrame then return end
+
+    if TokenFrame.ScrollBox then
+        Skin.WowScrollBoxList(TokenFrame.ScrollBox)
+        _G.hooksecurefunc(TokenFrame.ScrollBox, 'Update', Hook.UpdateCurrencyScrollBox)
+        Hook.UpdateCurrencyScrollBox(TokenFrame.ScrollBox)
+        if _G.CharacterFrame and _G.CharacterFrame.Inset then
+            TokenFrame.ScrollBox:SetPoint("TOPLEFT", _G.CharacterFrame.Inset, 4, -35)
+        end
+    end
+    if TokenFrame.filterDropdown then
+        Skin.DropdownButton(TokenFrame.filterDropdown)
+        TokenFrame.filterDropdown:ClearAllPoints()
+        TokenFrame.filterDropdown:SetPoint("TOPLEFT", 18,  -30)
+    end
+    -- CurrencyTransferLogToggleButton is Mainline-only (Dragonflight+)
+    if TokenFrame.CurrencyTransferLogToggleButton then
+        TokenFrame.CurrencyTransferLogToggleButton:SetPoint("TOPRIGHT", -10, -30)
+    end
 
     local TokenFramePopup = _G.TokenFramePopup
-    Skin.SecureDialogBorderTemplate(TokenFramePopup.Border)
-    TokenFramePopup:SetSize(175, 90)
-    local titleText = TokenFramePopup.Title
-    titleText:ClearAllPoints()
-    titleText:SetPoint("TOPLEFT")
-    titleText:SetPoint("BOTTOMRIGHT", TokenFramePopup, "TOPRIGHT", 0, -private.FRAME_TITLE_HEIGHT)
-    Skin.UICheckButtonTemplate(TokenFramePopup.InactiveCheckbox)
-    TokenFramePopup.InactiveCheckbox:SetPoint("TOPLEFT", TokenFramePopup, 24, -26)
-    Skin.UICheckButtonTemplate(TokenFramePopup.BackpackCheckbox)
-    TokenFramePopup.BackpackCheckbox:SetPoint("TOPLEFT", TokenFramePopup.InactiveCheckbox, "BOTTOMLEFT", 0, -8)
-    Skin.UIPanelButtonTemplate(TokenFramePopup.CurrencyTransferToggleButton)
-    TokenFramePopup.CurrencyTransferToggleButton:SetPoint("TOPLEFT", TokenFramePopup.BackpackCheckbox, "BOTTOMLEFT", 0, -8)
-    Skin.UIPanelCloseButton(TokenFramePopup["$parent.CloseButton"])
+    if TokenFramePopup then
+        Skin.SecureDialogBorderTemplate(TokenFramePopup.Border)
+        TokenFramePopup:SetSize(175, 90)
+        local titleText = TokenFramePopup.Title
+        if titleText then
+            titleText:ClearAllPoints()
+            titleText:SetPoint("TOPLEFT")
+            titleText:SetPoint("BOTTOMRIGHT", TokenFramePopup, "TOPRIGHT", 0, -private.FRAME_TITLE_HEIGHT)
+        end
+        if TokenFramePopup.InactiveCheckbox then
+            Skin.UICheckButtonTemplate(TokenFramePopup.InactiveCheckbox)
+            TokenFramePopup.InactiveCheckbox:SetPoint("TOPLEFT", TokenFramePopup, 24, -26)
+        end
+        if TokenFramePopup.BackpackCheckbox then
+            Skin.UICheckButtonTemplate(TokenFramePopup.BackpackCheckbox)
+            TokenFramePopup.BackpackCheckbox:SetPoint("TOPLEFT", TokenFramePopup.InactiveCheckbox, "BOTTOMLEFT", 0, -8)
+        end
+        -- CurrencyTransferToggleButton is Mainline-only (Dragonflight+)
+        if TokenFramePopup.CurrencyTransferToggleButton then
+            Skin.UIPanelButtonTemplate(TokenFramePopup.CurrencyTransferToggleButton)
+            TokenFramePopup.CurrencyTransferToggleButton:SetPoint("TOPLEFT", TokenFramePopup.BackpackCheckbox, "BOTTOMLEFT", 0, -8)
+        end
+        if TokenFramePopup["$parent.CloseButton"] then
+            Skin.UIPanelCloseButton(TokenFramePopup["$parent.CloseButton"])
+        end
+    end
 
+    -- CurrencyTransferMenu is Mainline-only (Dragonflight+)
     local CurrencyTransferMenu = _G.CurrencyTransferMenu
-    Skin.DialogBorderNoCenterTemplate(CurrencyTransferMenu.NineSlice)
-    Skin.UIPanelButtonTemplate(CurrencyTransferMenu.Content.AmountSelector.MaxQuantityButton)
-    Skin.InputBoxTemplate(CurrencyTransferMenu.Content.AmountSelector.InputBox)
-    Skin.UIPanelButtonTemplate(CurrencyTransferMenu.Content.ConfirmButton)
-    Skin.UIPanelButtonTemplate(CurrencyTransferMenu.Content.CancelButton)
-    Skin.UIPanelCloseButton(CurrencyTransferMenu.CloseButton)
-    Skin.DropdownButton(CurrencyTransferMenu.Content.SourceSelector.Dropdown)
+    if CurrencyTransferMenu then
+        Skin.DialogBorderNoCenterTemplate(CurrencyTransferMenu.NineSlice)
+        if CurrencyTransferMenu.Content then
+            if CurrencyTransferMenu.Content.AmountSelector then
+                Skin.UIPanelButtonTemplate(CurrencyTransferMenu.Content.AmountSelector.MaxQuantityButton)
+                Skin.InputBoxTemplate(CurrencyTransferMenu.Content.AmountSelector.InputBox)
+            end
+            Skin.UIPanelButtonTemplate(CurrencyTransferMenu.Content.ConfirmButton)
+            Skin.UIPanelButtonTemplate(CurrencyTransferMenu.Content.CancelButton)
+            if CurrencyTransferMenu.Content.SourceSelector and CurrencyTransferMenu.Content.SourceSelector.Dropdown then
+                Skin.DropdownButton(CurrencyTransferMenu.Content.SourceSelector.Dropdown)
+            end
+        end
+        Skin.UIPanelCloseButton(CurrencyTransferMenu.CloseButton)
+    end
 end

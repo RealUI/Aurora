@@ -99,6 +99,10 @@ end
 --------------------------------------------------------------------------------
 
 function private.AddOns.Blizzard_NamePlates()
+    -- NamePlateDriverMixin and NamePlateAurasMixin are the modern (Mainline)
+    -- nameplate system. TBC Classic uses a different nameplate framework.
+    if not _G.NamePlateDriverMixin then return end
+
     ------------------------------------------------
     -- Hook NamePlateDriverMixin:OnNamePlateAdded
     -- Fires after the driver acquires a UnitFrame and calls SetUnit.
@@ -120,22 +124,24 @@ function private.AddOns.Blizzard_NamePlates()
     -- The aura pool releases and re-acquires frames on every refresh,
     -- so we re-skin after each RefreshAuras call.
     ------------------------------------------------
-    _G.hooksecurefunc(_G.NamePlateAurasMixin, "RefreshAuras", function(self)
-        if self.IsForbidden and self:IsForbidden() then return end
+    if _G.NamePlateAurasMixin then
+        _G.hooksecurefunc(_G.NamePlateAurasMixin, "RefreshAuras", function(self)
+            if self.IsForbidden and self:IsForbidden() then return end
 
-        SkinAuraList(self.DebuffListFrame)
-        SkinAuraList(self.BuffListFrame)
-        SkinAuraList(self.CrowdControlListFrame)
-    end)
+            SkinAuraList(self.DebuffListFrame)
+            SkinAuraList(self.BuffListFrame)
+            SkinAuraList(self.CrowdControlListFrame)
+        end)
 
-    _G.hooksecurefunc(_G.NamePlateAurasMixin, "RefreshLossOfControl", function(self)
-        if self.IsForbidden and self:IsForbidden() then return end
+        _G.hooksecurefunc(_G.NamePlateAurasMixin, "RefreshLossOfControl", function(self)
+            if self.IsForbidden and self:IsForbidden() then return end
 
-        local locFrame = self.LossOfControlFrame
-        if locFrame and locFrame.AuraItemFrame then
-            SkinAuraIcon(locFrame.AuraItemFrame)
-        end
-    end)
+            local locFrame = self.LossOfControlFrame
+            if locFrame and locFrame.AuraItemFrame then
+                SkinAuraIcon(locFrame.AuraItemFrame)
+            end
+        end)
+    end
 
     ------------------------------------------------
     -- Hook class nameplate bar setup to skin class-specific power bars
@@ -147,17 +153,21 @@ function private.AddOns.Blizzard_NamePlates()
         end
     end)
 
-    _G.hooksecurefunc(_G.NamePlateDriverMixin, "SetClassNameplateManaBar", function(self, frame)
-        if frame then
-            SkinBar(frame)
-        end
-    end)
+    if _G.NamePlateDriverMixin.SetClassNameplateManaBar then
+        _G.hooksecurefunc(_G.NamePlateDriverMixin, "SetClassNameplateManaBar", function(self, frame)
+            if frame then
+                SkinBar(frame)
+            end
+        end)
+    end
 
-    _G.hooksecurefunc(_G.NamePlateDriverMixin, "SetClassNameplateAlternatePowerBar", function(self, frame)
-        if frame then
-            SkinBar(frame)
-        end
-    end)
+    if _G.NamePlateDriverMixin.SetClassNameplateAlternatePowerBar then
+        _G.hooksecurefunc(_G.NamePlateDriverMixin, "SetClassNameplateAlternatePowerBar", function(self, frame)
+            if frame then
+                SkinBar(frame)
+            end
+        end)
+    end
 
     ------------------------------------------------
     -- Skin any nameplates that already exist (in case addon loads late)

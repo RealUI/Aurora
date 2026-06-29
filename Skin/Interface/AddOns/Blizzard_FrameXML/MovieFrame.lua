@@ -18,6 +18,8 @@ end
 --end
 
 function private.FrameXML.MovieFrame()
+    if not _G.MovieFrame or not _G.MovieFrame.CloseDialog then return end
+
     _G.MovieFrame.CloseDialog:HookScript("OnShow", Hook.MovieFrameCloseDialog_OnShow)
 
     if private.isRetail then

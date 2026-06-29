@@ -24,27 +24,37 @@ do --[[ AddOns\Blizzard_StaticPopup_Game\GameDialog.lua ]]
     end
 
     function Skin.StaticPopupTemplate(Frame)
-        if ((not Frame) and private.isDev) then
-            _G.print("ReportError: Frame is nil in StaticPopupTemplate - Report to Aurora developers.")
+        if not Frame then
+            if private.isDev then
+                _G.print("ReportError: Frame is nil in StaticPopupTemplate - Report to Aurora developers.")
+            end
             return
         end
-        local background = Frame.BG -- did 11.2.7 remove BG from StaticPopupTemplate??
-        background.Top:SetTexture("")
-        -- background.Bottom:SetTexture("")
-        -- Skin.DialogBorderTemplate(border)
+        local background = Frame.BG
+        if background and background.Top then
+            background.Top:SetTexture("")
+        end
 
+        -- Modern (11.0+) ButtonContainer pattern
         local ButtonContainer = Frame.ButtonContainer
-        Skin.StaticPopupButtonTemplate(ButtonContainer.Button1)
-        Skin.StaticPopupButtonTemplate(ButtonContainer.Button2)
-        Skin.StaticPopupButtonTemplate(ButtonContainer.Button3)
-        Skin.StaticPopupButtonTemplate(ButtonContainer.Button4)
+        if ButtonContainer then
+            if ButtonContainer.Button1 then Skin.StaticPopupButtonTemplate(ButtonContainer.Button1) end
+            if ButtonContainer.Button2 then Skin.StaticPopupButtonTemplate(ButtonContainer.Button2) end
+            if ButtonContainer.Button3 then Skin.StaticPopupButtonTemplate(ButtonContainer.Button3) end
+            if ButtonContainer.Button4 then Skin.StaticPopupButtonTemplate(ButtonContainer.Button4) end
 
-        Skin.StaticPopupButtonTemplate(Frame.ExtraButton)
-        Skin.StaticPopupButtonTemplate(Frame.CloseButton)
+            if ButtonContainer.Buttons then
+                for i = 1, #ButtonContainer.Buttons do
+                    Skin.StaticPopupButtonTemplate(ButtonContainer.Buttons[i])
+                end
+            end
+        end
 
-        local Buttons = ButtonContainer.Buttons
-        for i = 1, #Buttons do
-            Skin.StaticPopupButtonTemplate(Buttons[i])
+        if Frame.ExtraButton then
+            Skin.StaticPopupButtonTemplate(Frame.ExtraButton)
+        end
+        if Frame.CloseButton then
+            Skin.StaticPopupButtonTemplate(Frame.CloseButton)
         end
 
         -- EditBox now uses parentKey (not global string lookup) and TooltipBackdropTemplate
@@ -54,9 +64,6 @@ do --[[ AddOns\Blizzard_StaticPopup_Game\GameDialog.lua ]]
         end
 
         -- Progress bar used for dialogs with countdown timers (e.g. cinematic skip).
-        -- The XML draws fill (subLevel -6) behind border (-5); the LFG atlas border
-        -- has a transparent centre letting the fill show through. With solid Aurora
-        -- textures the border would cover the fill, so raise the fill above the border.
         local border = Frame.ProgressBarBorder
         local fill   = Frame.ProgressBarFill
         if border and fill then
@@ -71,28 +78,37 @@ do --[[ AddOns\Blizzard_StaticPopup_Game\GameDialog.lua ]]
             fill:SetVertexColor(Color.highlight:GetRGB())
         end
 
-        Skin.SmallMoneyFrameTemplate(Frame.MoneyFrame)
-        Skin.MoneyInputFrameTemplate(Frame.MoneyInputFrame)
+        if Frame.MoneyFrame then
+            Skin.SmallMoneyFrameTemplate(Frame.MoneyFrame)
+        end
+        if Frame.MoneyInputFrame then
+            Skin.MoneyInputFrameTemplate(Frame.MoneyInputFrame)
+        end
 
         local ItemFrame = Frame.ItemFrame
-        local nameFrame = ItemFrame.NameFrame
-        Skin.FrameTypeFrame(ItemFrame)
-        nameFrame:Hide()
+        if ItemFrame then
+            local nameFrame = ItemFrame.NameFrame
+            Skin.FrameTypeFrame(ItemFrame)
+            if nameFrame then nameFrame:Hide() end
 
-        Skin.FrameTypeItemButton(ItemFrame.Item)
-        ItemFrame.Item.IconBorder:Hide()
-        -- ItemFrame.icon → ItemFrame.Item (ItemButton) in WoW 11
-        local nameBG = _G.CreateFrame("Frame", nil, ItemFrame)
-        nameBG:SetPoint("TOPLEFT", ItemFrame.Item, "TOPRIGHT", 2, 1)
-        nameBG:SetPoint("BOTTOMLEFT", ItemFrame.Item, "BOTTOMRIGHT", 2, -1)
-        nameBG:SetPoint("RIGHT", -4, 0)
-        Base.SetBackdrop(nameBG, Color.frame)
+            if ItemFrame.Item then
+                Skin.FrameTypeItemButton(ItemFrame.Item)
+                if ItemFrame.Item.IconBorder then
+                    ItemFrame.Item.IconBorder:Hide()
+                end
+                local nameBG = _G.CreateFrame("Frame", nil, ItemFrame)
+                nameBG:SetPoint("TOPLEFT", ItemFrame.Item, "TOPRIGHT", 2, 1)
+                nameBG:SetPoint("BOTTOMLEFT", ItemFrame.Item, "BOTTOMRIGHT", 2, -1)
+                nameBG:SetPoint("RIGHT", -4, 0)
+                Base.SetBackdrop(nameBG, Color.frame)
+            end
+        end
     end
 end
 
 function private.FrameXML.Blizzard_StaticPopup_Game_GameDialog()
-    Skin.StaticPopupTemplate(_G.StaticPopup1)
-    Skin.StaticPopupTemplate(_G.StaticPopup2)
-    Skin.StaticPopupTemplate(_G.StaticPopup3)
-    Skin.StaticPopupTemplate(_G.StaticPopup4)
+    if _G.StaticPopup1 then Skin.StaticPopupTemplate(_G.StaticPopup1) end
+    if _G.StaticPopup2 then Skin.StaticPopupTemplate(_G.StaticPopup2) end
+    if _G.StaticPopup3 then Skin.StaticPopupTemplate(_G.StaticPopup3) end
+    if _G.StaticPopup4 then Skin.StaticPopupTemplate(_G.StaticPopup4) end
 end

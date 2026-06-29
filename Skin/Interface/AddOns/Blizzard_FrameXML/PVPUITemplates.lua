@@ -39,7 +39,10 @@ function private.FrameXML.PVPUITemplates()
     ----====####################====----
     --         PVPUITemplates         --
     ----====####################====----
-    Util.Mixin(_G.PVPConquestRewardMixin, Hook.PVPConquestRewardMixin)
+    -- PVPConquestRewardMixin is Mainline-only (modern PVP conquest system)
+    if _G.PVPConquestRewardMixin then
+        Util.Mixin(_G.PVPConquestRewardMixin, Hook.PVPConquestRewardMixin)
+    end
 
     -------------
     -- Section --

@@ -75,15 +75,24 @@ do --[[ AddOns\Blizzard_GuildControlUI.xml ]]
 end
 
 function private.AddOns.Blizzard_GuildControlUI()
-    _G.hooksecurefunc("GuildControlUI_RankOrder_Update", Hook.GuildControlUI_RankOrder_Update)
-    _G.hooksecurefunc("GuildControlUI_BankTabPermissions_Update", Hook.GuildControlUI_BankTabPermissions_Update)
+    -- These global functions may not exist on older Classic builds
+    if _G.GuildControlUI_RankOrder_Update then
+        _G.hooksecurefunc("GuildControlUI_RankOrder_Update", Hook.GuildControlUI_RankOrder_Update)
+    end
+    if _G.GuildControlUI_BankTabPermissions_Update then
+        _G.hooksecurefunc("GuildControlUI_BankTabPermissions_Update", Hook.GuildControlUI_BankTabPermissions_Update)
+    end
 
     local GuildControlUI = _G.GuildControlUI
+    if not GuildControlUI then return end
+
     Skin.TranslucentFrameTemplate(GuildControlUI)
-    _G.GuildControlUITopBg:Hide()
-    Skin.HorizontalBarTemplate(_G.GuildControlUIHbar)
-    Skin.UIPanelCloseButton(_G.GuildControlUICloseButton)
-    Skin.DropdownButton(GuildControlUI.dropdown)
+    if _G.GuildControlUITopBg then _G.GuildControlUITopBg:Hide() end
+    if _G.GuildControlUIHbar then Skin.HorizontalBarTemplate(_G.GuildControlUIHbar) end
+    if _G.GuildControlUICloseButton then Skin.UIPanelCloseButton(_G.GuildControlUICloseButton) end
+    if GuildControlUI.dropdown then
+        Skin.DropdownButton(GuildControlUI.dropdown)
+    end
     -- GuildControlUI.dropdown.Button:SetWidth(24)
 
     Skin.RankChangeTemplate(_G.GuildControlUIRankOrderFrameRank1)

@@ -38,49 +38,69 @@ function private.FrameXML.HelpFrame()
     -- HelpFrame --
     ---------------
     local HelpFrame = _G.HelpFrame
+    if not HelpFrame then return end
+
     Skin.DefaultPanelTemplate(HelpFrame)
-    Skin.BrowserTemplate(HelpFrame.Browser)
-    HelpFrame.Browser:SetPoint("TOPLEFT", 1, -private.FRAME_TITLE_HEIGHT)
-    HelpFrame.Browser:SetPoint("BOTTOMRIGHT", -1, 1)
+    if HelpFrame.Browser then
+        Skin.BrowserTemplate(HelpFrame.Browser)
+        HelpFrame.Browser:SetPoint("TOPLEFT", 1, -private.FRAME_TITLE_HEIGHT)
+        HelpFrame.Browser:SetPoint("BOTTOMRIGHT", -1, 1)
+    end
 
 
     ----------------------------
     -- BrowserSettingsTooltip --
     ----------------------------
     local BrowserSettingsTooltip = _G.BrowserSettingsTooltip
-    Skin.HelpFrameContainerFrameTemplate(BrowserSettingsTooltip)
-    Skin.UIPanelButtonTemplate(BrowserSettingsTooltip.CookiesButton)
+    if BrowserSettingsTooltip then
+        Skin.HelpFrameContainerFrameTemplate(BrowserSettingsTooltip)
+        if BrowserSettingsTooltip.CookiesButton then
+            Skin.UIPanelButtonTemplate(BrowserSettingsTooltip.CookiesButton)
+        end
+    end
 
 
     -----------------------
     -- TicketStatusFrame --
     -----------------------
-    Skin.FrameTypeFrame(_G.TicketStatusFrameButton)
+    if _G.TicketStatusFrameButton then
+        Skin.FrameTypeFrame(_G.TicketStatusFrameButton)
+    end
 
 
     --------------------------
     -- ReportCheatingDialog --
     --------------------------
     local ReportCheatingDialog = _G.ReportCheatingDialog
-    Skin.DialogBorderTemplate(ReportCheatingDialog.Border)
-    Base.CreateBackdrop(ReportCheatingDialog.CommentFrame, private.backdrop, {
-        bg = _G.ReportCheatingDialogCommentFrameMiddle,
+    if ReportCheatingDialog then
+        if ReportCheatingDialog.Border then
+            Skin.DialogBorderTemplate(ReportCheatingDialog.Border)
+        end
+        if ReportCheatingDialog.CommentFrame then
+            Base.CreateBackdrop(ReportCheatingDialog.CommentFrame, private.backdrop, {
+                bg = _G.ReportCheatingDialogCommentFrameMiddle,
 
-        l = _G.ReportCheatingDialogCommentFrameLeft,
-        r = _G.ReportCheatingDialogCommentFrameRight,
-        t = _G.ReportCheatingDialogCommentFrameTop,
-        b = _G.ReportCheatingDialogCommentFrameBottom,
+                l = _G.ReportCheatingDialogCommentFrameLeft,
+                r = _G.ReportCheatingDialogCommentFrameRight,
+                t = _G.ReportCheatingDialogCommentFrameTop,
+                b = _G.ReportCheatingDialogCommentFrameBottom,
 
-        tl = _G.ReportCheatingDialogCommentFrameTopLeft,
-        tr = _G.ReportCheatingDialogCommentFrameTopRight,
-        bl = _G.ReportCheatingDialogCommentFrameBottomLeft,
-        br = _G.ReportCheatingDialogCommentFrameBottomRight,
+                tl = _G.ReportCheatingDialogCommentFrameTopLeft,
+                tr = _G.ReportCheatingDialogCommentFrameTopRight,
+                bl = _G.ReportCheatingDialogCommentFrameBottomLeft,
+                br = _G.ReportCheatingDialogCommentFrameBottomRight,
 
-        borderLayer = "BACKGROUND",
-        borderSublevel = -7,
-    })
-    Base.SetBackdrop(ReportCheatingDialog.CommentFrame, Color.frame)
-    ReportCheatingDialog.CommentFrame:SetBackdropBorderColor(Color.button)
-    Skin.UIPanelButtonTemplate(ReportCheatingDialog.reportButton)
-    Skin.UIPanelButtonTemplate(_G.ReportCheatingDialogCancelButton)
+                borderLayer = "BACKGROUND",
+                borderSublevel = -7,
+            })
+            Base.SetBackdrop(ReportCheatingDialog.CommentFrame, Color.frame)
+            ReportCheatingDialog.CommentFrame:SetBackdropBorderColor(Color.button)
+        end
+        if ReportCheatingDialog.reportButton then
+            Skin.UIPanelButtonTemplate(ReportCheatingDialog.reportButton)
+        end
+        if _G.ReportCheatingDialogCancelButton then
+            Skin.UIPanelButtonTemplate(_G.ReportCheatingDialogCancelButton)
+        end
+    end
 end
