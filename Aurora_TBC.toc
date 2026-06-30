@@ -22,3 +22,7 @@ compatibility.lua
 integration.lua
 aurora.lua
 gui.lua
+
+#@do-not-package@
+dev\test_tbc.lua
+#@end-do-not-package@

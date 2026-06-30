@@ -77,6 +77,12 @@ function private.FrameXML.MerchantFrame()
 
     Skin.ButtonFrameTemplate(MerchantFrame)
 
+    -- Hide the MerchantFrame's own BACKGROUND portrait texture (separate from the
+    -- portrait handled by ButtonFrameTemplate); defined directly in TBC MerchantFrame.xml
+    if _G.MerchantFramePortrait then
+        _G.MerchantFramePortrait:SetAlpha(0)
+    end
+
     -- Hide bottom border textures
     if _G.MerchantFrameBottomLeftBorder then
         _G.MerchantFrameBottomLeftBorder:SetAlpha(0)

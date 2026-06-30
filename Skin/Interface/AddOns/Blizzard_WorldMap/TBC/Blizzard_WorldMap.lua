@@ -10,7 +10,7 @@ local Base = Aurora.Base
 local Skin = Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
-function private.FrameXML.WorldMapFrame()
+function private.AddOns.Blizzard_WorldMap()
     local WorldMapFrame = _G.WorldMapFrame
     if not WorldMapFrame then return end
 

@@ -382,7 +382,8 @@ function private.FrameXML.MailFrame()
         local ATTACHMENTS_MAX_RECEIVE = _G.ATTACHMENTS_MAX_RECEIVE or 16
         local OpenMailAttachments = OpenMailFrame.OpenMailAttachments
         for i = 1, ATTACHMENTS_MAX_RECEIVE do
-            local attachment = (OpenMailAttachments and OpenMailAttachments[i]) or _G["OpenMailAttachment" .. i]
+            -- TBC instances are named OpenMailAttachmentButton1-16 (not Mainline's OpenMailAttachment1)
+            local attachment = (OpenMailAttachments and OpenMailAttachments[i]) or _G["OpenMailAttachmentButton" .. i]
             if attachment then
                 if Skin.FrameTypeItemButton then
                     Skin.FrameTypeItemButton(attachment)

@@ -50,12 +50,28 @@ function private.FrameXML.BankFrame()
     local BankFrame = _G.BankFrame
     if not BankFrame then return end
 
-    Skin.ButtonFrameTemplate(BankFrame)
+    local Color = Aurora.Color
+    local Util = Aurora.Util
 
-    -- Hide portrait texture
-    if _G.BankPortraitTexture then
-        _G.BankPortraitTexture:SetAlpha(0)
+    -- BankFrame does NOT inherit ButtonFrameTemplate in TBC — use manual skinning
+    -- Hide all frame regions (border art, portrait art, background textures)
+    for _, region in next, {BankFrame:GetRegions()} do
+        local regionType = region:GetObjectType()
+        if regionType == "Texture" then
+            local drawLayer = region:GetDrawLayer()
+            if drawLayer == "BORDER" or drawLayer == "ARTWORK" then
+                region:Hide()
+            end
+        end
     end
+
+    -- Hide portrait texture explicitly (may be a named global)
+    if _G.BankPortraitTexture then
+        _G.BankPortraitTexture:Hide()
+    end
+
+    -- Apply Aurora backdrop AFTER hiding regions
+    Base.SetBackdrop(BankFrame, Color.frame, Util.GetFrameAlpha())
 
     -- Skin close button
     if _G.BankCloseButton then

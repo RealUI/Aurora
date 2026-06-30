@@ -98,7 +98,7 @@ function private.FrameXML.GossipFrame()
             for _, matName in _G.ipairs(matNames) do
                 local mat = _G[matName]
                 if mat then
-                    mat:SetAlpha(0)
+                    mat:Hide()
                 end
             end
         end
@@ -109,7 +109,7 @@ function private.FrameXML.GossipFrame()
             if region and region.GetObjectType and region:GetObjectType() == "Texture" then
                 local drawLayer = region:GetDrawLayer()
                 if drawLayer == "BORDER" then
-                    region:SetAlpha(0)
+                    region:Hide()
                 end
             end
         end

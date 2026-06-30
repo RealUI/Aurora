@@ -10,7 +10,12 @@ local Base = Aurora.Base
 local Skin = Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
-function private.FrameXML.PvpPopup()
+-- Chain onto the existing Blizzard_GroupFinder skin (LFGFrame.lua registers first)
+local origBlizzard_GroupFinder = private.AddOns.Blizzard_GroupFinder
+function private.AddOns.Blizzard_GroupFinder()
+    if origBlizzard_GroupFinder then
+        origBlizzard_GroupFinder()
+    end
     -----------------------------------------
     -- PVPFramePopup (Wargame challenge popup)
     -----------------------------------------

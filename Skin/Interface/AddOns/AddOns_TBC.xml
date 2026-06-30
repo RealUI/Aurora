@@ -21,14 +21,16 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_AchievementUI\Blizzard_AchievementUI.lua"/-->
     <!-- [NEEDS TBC ADAPTATION] Blizzard_ActionBar — PetActionBar skin is Mainline-specific -->
     <!--Script file="Blizzard_ActionBar\Mainline\PetActionBar.lua"/-->
+    <Script file="Blizzard_ActionBar\TBC\ActionBar.lua"/>
     <Script file="Blizzard_ActionBar\Shared\VehicleLeaveButton.lua"/>
     <Script file="Blizzard_ActionBarController\Blizzard_ActionBarController.lua"/>
     <Script file="Blizzard_AddOnList\Blizzard_AddOnList.lua"/>
     <!-- [MAINLINE ONLY] Blizzard_ArchaeologyUI — archaeology is Cataclysm+ -->
     <!--Script file="Blizzard_ArchaeologyUI\Blizzard_ArchaeologyUI.lua"/-->
-    <!-- [MAINLINE ONLY] Blizzard_AuctionHouseUI — TBC uses Blizzard_AuctionUI (different addon) -->
-    <!--Script file="Blizzard_AuctionHouseUI\Blizzard_AuctionHouseUI.lua"/-->
-    <Script file="Blizzard_AuctionUI\Blizzard_AuctionUI.lua"/>
+    <!-- Blizzard_AuctionHouseUI — TBC Classic Anniversary uses the modern AH UI -->
+    <Script file="Blizzard_AuctionHouseUI\Blizzard_AuctionHouseUI.lua"/>
+    <!-- [VANILLA CLASSIC ONLY] Blizzard_AuctionUI — vanilla Classic Era auction house, does not exist in TBC -->
+    <!--Script file="Blizzard_AuctionUI\Blizzard_AuctionUI.lua"/-->
     <Script file="Blizzard_AutoComplete\Blizzard_AutoComplete.lua"/>
     <Script file="Blizzard_AutoCompletePopupList\Blizzard_AutoCompletePopupList.lua"/>
     <Script file="Blizzard_BarbershopUI\Blizzard_BarbershopUI.lua"/>
@@ -121,14 +123,18 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_GroupFinder\Mainline\LFGFrame.lua"/-->
     <Script file="Blizzard_GroupFinder\TBC\LFGFrame.lua"/>
     <!--Script file="Blizzard_GroupFinder\Mainline\LFDFrame.lua"/-->
-    <Script file="Blizzard_GroupFinder\TBC\LFDFrame.lua"/>
+    <!-- [DOES NOT EXIST IN TBC] Dungeon Finder is Wrath+ -->
+    <!--Script file="Blizzard_GroupFinder\TBC\LFDFrame.lua"/-->
     <!--Script file="Blizzard_GroupFinder\Shared\RaidFinder.lua"/-->
-    <Script file="Blizzard_GroupFinder\TBC\RaidFinder.lua"/>
+    <!-- [DOES NOT EXIST IN TBC] Raid Finder is Cataclysm+ -->
+    <!--Script file="Blizzard_GroupFinder\TBC\RaidFinder.lua"/-->
     <!--Script file="Blizzard_GroupFinder\Mainline\LFGList.lua"/-->
     <!--Script file="Blizzard_GroupFinder\Mainline\PvpPopup.lua"/-->
     <Script file="Blizzard_GroupFinder\TBC\PvpPopup.lua"/>
     <!--Script file="Blizzard_GroupFinder\Mainline\PVPHelper.lua"/-->
-    <Script file="Blizzard_GuildBankUI\Blizzard_GuildBankUI.lua"/>
+    <!-- GuildBankFrame is a plain Frame in TBC (no BasicFrameTemplate inherit); use TBC-specific manual skin. Flat file is Mainline-only. -->
+    <!--Script file="Blizzard_GuildBankUI\Blizzard_GuildBankUI.lua"/-->
+    <Script file="Blizzard_GuildBankUI\TBC\Blizzard_GuildBankUI.lua"/>
     <Script file="Blizzard_GuildControlUI\Blizzard_GuildControlUI.lua"/>
     <Script file="Blizzard_GuildRename\Blizzard_GuildRename.lua"/>
     <Script file="Blizzard_HelpFrame\Blizzard_HelpFrame.lua"/>
@@ -142,8 +148,9 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_ItemUpgradeUI\Blizzard_ItemUpgradeUI.lua"/-->
     <Script file="Blizzard_MacroUI\Blizzard_MacroUI.lua"/>
     <Script file="Blizzard_MailFrame\TBC\MailFrame.lua"/>
-    <!-- [MAINLINE ONLY] Blizzard_MainMenuBarBagButtons — Dragonflight+ -->
+    <!-- Blizzard_MainMenuBarBagButtons is demand-loaded in TBC (not LoadFirst); flat file registers on private.FrameXML and is Mainline-only. Use TBC-specific skin registered on private.AddOns. -->
     <!--Script file="Blizzard_MainMenuBarBagButtons\Blizzard_MainMenuBarBagButtons.lua"/-->
+    <Script file="Blizzard_MainMenuBarBagButtons\TBC\Blizzard_MainMenuBarBagButtons.lua"/>
     <!-- [MAINLINE ONLY] Blizzard_MapCanvas — modern map framework, Retail -->
     <!--Script file="Blizzard_MapCanvas\Blizzard_MapCanvas.lua"/-->
     <!-- [MAINLINE ONLY] Blizzard_MatchmakingQueueDisplay — Retail -->
@@ -228,7 +235,8 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\Mainline\CastingBarFrame.lua"/-->
     <Script file="Blizzard_UIPanels_Game\TBC\CastingBarFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Mainline\DressUpFrames.lua"/-->
-    <Script file="Blizzard_UIPanels_Game\TBC\DressUpFrames.lua"/>
+    <!-- [VANILLA CLASSIC ONLY] DressUpFrames — AllowLoadGameType: classic, does not load in TBC -->
+    <!--Script file="Blizzard_UIPanels_Game\TBC\DressUpFrames.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Mainline\CharacterFrame.lua"/-->
     <Script file="Blizzard_UIPanels_Game\TBC\CharacterFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Mainline\PaperDollFrame.lua"/-->
@@ -254,7 +262,8 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_UIPanels_Game\TBC\BankFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Mainline\ItemRef.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Mainline\WorldMapFrame.lua"/-->
-    <Script file="Blizzard_UIPanels_Game\TBC\WorldMapFrame.lua"/>
+    <!-- [RELOCATED] WorldMap skin moved to Blizzard_WorldMap\TBC\Blizzard_WorldMap.lua (correct addon path) -->
+    <!--Script file="Blizzard_UIPanels_Game\TBC\WorldMapFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Mainline\WarCampaignTemplates.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Mainline\CampaignOverview.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Mainline\QuestMapFrame.lua"/-->
@@ -274,13 +283,14 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!-- [MAINLINE ONLY] Blizzard_UIWidgets — BFA+ -->
     <!--Script file="Blizzard_UIWidgets\Blizzard_UIWidgets.lua"/-->
     <Script file="Blizzard_UnitFrame\Blizzard_UnitFrame.lua"/>
+    <Script file="Blizzard_UnitFrame\TBC\UnitFrame.lua"/>
     <Script file="Blizzard_UnitPopup\UnitPopupSlider.lua"/>
     <Script file="Blizzard_UnitPopup\UnitPopupCustomControls.lua"/>
     <!-- [MAINLINE ONLY] Blizzard_VoiceToggleButton — BFA+ (voice chat) -->
     <!--Script file="Blizzard_VoiceToggleButton\Blizzard_VoiceToggleButton.lua"/-->
     <!-- [MAINLINE ONLY] Blizzard_WorldLootObjectList — TWW+ -->
     <!--Script file="Blizzard_WorldLootObjectList\Blizzard_WorldLootObjectList.lua"/-->
-    <!-- [MAINLINE ONLY] Blizzard_WorldMap — modern WorldMap addon, Retail (TBC uses old full-screen map) -->
-    <!--Script file="Blizzard_WorldMap\Blizzard_WorldMap.lua"/-->
+    <!-- Blizzard_WorldMap — demand-loaded addon in TBC Classic Anniversary; skin fires on ADDON_LOADED -->
+    <Script file="Blizzard_WorldMap\TBC\Blizzard_WorldMap.lua"/>
 
 </Ui>

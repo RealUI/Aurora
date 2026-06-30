@@ -8,13 +8,33 @@ if private.shouldSkip() then return end
 local Aurora = private.Aurora
 local Base = Aurora.Base
 local Skin = Aurora.Skin
-local Color = Aurora.Color
+local Color, Util = Aurora.Color, Aurora.Util
 
 function private.FrameXML.TradeFrame()
     local TradeFrame = _G.TradeFrame
     if not TradeFrame then return end
 
-    Skin.ButtonFrameTemplate(TradeFrame)
+    -- TradeFrame does NOT inherit ButtonFrameTemplate in TBC — use manual skinning
+
+    -- Hide all frame decoration textures (borders, background art)
+    for _, region in next, {TradeFrame:GetRegions()} do
+        local regionType = region:GetObjectType()
+        if regionType == "Texture" then
+            local drawLayer = region:GetDrawLayer()
+            if drawLayer == "BORDER" or drawLayer == "ARTWORK" or drawLayer == "BACKGROUND" then
+                region:Hide()
+            end
+        end
+    end
+
+    -- Apply Aurora backdrop
+    Base.SetBackdrop(TradeFrame, Color.frame, Util.GetFrameAlpha())
+
+    -- Skin close button
+    local closeButton = _G.TradeFrameCloseButton or TradeFrame.CloseButton
+    if closeButton then
+        Skin.UIPanelCloseButton(closeButton)
+    end
 
     -- Hide player portrait
     if _G.TradeFramePlayerPortrait then
