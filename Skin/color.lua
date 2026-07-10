@@ -512,7 +512,13 @@ function Color.RegisterPaletteElement(frame, colorToken, alpha)
     if frame._auroraPaletteOptOut then return end
     local key = frame
     if type(frame) == "table" and frame.GetName then
-        key = frame:GetName() or frame
+        -- Some widget types expose a GetName reference that isn't a valid
+        -- method for that object (fails as "bad self"); fall back to using
+        -- the frame itself as the table key in that case.
+        local ok, name = pcall(frame.GetName, frame)
+        if ok and name then
+            key = name
+        end
     end
     paletteElements[key] = {
         frame = frame,
