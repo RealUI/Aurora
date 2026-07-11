@@ -10,6 +10,7 @@ private.isVanilla = _G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC
 private.isBCC = _G.WOW_PROJECT_ID == _G.WOW_PROJECT_BURNING_CRUSADE_CLASSIC
 private.isWrath = _G.WOW_PROJECT_ID == (_G.WOW_PROJECT_WRATH_CLASSIC or 11)
 private.isCata = _G.WOW_PROJECT_ID == (_G.WOW_PROJECT_CATACLYSM_CLASSIC or 14)
+private.isMists = _G.WOW_PROJECT_ID == (_G.WOW_PROJECT_MISTS_CLASSIC or 19)
 
 private.isClassic = not private.isRetail
 private.isMidnight = private.isRetail and select(4, _G.GetBuildInfo()) >= 120000
