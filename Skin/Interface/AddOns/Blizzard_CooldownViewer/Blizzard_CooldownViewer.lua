@@ -7,7 +7,7 @@ if private.shouldSkip() then return end
 --[[ Core ]]
 local Aurora = private.Aurora
 local Base, Skin = Aurora.Base, Aurora.Skin
-local Color, Util = Aurora.Color, Aurora.Util
+local Color = Aurora.Color
 
 -- Track skinned state in a weak table instead of writing _auroraSkinned
 -- directly onto item frames. CooldownViewer items participate in secure
@@ -42,28 +42,29 @@ local function HideIconOverlay(frame)
     end
 end
 
--- Skin a single cooldown item frame.
--- Handles all four item types:
+-- Resolve the actual icon Texture for an item frame, across all 4 templates.
 --   Essential / Utility / BuffIcon  — frame.Icon is the icon Texture directly
 --   BuffBar                         — frame.Icon is a child Frame; icon is frame.Icon.Icon
+local function GetItemIconTexture(frame)
+    local iconFrame = frame.Icon
+    if not iconFrame then return nil end
+    if iconFrame.Icon then
+        return iconFrame.Icon
+    elseif iconFrame.SetTexCoord then
+        return iconFrame
+    end
+end
+
+-- Skin a single cooldown item frame. One-time setup only (guarded by
+-- skinnedFrames) — see ReapplyIconCrops for the ongoing texcoord maintenance
+-- that has to run every time CDM refreshes the spell texture.
 local function SkinItemFrame(frame)
     if not frame or skinnedFrames[frame] then return end
     if frame.IsForbidden and frame:IsForbidden() then return end
 
     -- ── Icon (all item types) ──────────────────────────────────────────────
-    local iconFrame  -- the Frame or Texture referenced by parentKey="Icon"
-    local iconTex    -- the actual Texture to crop
-
-    iconFrame = frame.Icon
-    if iconFrame then
-        if iconFrame.Icon then
-            -- BuffBar: frame.Icon is a child Frame containing frame.Icon.Icon texture
-            iconTex = iconFrame.Icon
-        elseif iconFrame.SetTexCoord then
-            -- Essential / Utility / BuffIcon: frame.Icon is the texture itself
-            iconTex = iconFrame
-        end
-    end
+    local iconFrame = frame.Icon  -- the Frame or Texture referenced by parentKey="Icon"
+    local iconTex = GetItemIconTexture(frame)
 
     if iconTex then
         RemoveIconMask(iconTex)
@@ -133,6 +134,55 @@ local function SkinItemFrame(frame)
     skinnedFrames[frame] = true
 end
 
+-- Blizzard's default grid gap (RefreshLayout: childXPadding/Y = iconPadding - 4)
+-- nets out to ~1px even at 100% Icon Size, relying on the IconOverlay
+-- decorative ring (which we hide, see HideIconOverlay) to fake breathing room
+-- between icons. On top of that, each item frame is scaled by viewer.iconScale
+-- (the Edit Mode "Icon Size" % setting) via itemFrame:SetScale, so above 100%
+-- the gap goes negative and bare square icons bleed into their neighbor.
+-- Restore a minimum gap always, plus extra proportional to how much the
+-- scale grows the frame beyond 100%.
+local MIN_ICON_GAP = 3
+
+-- Nominal (unscaled) icon size per item template, taken from CooldownViewer.xml.
+-- BuffBar's item frame itself is a 220x30 bar, but the icon portion (frame.Icon,
+-- a 30x30 child, or h-12 after Aurora resizes it) is what actually overlaps —
+-- use its size, not the full bar width.
+--
+-- These are hardcoded rather than read via itemFrame/icon:GetWidth()/GetHeight()
+-- because for aura-backed items (BuffIcon/BuffBar, tied to auraSpellID/
+-- auraInstanceID) Blizzard's newer "secret value" protections can make those
+-- live geometry queries return secret-poisoned numbers — merely comparing one
+-- (e.g. `w > 0`) from addon code throws "execution tainted by 'RealUI_Skins'".
+-- Static constants sidestep that entirely.
+local NOMINAL_ICON_SIZE = {
+    CooldownViewerEssentialItemTemplate = 50,
+    CooldownViewerUtilityItemTemplate   = 30,
+    CooldownViewerBuffIconItemTemplate  = 40,
+    CooldownViewerBuffBarItemTemplate   = 30,
+}
+
+local function CompensateGridPaddingForScale(viewer)
+    local scale = viewer.iconScale or 1
+
+    local container = viewer.GetItemContainerFrame and viewer:GetItemContainerFrame()
+    if not container then return end
+
+    local size = NOMINAL_ICON_SIZE[viewer.itemTemplate]
+    if not size then return end
+
+    local scaleGap = (scale > 1) and (scale - 1) * size or 0
+    local gap = MIN_ICON_GAP + scaleGap
+    container.childXPadding = (container.childXPadding or 0) + gap
+    container.childYPadding = (container.childYPadding or 0) + gap
+
+    -- RefreshLayout already called container:Layout() with the old padding
+    -- before this post-hook ran; force a fresh pass so our values take effect now.
+    if container.Layout then
+        container:Layout()
+    end
+end
+
 -- Skin all current children of a viewer frame.
 -- Called at skin-function time (catches pre-existing items) and from OnShow
 -- hooks (catches items materialised after the first display).
@@ -143,36 +193,35 @@ local function SkinViewerChildren(viewer)
     end
 end
 
--- One hook table shared across all four item mixin tables.
-local itemHook = {}
-function itemHook:OnLoad()
-    SkinItemFrame(self)
-end
-
--- Re-apply icon crop after CDM updates the spell texture.
--- SetTexture() resets texcoords to 0,0,1,1 so we must re-crop each time.
-function itemHook:RefreshSpellTexture()
-    local iconTex = self:GetIconTexture()
-    if iconTex and iconTex.SetTexCoord then
-        pcall(iconTex.SetTexCoord, iconTex, .08, .92, .08, .92)
+-- SetTexture() resets a texture's texcoords to 0,0,1,1, so CDM's own icon
+-- refresh (whenever the tracked spell/aura changes) undoes our crop and it
+-- needs re-applying. We do NOT hook CDM's RefreshSpellTexture/OnLoad mixin
+-- methods for this (previously via Util.Mixin -> hooksecurefunc on the
+-- shared item mixins): that runs our code *synchronously inside* Blizzard's
+-- own OnLoad/RefreshData dispatch, and WoW's "secret value" protections
+-- (cooldown charges, totem state, aura fields) mark the touched item frame
+-- as tainted from then on — any later Blizzard-internal secret comparison on
+-- that same frame object can fail, even from a completely unrelated event
+-- far downstream. This project's own CHANGELOG has hit the identical lesson
+-- repeatedly elsewhere (nameplate widgets, MapCanvas, GameTooltip widgets:
+-- "writing an addon-owned slot on the mixin taints the execution context").
+-- Instead, re-apply the crop unconditionally from an independent ticker,
+-- fully decoupled from any Blizzard call chain.
+local function ReapplyIconCrops(viewer)
+    if not viewer then return end
+    for _, child in next, {viewer:GetChildren()} do
+        local iconTex = GetItemIconTexture(child)
+        if iconTex and iconTex.SetTexCoord then
+            pcall(iconTex.SetTexCoord, iconTex, .08, .92, .08, .92)
+        end
     end
 end
 
 function private.AddOns.Blizzard_CooldownViewer()
-    -- CreateFromMixins copies methods by value, not by reference.
-    -- Hooking the base CooldownViewerItemMixin alone does not reach
-    -- frames mixed with the four specific leaf mixin tables, because
-    -- each leaf mixin holds its own copy of OnLoad made before our
-    -- hooksecurefunc ran. Hook all four explicitly.
-    Util.Mixin(_G.CooldownViewerEssentialItemMixin, itemHook)
-    Util.Mixin(_G.CooldownViewerUtilityItemMixin,   itemHook)
-    Util.Mixin(_G.CooldownViewerBuffIconItemMixin,  itemHook)
-    Util.Mixin(_G.CooldownViewerBuffBarItemMixin,   itemHook)
-
-    -- Belt-and-suspenders: scan existing children now and hook OnShow so that
-    -- items created or shown after this skin function runs are also caught.
     -- Item pools are lazy, so GetChildren() usually returns nothing at load
-    -- time, but OnShow fires after PLAYER_ENTERING_WORLD when spells appear.
+    -- time; the initial scan plus OnShow hook catch most cases, and the
+    -- ticker below catches new items materialising while the viewer stays
+    -- shown (OnShow doesn't re-fire for that) and re-crops texture resets.
     local viewers = {
         _G.EssentialCooldownViewer,
         _G.UtilityCooldownViewer,
@@ -185,8 +234,18 @@ function private.AddOns.Blizzard_CooldownViewer()
             viewer:HookScript("OnShow", function(self)
                 SkinViewerChildren(self)
             end)
+            _G.hooksecurefunc(viewer, "RefreshLayout", CompensateGridPaddingForScale)
         end
     end
+
+    _G.C_Timer.NewTicker(0.2, function()
+        for _, viewer in ipairs(viewers) do
+            if viewer then
+                SkinViewerChildren(viewer)
+                ReapplyIconCrops(viewer)
+            end
+        end
+    end)
 
     ------------------------------------------------
     -- Skin the CooldownViewerSettings dialog
