@@ -26,11 +26,11 @@ local function HideCommonInputBorder(parentFrame)
 end
 
 
-function private.AddOns.Blizzard_HousingPhotoSharing()
+function private.AddOns.Blizzard_PhotoSharing()
     ----
-    -- HousingPhotoSharingFrame (SettingsFrameTemplate)
+    -- PhotoSharingFrame (SettingsFrameTemplate)
     ----
-    local Frame = _G.HousingPhotoSharingFrame
+    local Frame = _G.PhotoSharingFrame
 
     Skin.FrameTypeFrame(Frame)
 
@@ -62,9 +62,9 @@ function private.AddOns.Blizzard_HousingPhotoSharing()
     -- ScreenshotPreview: leave unskinned (rendering texture)
 
     ----
-    -- HousingPhotoSharingBrowser (DefaultPanelTemplate — ButtonFrameTemplateNoPortrait layout)
+    -- PhotoSharingBrowserFrame (DefaultPanelTemplate — ButtonFrameTemplateNoPortrait layout)
     ----
-    local Browser = _G.HousingPhotoSharingBrowser
+    local Browser = _G.PhotoSharingBrowserFrame
 
     Skin.DefaultPanelTemplate(Browser)
     Skin.UIPanelCloseButton(Browser.CloseButton)
@@ -72,9 +72,9 @@ function private.AddOns.Blizzard_HousingPhotoSharing()
     -- Browser (SimpleBrowser web view): leave unskinned
 
     ----
-    -- HousingPhotoSharingBrowserPopup (DefaultPanelTemplate — ButtonFrameTemplateNoPortrait layout)
+    -- PhotoSharingBrowserPopup (DefaultPanelTemplate — ButtonFrameTemplateNoPortrait layout)
     ----
-    local BrowserPopup = _G.HousingPhotoSharingBrowserPopup
+    local BrowserPopup = _G.PhotoSharingBrowserPopup
 
     Skin.DefaultPanelTemplate(BrowserPopup)
     Skin.UIPanelCloseButton(BrowserPopup.CloseButton)
