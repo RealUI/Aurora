@@ -24,10 +24,26 @@ do --[[ SharedXML\SharedUIPanelTemplates.lua ]]
         if not tab._auroraTabResize or resizing then return end
 
         resizing = true
+        -- TabResize computes sideWidths as 2 * Left:GetWidth(); with the art
+        -- hidden this is pure padding around the text. Skins can tune it per
+        -- tab via _auroraSideWidth (visible padding = 2*sideWidth - backdrop
+        -- insets).
         local left = tab.Left or tab.leftTexture or _G[tab:GetName().."Left"]
-        left:SetWidth(10)
+        left:SetWidth(tab._auroraSideWidth or 10)
         _G.PanelTemplates_TabResize(tab, padding, absoluteSize, minWidth, maxWidth, absoluteTextSize)
         resizing = false
+
+        -- On the very first show the font string has not rendered yet, so
+        -- TabResize measures a stale text width and truncates. Re-run once
+        -- on the next frame, after the text has a real width.
+        if not tab._auroraResizeRetried then
+            tab._auroraResizeRetried = true
+            _G.C_Timer.After(0, function()
+                if tab:IsVisible() then
+                    Hook.PanelTemplates_TabResize(tab, padding, absoluteSize, minWidth, maxWidth, absoluteTextSize)
+                end
+            end)
+        end
     end
     function Hook.PanelTemplates_DeselectTab(tab)
         local text = tab.Text or _G[tab:GetName().."Text"]

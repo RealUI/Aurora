@@ -349,7 +349,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_InspectUI\Mainline\Blizzard_InspectUI.lua"/>
     <Script file="Blizzard_IslandsPartyPoseUI\Blizzard_IslandsPartyPoseUI.lua"/>
     <Script file="Blizzard_IslandsQueueUI\Blizzard_IslandsQueueUI.lua"/>
-    <Script file="Blizzard_ItemButton\Mainline\Blizzard_ItemButton.lua"/>
+    <Script file="Blizzard_ItemButton\Blizzard_ItemButton.lua"/>
     <Script file="Blizzard_ItemInteractionUI\Blizzard_ItemInteractionUI.lua"/>
     <Script file="Blizzard_ItemSocketingUI\Mainline\Blizzard_ItemSocketingUI.lua"/>
     <Script file="Blizzard_ItemUpgradeUI\Mainline\Blizzard_ItemUpgradeUI.lua"/>

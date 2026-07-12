@@ -42,7 +42,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_CastingBar\Blizzard_CastingBar.lua"/-->
     <!--Script file="Blizzard_CatalogShop\Blizzard_CatalogShop.lua"/-->
     <!--Script file="Blizzard_Channels\Blizzard_Channels.lua"/-->
-    <!--Script file="Blizzard_CharacterFrame\Blizzard_CharacterFrame.lua"/-->
+    <Script file="Blizzard_CharacterFrame\Vanilla\Blizzard_CharacterFrame.lua"/>
     <!-- This section is added for Blizzard_ChatFrame by the Aurora XML Updater -->
     <!--Script file="Blizzard_ChatFrame\Shared\VoiceChatTranscriptionButton.lua"/-->
     <!--Script file="Blizzard_ChatFrame\Classic\VoiceChatHeadsetButton.lua"/-->
@@ -185,7 +185,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_HelpPlate\Blizzard_HelpPlate.lua"/-->
     <!--Script file="Blizzard_IME\Blizzard_IME.lua"/-->
     <!--Script file="Blizzard_InspectUI\Blizzard_InspectUI.lua"/-->
-    <!--Script file="Blizzard_ItemButton\Blizzard_ItemButton.lua"/-->
+    <Script file="Blizzard_ItemButton\Blizzard_ItemButton.lua"/>
     <!--Script file="Blizzard_ItemSocketingUI\Blizzard_ItemSocketingUI.lua"/-->
     <!--Script file="Blizzard_Kiosk\Blizzard_Kiosk.lua"/-->
     <!--Script file="Blizzard_LoadLocale\Blizzard_LoadLocale.lua"/-->
