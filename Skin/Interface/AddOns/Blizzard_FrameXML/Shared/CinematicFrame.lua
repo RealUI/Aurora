@@ -28,10 +28,13 @@ end
 function private.FrameXML.CinematicFrame()
     _G.CinematicFrame.closeDialog:HookScript("OnShow", Hook.CinematicFrameCloseDialog_OnShow)
 
-    if private.isRetail then
-        Skin.DialogBorderTemplate(_G.CinematicFrame.closeDialog.Border)
+    -- Retail and modern classic (1.15+) both use a DialogBorderTemplate
+    -- child; only truly old clients had the backdrop on the dialog itself.
+    local closeDialog = _G.CinematicFrame.closeDialog
+    if closeDialog.Border then
+        Skin.DialogBorderTemplate(closeDialog.Border)
     else
-        Skin.DialogBorderTemplate(_G.CinematicFrame.closeDialog)
+        Skin.DialogBorderTemplate(closeDialog)
     end
     Skin.CinematicDialogButtonTemplate(_G.CinematicFrameCloseDialogConfirmButton)
     Skin.CinematicDialogButtonTemplate(_G.CinematicFrameCloseDialogResumeButton)

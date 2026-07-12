@@ -575,7 +575,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_SharedXML\PagedList.lua"/-->
     <Script file="Blizzard_SharedXML\Mainline\HelpTip.lua"/>
     <!--Script file="Blizzard_SharedXML\Mainline\ScrollDefine.lua"/-->
-    <Script file="Blizzard_SharedXML\Mainline\SecureScrollTemplates.lua"/>
+    <Script file="Blizzard_SharedXML\SecureScrollTemplates.lua"/>
     <Script file="Blizzard_SharedXML\Mainline\SecureUIPanelTemplates.lua"/>
     <!--Script file="Blizzard_SharedXML\Spinner.lua"/-->
     <Script file="Blizzard_SharedXML\Mainline\SharedUIPanelTemplates.lua"/>

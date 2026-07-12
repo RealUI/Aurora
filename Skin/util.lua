@@ -111,6 +111,20 @@ function Util.SetHighlightColor(texture, alpha)
     texture:SetColorTexture(Color.highlight.r, Color.highlight.g, Color.highlight.b, alpha or 1)
 end
 
+--[[ Util.HideFrameTextures(_frame_)
+Hides every Texture region directly attached to the frame; FontStrings are
+left alone. Useful for classic frames whose sheet art is layered as unnamed
+quadrant textures (character sheet, quest panels, etc.).
+--]]
+function Util.HideFrameTextures(Frame)
+    for i = 1, _G.select("#", Frame:GetRegions()) do
+        local region = _G.select(i, Frame:GetRegions())
+        if region:IsObjectType("Texture") then
+            region:SetTexture("")
+        end
+    end
+end
+
 
 --[[ Widget Data ]]--
 

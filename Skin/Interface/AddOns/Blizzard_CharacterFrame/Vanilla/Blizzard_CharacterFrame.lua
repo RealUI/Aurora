@@ -2,12 +2,13 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals select ipairs
+-- luacheck: globals ipairs
 
 --[[ Core ]]
 local Aurora = private.Aurora
 local Base = Aurora.Base
 local Skin = Aurora.Skin
+local Util = Aurora.Util
 
 --[[ Classic Era CharacterFrame + PaperDollFrame + PetPaperDollFrame.
     Evidence: wow-ui-source-era/Interface/AddOns/Blizzard_CharacterFrame/
@@ -21,17 +22,6 @@ local Skin = Aurora.Skin
     borders via the shared SetItemButtonQuality hook).
     Blizzard_CharacterFrame is LoadFirst, hence private.FrameXML dispatch.
 ]]
-
--- Hide every Texture region directly attached to a frame (used for the
--- unnamed character-sheet quadrant art); leaves FontStrings alone.
-local function HideFrameTextures(Frame)
-    for i = 1, select("#", Frame:GetRegions()) do
-        local region = select(i, Frame:GetRegions())
-        if region:IsObjectType("Texture") then
-            region:SetTexture("")
-        end
-    end
-end
 
 local itemSlots = {
     "CharacterHeadSlot", "CharacterNeckSlot", "CharacterShoulderSlot",
@@ -82,7 +72,7 @@ function private.FrameXML.PaperDollFrame()
     local PaperDollFrame = _G.PaperDollFrame
 
     -- The four unnamed UI-Character-CharacterTab-* quadrants
-    HideFrameTextures(PaperDollFrame)
+    Util.HideFrameTextures(PaperDollFrame)
 
     for _, name in ipairs(statBackgrounds) do
         local texture = _G[name]
@@ -111,5 +101,5 @@ function private.FrameXML.PetPaperDollFrame()
     if not PetPaperDollFrame then return end
 
     -- UI-Character-General-Top* / UI-PetPaperDollFrame-Bot* quadrants
-    HideFrameTextures(PetPaperDollFrame)
+    Util.HideFrameTextures(PetPaperDollFrame)
 end

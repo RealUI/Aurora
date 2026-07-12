@@ -115,9 +115,119 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         end
     end
 
+    function Skin.UIRadioButtonTemplate(CheckButton)
+        Skin.FrameTypeCheckButton(CheckButton)
+        CheckButton:SetBackdropOption("offsets", {
+            left = 4,
+            right = 4,
+            top = 4,
+            bottom = 4,
+        })
+
+        local bg = CheckButton:GetBackdropTexture("bg")
+        local check = CheckButton:GetCheckedTexture()
+        check:ClearAllPoints()
+        check:SetPoint("TOPLEFT", bg, 1, -1)
+        check:SetPoint("BOTTOMRIGHT", bg, -1, 1)
+        Util.SetHighlightColor(check)
+    end
+    function Skin.UICheckButtonTemplate(CheckButton)
+        Skin.FrameTypeCheckButton(CheckButton)
+        CheckButton:SetBackdropOption("offsets", {
+            left = 6,
+            right = 6,
+            top = 6,
+            bottom = 6,
+        })
+
+        local bg = CheckButton:GetBackdropTexture("bg")
+        local check = CheckButton:GetCheckedTexture()
+        check:ClearAllPoints()
+        check:SetPoint("TOPLEFT", bg, -6, 6)
+        check:SetPoint("BOTTOMRIGHT", bg, 6, -6)
+        check:SetDesaturated(true)
+        check:SetVertexColor(Color.highlight:GetRGB())
+
+        local disabled = CheckButton:GetDisabledCheckedTexture()
+        if disabled then
+            disabled:SetAllPoints(check)
+        end
+    end
+
+    function Skin.HorizontalSliderTemplate(Slider)
+        Base.SetBackdrop(Slider, Color.frame)
+        Slider:SetBackdropBorderColor(Color.button)
+        Slider:SetBackdropOption("offsets", {
+            left = 5,
+            right = 5,
+            top = 5,
+            bottom = 5,
+        })
+
+        local thumbTexture = Slider:GetThumbTexture()
+        thumbTexture:SetAlpha(0)
+        thumbTexture:SetSize(8, 16)
+
+        local thumb = _G.CreateFrame("Frame", nil, Slider)
+        thumb:SetPoint("TOPLEFT", thumbTexture, 0, 0)
+        thumb:SetPoint("BOTTOMRIGHT", thumbTexture, 0, 0)
+        Base.SetBackdrop(thumb, Color.button)
+        Slider._auroraThumb = thumb
+    end
+    function Skin.OptionsSliderTemplate(Slider)
+        Skin.HorizontalSliderTemplate(Slider)
+
+        -- Blizzard code may reset these backdrops; keep Aurora's colors.
+        Slider.backdropColor = Color.frame
+        Slider.backdropColorAlpha = Color.frame.a
+        Slider.backdropBorderColor = Color.button
+    end
+
     function Skin.NineSlicePanelTemplate(Frame)
         Frame._auroraNineSlice = true
         Hook.NineSliceUtil.ApplyLayout(Frame)
+    end
+    function Skin.DialogBorderNoCenterTemplate(Frame)
+        Skin.NineSlicePanelTemplate(Frame)
+
+        local r, g, b = Frame:GetBackdropColor()
+        Frame:SetBackdropColor(r, g, b, 0)
+    end
+    function Skin.DialogBorderTemplate(Frame)
+        if Frame.Bg then
+            Frame.Center = Frame.Bg
+        end
+        Skin.DialogBorderNoCenterTemplate(Frame)
+
+        local r, g, b = Frame:GetBackdropColor()
+        Frame:SetBackdropColor(r, g, b, Util.GetFrameAlpha())
+    end
+    function Skin.DialogBorderDarkTemplate(Frame)
+        if Frame.Bg then
+            Frame.Center = Frame.Bg
+        end
+        Skin.DialogBorderNoCenterTemplate(Frame)
+
+        local r, g, b = Frame:GetBackdropColor()
+        Frame:SetBackdropColor(r, g, b, 0.87)
+    end
+    function Skin.DialogBorderTranslucentTemplate(Frame)
+        if Frame.Bg then
+            Frame.Center = Frame.Bg
+        end
+        Skin.DialogBorderNoCenterTemplate(Frame)
+
+        local r, g, b = Frame:GetBackdropColor()
+        Frame:SetBackdropColor(r, g, b, 0.8)
+    end
+    function Skin.DialogBorderOpaqueTemplate(Frame)
+        if Frame.Bg then
+            Frame.Center = Frame.Bg
+        end
+        Skin.DialogBorderNoCenterTemplate(Frame)
+
+        local r, g, b = Frame:GetBackdropColor()
+        Frame:SetBackdropColor(r, g, b, 1)
     end
     function Skin.InsetFrameTemplate(Frame)
         Frame.NineSlice.Center = Frame.Bg
