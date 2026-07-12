@@ -370,7 +370,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_Menu\Mainline\MenuVariants.lua"/>
     <Script file="Blizzard_Menu\Mainline\Compositor.lua"/>
     <Script file="Blizzard_Menu\Mainline\Menu.lua"/>
-    <Script file="Blizzard_Menu\Mainline\DropdownButton.lua"/>
+    <Script file="Blizzard_Menu\DropdownButton.lua"/>
     <Script file="Blizzard_Menu\MenuTemplates.lua"/>
     <Script file="Blizzard_Menu\Mainline\MenuTemplates.lua"/>
     <!--Script file="Blizzard_Menu\MenuUtil.lua"/-->

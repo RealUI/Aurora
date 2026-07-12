@@ -17,7 +17,9 @@ do --[[ FrameXML\UIDropDownMenu.xml ]]
 end
 
 
-function private.AddOns.MenuVariants()
+-- Registered under the real addon name: the previous key ("MenuVariants")
+-- never matched a loadable addon, so this hook never fired.
+function private.AddOns.Blizzard_Menu()
     -- Hook MenuStyle1Mixin:Generate to replace the atlas background with Aurora's color.
     -- This affects all context menus and dropdown popups that use the default menu style.
     --
