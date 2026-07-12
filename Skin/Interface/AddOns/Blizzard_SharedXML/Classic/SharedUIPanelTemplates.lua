@@ -55,6 +55,34 @@ do --[[ SharedXML\SharedUIPanelTemplates.lua ]]
     end
 end
 
+do --[[ SharedXML\SharedUIPanelTemplates.lua - nav buttons ]]
+    local function NavButton(Button)
+        Skin.FrameTypeButton(Button)
+        Button:SetBackdropOption("offsets", {
+            left = 5,
+            right = 5,
+            top = 5,
+            bottom = 5,
+        })
+
+        local bg = Button:GetBackdropTexture("bg")
+        local arrow = Button:CreateTexture(nil, "ARTWORK")
+        arrow:SetPoint("TOPLEFT", bg, 8, -5)
+        arrow:SetPoint("BOTTOMRIGHT", bg, -8, 5)
+        Button._auroraTextures = {arrow}
+
+        return arrow
+    end
+    function Skin.NavButtonPrevious(Button)
+        local arrow = NavButton(Button)
+        Base.SetTexture(arrow, "arrowLeft")
+    end
+    function Skin.NavButtonNext(Button)
+        local arrow = NavButton(Button)
+        Base.SetTexture(arrow, "arrowRight")
+    end
+end
+
 do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
     function Skin.UIPanelCloseButtonNoScripts(Button)
         Skin.FrameTypeButton(Button)
