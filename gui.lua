@@ -213,7 +213,9 @@ local createSlider do
             _G[slider:GetName().."Text"]:SetText(text)
         end
 
-        if not private.isRetail then
+        -- Legacy enable call for old classic clients; removed from modern
+        -- classic (1.15+ uses the same SharedXML slider as retail).
+        if not private.isRetail and _G.BlizzardOptionsPanel_Slider_Enable then
             _G.BlizzardOptionsPanel_Slider_Enable(slider)
         end
 
@@ -241,9 +243,16 @@ local gui = _G.CreateFrame("Frame", "AuroraOptions", _G.UIParent)
 gui.name = "Aurora"
 
 -- add the settings canvas to the addons settings
-local category, _ = _G.Settings.RegisterCanvasLayoutCategory(gui, "Aurora", "Aurora")
-Aurora.category = category
-_G.Settings.RegisterAddOnCategory(category)
+-- The modern Settings API ships on all current clients (retail and classic
+-- family); the capability check is defensive for clients where the Settings
+-- addon is unavailable or disabled.
+local hasSettingsAPI = _G.Settings and _G.Settings.RegisterCanvasLayoutCategory ~= nil
+local category
+if hasSettingsAPI then
+    category = _G.Settings.RegisterCanvasLayoutCategory(gui, "Aurora", "Aurora")
+    Aurora.category = category
+    _G.Settings.RegisterAddOnCategory(category)
+end
 
 -- Create subcategory panels
 local featuresPanel = _G.CreateFrame("Frame", "AuroraOptionsFeatures", _G.UIParent)
@@ -259,9 +268,11 @@ privacyPanel.name = "Privacy"
 privacyPanel.parent = "Aurora"
 
 -- Register subcategories
-_G.Settings.RegisterCanvasLayoutSubcategory(category, featuresPanel, "Features")
-_G.Settings.RegisterCanvasLayoutSubcategory(category, appearancePanel, "Appearance")
-_G.Settings.RegisterCanvasLayoutSubcategory(category, privacyPanel, "Privacy")
+if hasSettingsAPI then
+    _G.Settings.RegisterCanvasLayoutSubcategory(category, featuresPanel, "Features")
+    _G.Settings.RegisterCanvasLayoutSubcategory(category, appearancePanel, "Appearance")
+    _G.Settings.RegisterCanvasLayoutSubcategory(category, privacyPanel, "Privacy")
+end
 
 --[[ Main Panel ]]--
 local title = gui:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
@@ -741,7 +752,9 @@ end)
 local performancePanel = _G.CreateFrame("Frame", "AuroraOptionsPerformance", _G.UIParent)
 performancePanel.name = "Performance"
 performancePanel.parent = "Aurora"
-_G.Settings.RegisterCanvasLayoutSubcategory(category, performancePanel, "Performance")
+if hasSettingsAPI then
+    _G.Settings.RegisterCanvasLayoutSubcategory(category, performancePanel, "Performance")
+end
 
 local perfTitle = performancePanel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
 perfTitle:SetPoint("TOP", 0, -26)
@@ -1051,6 +1064,10 @@ _G.SlashCmdList.AURORA = function(msg, editBox)
     elseif private.commands[msg] then
         private.commands[msg]()
     elseif msg == "" then
+        if not Aurora.category then
+            _G.print("|cffff0000Aurora:|r Configuration panel is not available on this client.")
+            return
+        end
         -- Open settings panel with error handling
         local success, err = pcall(function()
             _G.Settings.OpenToCategory(Aurora.category:GetID())

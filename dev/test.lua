@@ -8,6 +8,9 @@ if private.Aurora then
 end
 
 local commands = private.commands
+-- private.commands is created in gui.lua; if gui.lua aborted (load error on a
+-- new client flavor), bail instead of cascading a second error from dev code.
+if not commands then return end
 local function CopyTable(oldTable)
     local newTable = {}
     for k, v in next, oldTable do

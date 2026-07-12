@@ -212,8 +212,10 @@ function private.OnLoad()
         end)
     end
 
-    -- Skip CharacterFrame modifications if Chonky Character Sheet is loaded
-    if AuroraConfig.characterSheet and not _G.C_AddOns.IsAddOnLoaded("ChonkyCharacterSheet") then
+    -- Skip CharacterFrame modifications if Chonky Character Sheet is loaded.
+    -- Retail only: CharacterStatsPane and PaperDollFrame_UpdateStats do not
+    -- exist on classic clients (their paperdoll has a different stats pane).
+    if private.isRetail and AuroraConfig.characterSheet and not _G.C_AddOns.IsAddOnLoaded("ChonkyCharacterSheet") then
         _G.hooksecurefunc(private.FrameXML, "CharacterFrame", function()
             _G.CharacterStatsPane.ItemLevelFrame:SetPoint("TOP", 0, -12)
             _G.CharacterStatsPane.ItemLevelFrame.Background:Hide()
@@ -228,6 +230,9 @@ function private.OnLoad()
         end)
     end
 
+    -- Retail only: the BNet broadcast layout below does not exist on classic,
+    -- and on classic clients the FriendsFrame skin may not be registered yet.
+    if private.isRetail and type(private.FrameXML.FriendsFrame) == "function" then
     _G.hooksecurefunc(private.FrameXML, "FriendsFrame", function()
         local FriendsFrame = _G.FriendsFrame
         local titleText = FriendsFrame.TitleText or FriendsFrame:GetTitleText()
@@ -264,6 +269,7 @@ function private.OnLoad()
             end
         end)
     end)
+    end
 
     -- Disable skins as per user settings
     private.disabled.bags = not AuroraConfig.bags
