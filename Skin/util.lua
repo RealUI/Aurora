@@ -111,16 +111,24 @@ function Util.SetHighlightColor(texture, alpha)
     texture:SetColorTexture(Color.highlight.r, Color.highlight.g, Color.highlight.b, alpha or 1)
 end
 
---[[ Util.HideFrameTextures(_frame_)
+--[[ Util.HideFrameTextures(_frame[, useAlpha]_)
 Hides every Texture region directly attached to the frame; FontStrings are
 left alone. Useful for classic frames whose sheet art is layered as unnamed
 quadrant textures (character sheet, quest panels, etc.).
+
+Pass `useAlpha` when Blizzard code re-SetTextures the regions at runtime
+(bags, loot portrait): SetAlpha(0) survives texture swaps, SetTexture("")
+does not.
 --]]
-function Util.HideFrameTextures(Frame)
+function Util.HideFrameTextures(Frame, useAlpha)
     for i = 1, _G.select("#", Frame:GetRegions()) do
         local region = _G.select(i, Frame:GetRegions())
         if region:IsObjectType("Texture") then
-            region:SetTexture("")
+            if useAlpha then
+                region:SetAlpha(0)
+            else
+                region:SetTexture("")
+            end
         end
     end
 end
