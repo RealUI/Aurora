@@ -1,297 +1,251 @@
 import os
-import glob
-from git import Repo
+import re
+import sys
 
-version = '0.1.0'
+version = '0.2.0'
 author = 'Hanshi/arnvid'
 
-aurora_path = './Skin/Interface/AddOns'
-wou_ui_sources_git = '../../wow-ui-source'
-wou_ui_sources = '../../wow-ui-source/Interface/AddOns'
+# All paths are anchored to this script's location: dev/ inside the Aurora
+# repo, with the wow-ui-source trees checked out next to the Aurora repo.
+_dev_dir = os.path.dirname(os.path.abspath(__file__))
+aurora_path = os.path.join(_dev_dir, '..', 'Skin', 'Interface', 'AddOns')
+_trees_root = os.path.normpath(os.path.join(_dev_dir, '..', '..'))
 
-aurora_specials = []
+# Flavor configuration — one entry per supported client build.
+#   tree:      wow-ui-source checkout for that client (sibling of the Aurora repo)
+#   toc_order: the client's TOC suffix search order ('' = suffix-less TOC)
+#   family:    what the client substitutes for [Family] in TOC file paths
+#   gametypes: tokens this client matches in AllowLoadGameType directives
+#   skin_dirs: Aurora skin subfolders searched (most specific first) when a
+#              TOC lists a flat path — lets flavor-specific skins live in
+#              Mainline/, TBC/, Vanilla/, Mists/ or the classic-shared
+#              Classic/ folder even when Blizzard's own path has no subdir
+#   adp:       AURORA_DEBUG_PROJECT value (must match Skin/init.lua debugProjectID)
+flavors = {
+    'Mainline': {
+        'tree': os.path.join(_trees_root, 'wow-ui-source'),
+        'toc_order': ['Mainline', 'Standard', ''],
+        'family': 'Mainline',
+        'gametypes': {'mainline', 'standard'},
+        'skin_dirs': ['Mainline'],
+        'adp': 0,
+    },
+    'Vanilla': {
+        'tree': os.path.join(_trees_root, 'wow-ui-source-era'),
+        'toc_order': ['Vanilla', 'Classic', ''],
+        'family': 'Classic',
+        'gametypes': {'classic', 'vanilla'},
+        'skin_dirs': ['Vanilla', 'Classic'],
+        'adp': 10,
+    },
+    'TBC': {
+        'tree': os.path.join(_trees_root, 'wow-ui-source-anniversary'),
+        'toc_order': ['TBC', 'Classic', ''],
+        'family': 'Classic',
+        'gametypes': {'classic', 'tbc'},
+        'skin_dirs': ['TBC', 'Classic'],
+        'adp': 20,
+    },
+    'Mists': {
+        'tree': os.path.join(_trees_root, 'wow-ui-source-classic'),
+        'toc_order': ['Mists', 'Classic', ''],
+        'family': 'Classic',
+        'gametypes': {'classic', 'mists'},
+        'skin_dirs': ['Mists', 'Classic'],
+        'adp': 50,
+    },
+}
+
+# Addons whose manifest entries are expanded file-by-file from their TOC.
+# All other addons get a single {AddonName}\{AddonName}.lua entry.
 aurora_addons = ['Blizzard_FrameXML', 'Blizzard_FrameXMLBase', 'Blizzard_SharedXML', 'Blizzard_SharedXMLBase',
-                 'Blizzard_UIPanels_Game', 'Blizzard_UnitPopup', 'Blizzard_UIParent', 'Blizzard_StaticPopup_Frame',
+                 'Blizzard_UIPanels_Game', 'Blizzard_UnitPopup', 'Blizzard_UIParent',
                  'Blizzard_GroupFinder', 'Blizzard_QuickJoin', 'Blizzard_ActionBar',
-                 'Blizzard_MoneyFrame','Blizzard_UIPanelTemplates','Blizzard_GarrisonBase', 'Blizzard_ChatFrame',
-                 'Blizzard_StaticPopup_Game', 'Blizzard_ActionBar', 'Blizzard_Menu','Blizzard_ChatFrameBase',
-                ]
-
-isLive = False
-isPTR = False
-isClassic = False
-isBeta = False
-
-isRetail = False
-isVanilla = False
-isTBC = False
-isWrath = False
-isCata = False
-isMists = False
-
-ADP_Retail = 0
-ADP_Vanilla = 10
-ADP_TBC = 20
-ADP_Wrath = 30
-ADP_Cata = 40
-ADP_Mists = 40
-ADP_WoWLabs= 99
+                 'Blizzard_MoneyFrame', 'Blizzard_UIPanelTemplates', 'Blizzard_GarrisonBase', 'Blizzard_ChatFrame',
+                 'Blizzard_StaticPopup_Game', 'Blizzard_Menu', 'Blizzard_ChatFrameBase',
+                 ]
 
 xml_header = "<Ui xmlns=\"http://www.blizzard.com/wow/ui/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.blizzard.com/wow/ui/\nhttps://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd\">\n"
-xml_script_header = "    <Script>\n        _G.AURORA_DEBUG_PROJECT = %s\n    </Script>\n" 
+xml_script_header = "    <Script>\n        _G.AURORA_DEBUG_PROJECT = %s\n    </Script>\n"
 xml_info_addons = "    <!-- This section is added for %s by the Aurora XML Updater -->\n"
 xml_info_addons_end = "    <!-- End of section added for %s by the Aurora XML Updater -->\n"
 xml_include_lua = "    <Script file=\"%s\"/>\n"
 xml_no_include_lua = "    <!--Script file=\"%s\"/-->\n"
 xml_space = "\n"
 xml_footer = "</Ui>"
-dontupdate_toc_types = ['WowLabs']
-replace_family_with = "Mainline"
-processed_lines = {}  # Module-level dict tracking all referenced .lua paths
+
+processed_lines = {}  # union across all flavors, for the unused-file report
+
 
 def _app_intro():
-    global version
-    print(f"Aurora XML Updater v{version} by {author} - (c) 2024\n")
-    
-def check_git_branch():
-    global isLive, isClassic, dontupdate_toc_types
-    repo = Repo(wou_ui_sources_git)
-    branch = repo.active_branch
-    print(f"Current branch: {branch}")
-    if branch.name == 'live':
-        dontupdate_toc_types.append('TBC')
-        dontupdate_toc_types.append('Cata')
-        dontupdate_toc_types.append('Wrath')
-        dontupdate_toc_types.append('Vanilla')
-        dontupdate_toc_types.append('Classic')
-        dontupdate_toc_types.append('Mists')
-        isLive = True
-    elif branch.name == 'ptr2':
-        dontupdate_toc_types.append('TBC')
-        dontupdate_toc_types.append('Cata')
-        dontupdate_toc_types.append('Wrath')
-        dontupdate_toc_types.append('Vanilla')
-        dontupdate_toc_types.append('Classic')
-        dontupdate_toc_types.append('Mists')
-    elif branch.name == 'classic':
-        dontupdate_toc_types.append('Mainline')
-        isClassic = True
+    print(f"Aurora XML Updater v{version} by {author} - (c) 2024-2026\n")
 
-def init_xml_file(file_path, adp):
-    print(f"Creating {file_path} - {adp}")
-    with open(file_path, 'w+') as file:
-        file.write(xml_header)
-        file.write(xml_space)
-        file.write(xml_script_header % adp)
-        file.write(xml_space)
-        file.close()
 
-def write_xml_file(file_path, lua_file, found):
-    with open(file_path, 'a+') as file:
-        if found:
-            file.write(xml_include_lua % lua_file)
+def tree_version(tree):
+    try:
+        with open(os.path.join(tree, 'version.txt'), 'r') as file:
+            return file.read().strip()
+    except OSError:
+        return 'unknown'
+
+
+def resolve_toc(addon_path, dirname, toc_order):
+    """Pick the TOC the client would load, honoring its suffix search order.
+
+    Matching is case-insensitive: Blizzard's own repo has e.g. the directory
+    Blizzard_BarbershopUI containing Blizzard_BarberShopUI.toc.
+    """
+    tocs = {}  # lowercased suffix -> filename
+    for f in os.listdir(addon_path):
+        if not f.lower().endswith('.toc'):
+            continue
+        stem = f[:-4]
+        if stem.lower() == dirname.lower():
+            tocs[''] = f
+        elif stem.lower().startswith(dirname.lower() + '_'):
+            tocs[stem[len(dirname) + 1:].lower()] = f
+    for suffix in toc_order:
+        if suffix.lower() in tocs:
+            return os.path.join(addon_path, tocs[suffix.lower()])
+    return None
+
+
+def parse_gametypes(value):
+    return {t for t in re.split(r'[,\s]+', value.lower()) if t}
+
+
+def parse_toc(toc_file, family, gametypes):
+    """Return (loads_here, [file entries]) for one TOC as seen by one client.
+
+    Header handling: '## AllowLoad: Glue' addons never load in-game and
+    '## AllowLoadGameType:' must include one of the client's gametype tokens.
+    Line handling: '[AllowLoadGameType ...]' directives filter lines the
+    same way; other bracket directives are ignored. [Family] is substituted
+    with the client's family before directives are parsed.
+    """
+    entries = []
+    with open(toc_file, 'r', encoding='utf-8-sig', errors='replace') as file:
+        for line in file:
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith('#'):
+                m = re.match(r'##\s*AllowLoadGameType:\s*(.+)', line, re.IGNORECASE)
+                if m and not (parse_gametypes(m.group(1)) & gametypes):
+                    return False, []
+                m = re.match(r'##\s*AllowLoad:\s*(\S+)', line, re.IGNORECASE)
+                if m and m.group(1).lower() == 'glue':
+                    return False, []
+                continue
+            line = line.replace('[Family]', family)
+            path, _, directives = line.partition(' ')
+            allowed = True
+            for directive in re.findall(r'\[([^\]]+)\]', directives):
+                m = re.match(r'AllowLoadGameType\s+(.+)', directive, re.IGNORECASE)
+                if m and not (parse_gametypes(m.group(1)) & gametypes):
+                    allowed = False
+            if allowed and path:
+                entries.append(path.replace('/', '\\'))
+    return True, entries
+
+
+def resolve_skin(dirname, path, skin_dirs):
+    """Locate Aurora's skin file for one TOC entry: (manifest path, found).
+
+    An exact mirror of the TOC path wins. A flat TOC path (no subfolder) is
+    then also searched in the flavor's skin subfolders, most specific first,
+    so a skin can be split per flavor even when Blizzard's path is flat.
+    """
+    candidates = [f"{dirname}\\{path}"]
+    if '\\' not in path:
+        candidates += [f"{dirname}\\{sub}\\{path}" for sub in skin_dirs]
+    for entry in candidates:
+        if os.path.exists(os.path.join(aurora_path, entry)):
+            return entry, True
+    return candidates[0], False
+
+
+def entry_line(entry, found):
+    processed_lines[entry.replace('\\', '/')] = True
+    if found:
+        return xml_include_lua % entry
+    return xml_no_include_lua % entry
+
+
+def generate_manifest(flavor, cfg):
+    addons_base = os.path.join(cfg['tree'], 'Interface', 'AddOns')
+    out_path = os.path.join(aurora_path, f"AddOns_{flavor}.xml")
+    print(f"Creating {out_path} from {addons_base} (v{tree_version(cfg['tree'])})")
+
+    seen = set()
+    out = [xml_header, xml_space, xml_script_header % cfg['adp'], xml_space]
+    for dirname in sorted(os.listdir(addons_base), key=str.lower):
+        addon_path = os.path.join(addons_base, dirname)
+        if not os.path.isdir(addon_path):
+            continue
+        toc_file = resolve_toc(addon_path, dirname, cfg['toc_order'])
+        if toc_file is None:
+            continue
+        loads_here, files = parse_toc(toc_file, cfg['family'], cfg['gametypes'])
+        if not loads_here:
+            continue
+        if dirname in aurora_addons:
+            out.append(xml_info_addons % dirname)
+            for path in files:
+                lua_path = f"{os.path.splitext(path)[0]}.lua"
+                entry, found = resolve_skin(dirname, lua_path, cfg['skin_dirs'])
+                if entry.lower() not in seen:
+                    seen.add(entry.lower())
+                    out.append(entry_line(entry, found))
+            out.append(xml_info_addons_end % dirname)
         else:
-            file.write(xml_no_include_lua % lua_file)
-        file.close()
-
-def write_xml_file_line(file_path, line):
-    with open(file_path, 'a+') as file:
-        file.write(line)
-        file.close()
-
-
-def close_xml_file(file_path):
-    with open(file_path, 'a+') as file:
-        file.write(xml_space)
-        file.write(xml_footer)
-        file.close()
-       
-def determine_adp(toc_type):
-    if toc_type == 'Mainline':
-        return ADP_Retail
-    elif toc_type == 'Classic':
-        return ADP_Vanilla
-    elif toc_type == 'Vanilla':
-        return ADP_Vanilla
-    elif toc_type == 'TBC':
-        return ADP_TBC
-    elif toc_type == 'Wrath':
-        return ADP_Wrath
-    elif toc_type == 'Cata':
-        return ADP_Cata
-    elif toc_type == 'Mists':
-        return ADP_Mists
-    elif toc_type == 'WowLabs':
-        return ADP_WoWLabs
-    else:
-        return ADP_Retail  # Default to Retail if type is unknown
-    
-def determine_toc_type(toc_file):
-    global isTBC, isWrath, isCata, isVanilla, isRetail
-    filename = os.path.basename(toc_file).lower()
-    if 'wowlabs' in filename:
-        return 'WowLabs'
-    elif 'classic' in filename:
-        isVanilla = True
-        return 'Classic'    
-    elif 'vanilla' in filename:
-        isVanilla = True
-        return 'Vanilla'    
-    elif 'tbc' in filename:
-        isTBC = True
-        return 'TBC'
-    elif 'wrath' in filename:
-        isWrath = True
-        return 'Wrath'
-    elif 'cata' in filename:
-        isCata = True
-        return 'Cata'
-    elif 'mists' in filename:
-        isMists = True
-        return 'Mists'    
-    elif 'mainline' in filename:
-        isRetail = True
-        return 'Mainline'
-    elif 'standard' in filename:
-        return 'Mainline'
-    else:
-        return 'Mainline'
-
-def process_aurora_specials(table_data, aurora_specials):
-    global dontupdate_toc_types
-    for entry in table_data:
-        directory, toc_file, toc_type = entry
-        if directory in aurora_specials and not toc_type in dontupdate_toc_types:
-            adp = determine_adp(toc_type)
-            toc_file_name = format(f"_{toc_type}.xml")
-            xml_file_path = os.path.join(aurora_path, directory, directory + toc_file_name)
-            init_xml_file(xml_file_path, adp)
-            # print(f"Directory: {directory}, TOC File: {toc_file}, TOC Type: {toc_type}")    
-            read_toc_for_aurora_specials(toc_file, directory, xml_file_path)
-            close_xml_file(xml_file_path)
+            entry, found = resolve_skin(dirname, f"{dirname}.lua", cfg['skin_dirs'])
+            if entry.lower() not in seen:
+                seen.add(entry.lower())
+                out.append(entry_line(entry, found))
+    out.append(xml_space)
+    out.append(xml_footer)
+    out.append(xml_space)
+    with open(out_path, 'w') as file:
+        file.write(''.join(out))
 
 
-def read_toc_for_aurora_specials(toc_file, directory, xml_file_path):
-    global processed_lines
-    with open(toc_file, 'r') as file:
-        content = file.read()
-        lines = content.splitlines()
-        for line in lines:
-            if not line.startswith('#'):
-                filename = os.path.splitext(line)[0]
-                filename = filename.replace('[Family]', replace_family_with)
-                toc_file_entry = format(f"{filename}.lua")
-                lua_file_path = os.path.join(aurora_path, directory, filename) + '.lua'
-                if not toc_file_entry in processed_lines:
-                    processed_lines[toc_file_entry] = True
-                    write_xml_file(xml_file_path, toc_file_entry, os.path.exists(lua_file_path))       
-
-def read_toc_for_aurora_addons(toc_file, directory, xml_file_path):
-    global processed_lines
-    write_xml_file_line(xml_file_path, xml_info_addons % directory)    
-    with open(toc_file, 'r') as file:
-        content = file.read()
-        lines = content.splitlines()
-        for line in lines:
-            if not line.startswith('#'):
-                filename = os.path.splitext(line)[0]
-                filename = filename.replace('[Family]', replace_family_with)  # Replace spaces with underscores
-                toc_file_entry = format(f"{directory}\{filename}.lua")
-                lua_file_path = os.path.join(aurora_path, directory, filename) + '.lua'
-                if not toc_file_entry in processed_lines:
-                    processed_lines[toc_file_entry] = True
-                    write_xml_file(xml_file_path, toc_file_entry, os.path.exists(lua_file_path)) 
-    write_xml_file_line(xml_file_path, xml_info_addons_end % directory)    
-
-
-def process_aurora_addons(table_data, aurora_addons, aurora_specials):
-    global dontupdate_toc_types, processed_lines
-    created_tocs = {}
-    for entry in table_data:
-        directory, toc_file, toc_type = entry
-        if directory in aurora_specials:
-            continue
-        if not toc_type in dontupdate_toc_types:
-            toc_file_name = format(f"AddOns_{toc_type}.xml")
-            xml_file_path = os.path.join(aurora_path, toc_file_name)            
-            if not toc_type in created_tocs:
-                adp = determine_adp(toc_type)
-                init_xml_file(xml_file_path, adp)
-                created_tocs[toc_type] = True
-            if directory in aurora_addons:
-                read_toc_for_aurora_addons(toc_file, directory, xml_file_path)
-            else:
-                toc_file_entry = format(f"{directory}\{directory}.lua")
-                lua_file_path = os.path.join(aurora_path, toc_file_entry)
-                if not toc_file_entry in processed_lines:
-                    processed_lines[toc_file_entry] = True
-                    write_xml_file(xml_file_path, toc_file_entry, os.path.exists(lua_file_path))       
-
-    for toc_type in created_tocs:
-        toc_file_name = format(f"AddOns_{toc_type}.xml")
-        xml_file_path = os.path.join(aurora_path, toc_file_name)             
-        close_xml_file(xml_file_path)   
-
-
-def find_and_list_toc_files(base_folder):
-    toc_files_dict = {}
-    directories = [d for d in os.listdir(base_folder) if os.path.isdir(os.path.join(base_folder, d))]
-    for directory in directories:
-        search_path = os.path.join(base_folder, directory, '*.toc')
-        toc_files = glob.glob(search_path)
-        toc_files_dict[directory] = toc_files
-    return toc_files_dict
- 
-def read_toc_files(table_data):
-    global dontupdate_toc_types
-    for entry in table_data:
-        directory, toc_file, toc_type = entry
-        if toc_type in dontupdate_toc_types:
-            continue
-        with open(toc_file, 'r') as file:
-            content = file.read()
-            print(f"Directory: {directory}, TOC File: {toc_file}, TOC Type: {toc_type}")
-            print(f"Content of {toc_file}:\n{content}\n")
-
-def find_and_list_unusued_files():
-    print("Searching for unused .lua files in the Aurora path...")
-
-    # Collect all .lua files in aurora_path subfolders
+def find_and_list_unused_files():
+    print("\nSearching for unused .lua files in the Aurora path...")
     all_lua_files = set()
     for root, dirs, files in os.walk(aurora_path):
         for file in files:
             if file.endswith('.lua'):
                 rel_path = os.path.relpath(os.path.join(root, file), aurora_path)
-                all_lua_files.add(rel_path.replace("\\", "/"))
+                all_lua_files.add(rel_path.replace('\\', '/'))
 
-    # Use the module-level processed_lines populated during XML generation
-    global processed_lines
-    processed_lua_files = set(k.replace("\\", "/") for k in processed_lines.keys())
-
-    unused_files = all_lua_files - processed_lua_files
+    processed = {k.lower() for k in processed_lines}
+    unused_files = [f for f in sorted(all_lua_files) if f.lower() not in processed]
     if unused_files:
-        print("Unused .lua files found:")
-        for file in sorted(unused_files):
+        print("Unused .lua files found (not referenced by any generated manifest):")
+        for file in unused_files:
             print(f"- {file}")
     else:
         print("No unused .lua files found.")
 
-# Example usage
-# find_and_read_toc_files(wou_ui_sources)
+
 _app_intro()
-check_git_branch()
-print(f"Ignoring updates for the following TOC types: {dontupdate_toc_types}\n")
-toc_files_dict = find_and_list_toc_files(wou_ui_sources)
-table_data = []
-for directory, toc_files in toc_files_dict.items():
-    for toc_file in toc_files:
-        toc_type = determine_toc_type(toc_file)
-        table_data.append([directory, toc_file, toc_type])
+requested = sys.argv[1:]
+unknown = [f for f in requested if f not in flavors]
+if unknown:
+    print(f"Unknown flavor(s): {', '.join(unknown)} — choose from: {', '.join(flavors)}")
+    sys.exit(1)
 
-# # read_toc_for_aurora_specials(table_data)
-process_aurora_specials(table_data, aurora_specials)
-process_aurora_addons(table_data, aurora_addons, aurora_specials)
-find_and_list_unusued_files()
+ran = []
+for flavor, cfg in flavors.items():
+    if requested and flavor not in requested:
+        continue
+    if not os.path.isdir(os.path.join(cfg['tree'], 'Interface', 'AddOns')):
+        print(f"Skipping {flavor}: source tree not found at {cfg['tree']}")
+        continue
+    generate_manifest(flavor, cfg)
+    ran.append(flavor)
 
-print(f"\nExpansions Detected in this run:")
-print(f"Retail {isRetail}, Classic {isVanilla}, Classic/Wrath {isWrath}, Classic/Cata {isCata}, Classic/Mists {isMists}, Classic/TBC {isTBC}\n")
+if ran:
+    find_and_list_unused_files()
+print(f"\nGenerated manifests: {', '.join(ran) if ran else 'none'}")
