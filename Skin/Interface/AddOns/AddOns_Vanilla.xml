@@ -463,7 +463,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\Classic\GuildRegistrarFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\PetitionFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Shared\GossipFrameShared.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\Classic\GossipFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\Classic\GossipFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Classic\MailFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\RatingMenuFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\BattlefieldFrame.lua"/-->
