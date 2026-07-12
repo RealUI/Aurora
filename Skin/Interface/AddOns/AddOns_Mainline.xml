@@ -605,7 +605,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_SharedXML\AlertFrameIntrinsic.lua"/-->
     <!--Script file="Blizzard_SharedXML\Mainline\MajorFactionRenownSharedTemplates.lua"/-->
     <!--Script file="Blizzard_SharedXML\CommonUIPanelTemplates.lua"/-->
-    <Script file="Blizzard_SharedXML\Mainline\HybridScrollFrame.lua"/>
+    <Script file="Blizzard_SharedXML\HybridScrollFrame.lua"/>
     <!--Script file="Blizzard_SharedXML\Shared\Localization.lua"/-->
     <!--Script file="Blizzard_SharedXML\MoneyFormatter.lua"/-->
     <!-- End of section added for Blizzard_SharedXML by the Aurora XML Updater -->
