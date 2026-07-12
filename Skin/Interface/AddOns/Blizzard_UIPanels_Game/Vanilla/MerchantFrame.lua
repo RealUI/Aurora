@@ -54,10 +54,9 @@ function private.FrameXML.MerchantFrame()
         end
     end
 
-    _G.MerchantRepairAllButton:ClearPushedTexture()
-    Base.CropIcon(_G.MerchantRepairAllIcon, _G.MerchantRepairAllButton)
-    _G.MerchantGuildBankRepairButton:ClearPushedTexture()
-    Base.CropIcon(_G.MerchantGuildBankRepairButtonIcon, _G.MerchantGuildBankRepairButton)
+    -- Repair button icons are TEXCOORD SLICES of the UI-Merchant-RepairIcons
+    -- sheet — CropIcon would overwrite the coords and show the whole sheet.
+    -- Left stock.
 
     do
         local BuyBackItem = _G.MerchantBuyBackItem

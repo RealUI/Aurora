@@ -182,6 +182,26 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         end
     end
 
+    function Skin.InputBoxTemplate(EditBox)
+        Skin.FrameTypeEditBox(EditBox)
+
+        -- Consistent height from frames of variable height
+        local yOfs = _G.math.floor(EditBox:GetHeight() / 2 + .5) - 10
+        EditBox:SetBackdropOption("offsets", {
+            left = -4,
+            right = 1,
+            top = yOfs,
+            bottom = yOfs,
+        })
+
+        EditBox.Left:Hide()
+        EditBox.Right:Hide()
+        EditBox.Middle:Hide()
+    end
+    function Skin.InputBoxInstructionsTemplate(EditBox)
+        Skin.InputBoxTemplate(EditBox)
+    end
+
     function Skin.HorizontalSliderTemplate(Slider)
         Base.SetBackdrop(Slider, Color.frame)
         Slider:SetBackdropBorderColor(Color.button)
