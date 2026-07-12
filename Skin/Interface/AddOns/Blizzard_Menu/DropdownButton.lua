@@ -76,7 +76,10 @@ do --[[ Blizzard_Menu\DropdownButton.lua ]]
             end
             Base.SetBackdrop(Frame, Color.button)
             if Frame.Arrow then
-                Frame.Background:SetTexture(nil)
+                -- classic arrow-style dropdowns have an Arrow but no Background
+                if Frame.Background then
+                    Frame.Background:SetTexture(nil)
+                end
                 Frame:SetFrameLevel(Frame:GetFrameLevel() + 2)
                 Frame.Arrow:SetAlpha(0)
             end
@@ -140,7 +143,9 @@ do --[[ Blizzard_Menu\DropdownButton.lua ]]
             Frame._auroraWidth = nil
             Base.SetBackdrop(Frame, Color.button)
             if Frame.Arrow then
-                Frame.Background:SetTexture(nil)
+                if Frame.Background then
+                    Frame.Background:SetTexture(nil)
+                end
                 Frame:SetFrameLevel(Frame:GetFrameLevel() + 2)
                 Frame.Arrow:SetAlpha(0)
             end

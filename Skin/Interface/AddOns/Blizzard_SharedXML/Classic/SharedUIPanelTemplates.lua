@@ -230,6 +230,15 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
     function Skin.InputBoxInstructionsTemplate(EditBox)
         Skin.InputBoxTemplate(EditBox)
     end
+    function Skin.SearchBoxTemplate(EditBox)
+        Skin.InputBoxInstructionsTemplate(EditBox)
+        if EditBox.Instructions then
+            EditBox.Instructions:SetTextColor(Color.gray:GetRGB())
+        end
+        if EditBox.searchIcon then
+            EditBox.searchIcon:SetPoint("LEFT", 3, -1)
+        end
+    end
 
     function Skin.HorizontalSliderTemplate(Slider)
         Base.SetBackdrop(Slider, Color.frame)
@@ -258,6 +267,29 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         Slider.backdropColor = Color.frame
         Slider.backdropColorAlpha = Color.frame.a
         Slider.backdropBorderColor = Color.button
+    end
+
+    do -- Scroll thumb (same implementation as the Mainline layer; needed
+       -- here because flat scroll skins call it on classic clients too)
+        local function Hook_Hide(self)
+            self._auroraThumb:Hide()
+        end
+        local function Hook_Show(self)
+            self._auroraThumb:Show()
+        end
+        function Skin.ScrollBarThumb(Texture)
+            Texture:SetAlpha(0)
+            Texture:SetSize(17, 24)
+            _G.hooksecurefunc(Texture, "Hide", Hook_Hide)
+            _G.hooksecurefunc(Texture, "Show", Hook_Show)
+
+            local thumb = _G.CreateFrame("Frame", nil, Texture:GetParent())
+            thumb:SetPoint("TOPLEFT", Texture, 0, -2)
+            thumb:SetPoint("BOTTOMRIGHT", Texture, 0, 2)
+            thumb:SetShown(Texture:IsShown())
+            Base.SetBackdrop(thumb, Color.button)
+            Texture._auroraThumb = thumb
+        end
     end
 
     -- Classic-art variant of the trim scrollbar (Classic\Scroll\

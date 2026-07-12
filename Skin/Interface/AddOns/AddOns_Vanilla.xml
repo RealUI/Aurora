@@ -342,7 +342,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_SharedXML\CustomBindingButtonMixin.lua"/-->
     <!--Script file="Blizzard_SharedXML\CustomBindingButtonTemplate.lua"/-->
     <!--Script file="Blizzard_SharedXML\ButtonGroup.lua"/-->
-    <!--Script file="Blizzard_SharedXML\HybridScrollFrame.lua"/-->
+    <Script file="Blizzard_SharedXML\HybridScrollFrame.lua"/>
     <!--Script file="Blizzard_SharedXML\Spline.lua"/-->
     <!--Script file="Blizzard_SharedXML\ModelSceneControlFrame.lua"/-->
     <!--Script file="Blizzard_SharedXML\ModelSceneTemplates.lua"/-->
@@ -453,8 +453,8 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\Classic\ItemRefHandlers.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Shared\ItemRefHandlersShared.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\ProductChoice.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\Classic\FriendsFrame.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\Classic\RaidFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\Classic\FriendsFrame.lua"/>
+    <Script file="Blizzard_UIPanels_Game\Classic\RaidFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Classic\UnitPositionFrameTemplates.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\TabardFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\PetStable.lua"/-->
