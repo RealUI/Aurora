@@ -63,14 +63,9 @@ function private.FrameXML.TradeFrame()
     Skin.UIPanelButtonTemplate(_G.TradeFrameTradeButton)
     Skin.UIPanelButtonTemplate(_G.TradeFrameCancelButton)
 
-    -- Player money input (gold/silver/copper)
-    local moneyName = _G.TradePlayerInputMoneyFrame:GetName()
-    for _, denom in ipairs({"Gold", "Silver", "Copper"}) do
-        local box = _G[moneyName..denom]
-        if box then
-            Skin.FrameTypeEditBox(box)
-        end
-    end
+    -- TradePlayerInputMoneyFrame is NOT skinned: Blizzard forbids it
+    -- (Classic/TradeFrame.lua L19 SetForbidden, anti-scam hardening) and any
+    -- widget call on it from addon code errors with "bad self".
 
     Util.HideFrameTextures(_G.TradeRecipientMoneyBg)
 end
