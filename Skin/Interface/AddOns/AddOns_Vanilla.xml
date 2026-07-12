@@ -446,7 +446,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\Vanilla\ContainerFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\ContainerFrame_Shared.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\ContainerFrame.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\Classic\LootFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\Classic\LootFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Classic\ItemTextFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\TaxiFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\ItemRef.lua"/-->

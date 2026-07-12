@@ -310,14 +310,25 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         if Frame.PortraitContainer then
             Frame.PortraitContainer:Hide()
         end
-        if Frame.TitleContainer then
-            Frame.TitleContainer:SetHeight(private.FRAME_TITLE_HEIGHT)
-        end
 
         local titleText = Frame.TitleText
         titleText:ClearAllPoints()
         titleText:SetPoint("TOPLEFT", bg)
         titleText:SetPoint("BOTTOMRIGHT", bg, "TOPRIGHT", 0, -private.FRAME_TITLE_HEIGHT)
+
+        -- The base template's TitleContainer is anchored x=58 to -24, which
+        -- truncates and off-centers titles on narrow frames (e.g. the 170px
+        -- LootFrame); span its text across the full title bar instead.
+        if Frame.TitleContainer then
+            Frame.TitleContainer:SetHeight(private.FRAME_TITLE_HEIGHT)
+            local containerTitle = Frame.TitleContainer.TitleText
+            if containerTitle then
+                containerTitle:ClearAllPoints()
+                containerTitle:SetPoint("TOPLEFT", bg)
+                containerTitle:SetPoint("BOTTOMRIGHT", bg, "TOPRIGHT", 0, -private.FRAME_TITLE_HEIGHT)
+                containerTitle:SetJustifyH("CENTER")
+            end
+        end
 
         Frame.TopTileStreaks:SetTexture("")
         Frame.BotLeftCorner:Hide()
