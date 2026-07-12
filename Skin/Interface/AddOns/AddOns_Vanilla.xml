@@ -130,7 +130,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_FrameXML\SecureHandlerTemplates.lua"/-->
     <!--Script file="Blizzard_FrameXML\SecureGroupHeaders.lua"/-->
     <!--Script file="Blizzard_FrameXML\Classic\NavigationBar.lua"/-->
-    <!--Script file="Blizzard_FrameXML\Classic\CharacterFrameTemplates.lua"/-->
+    <Script file="Blizzard_FrameXML\Classic\CharacterFrameTemplates.lua"/>
     <!--Script file="Blizzard_FrameXML\DeprecatedTemplates.lua"/-->
     <!--Script file="Blizzard_FrameXML\Classic\AlertFrames.lua"/-->
     <!--Script file="Blizzard_FrameXML\Classic\AlertFrameSystems.lua"/-->
@@ -170,7 +170,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_FrameXMLBase\Vanilla\Localization.lua"/-->
     <!-- End of section added for Blizzard_FrameXMLBase by the Aurora XML Updater -->
     <!--Script file="Blizzard_FrameXMLUtil\Blizzard_FrameXMLUtil.lua"/-->
-    <!--Script file="Blizzard_GameMenu\Blizzard_GameMenu.lua"/-->
+    <Script file="Blizzard_GameMenu\Classic\Blizzard_GameMenu.lua"/>
     <!--Script file="Blizzard_GameTooltip\Blizzard_GameTooltip.lua"/-->
     <!--Script file="Blizzard_GMChatUI\Blizzard_GMChatUI.lua"/-->
     <!-- This section is added for Blizzard_GroupFinder by the Aurora XML Updater -->
@@ -199,9 +199,9 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_Menu\Vanilla\MenuVariants.lua"/-->
     <!--Script file="Blizzard_Menu\Compositor.lua"/-->
     <!--Script file="Blizzard_Menu\Menu.lua"/-->
-    <!--Script file="Blizzard_Menu\DropdownButton.lua"/-->
+    <Script file="Blizzard_Menu\DropdownButton.lua"/>
     <Script file="Blizzard_Menu\MenuTemplates.lua"/>
-    <!--Script file="Blizzard_Menu\Classic\MenuTemplates.lua"/-->
+    <Script file="Blizzard_Menu\Classic\MenuTemplates.lua"/>
     <!--Script file="Blizzard_Menu\MenuUtil.lua"/-->
     <!-- End of section added for Blizzard_Menu by the Aurora XML Updater -->
     <!--Script file="Blizzard_Minimap\Blizzard_Minimap.lua"/-->
@@ -264,7 +264,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_SharedXML\GridLayoutUtil.lua"/-->
     <!--Script file="Blizzard_SharedXML\VectorLib.lua"/-->
     <!--Script file="Blizzard_SharedXML\Classic\NineSliceLayouts.lua"/-->
-    <!--Script file="Blizzard_SharedXML\NineSlice.lua"/-->
+    <Script file="Blizzard_SharedXML\NineSlice.lua"/>
     <!--Script file="Blizzard_SharedXML\BindingUtil.lua"/-->
     <!--Script file="Blizzard_SharedXML\InputUtil.lua"/-->
     <!--Script file="Blizzard_SharedXML\EventUtil.lua"/-->
@@ -327,16 +327,16 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_SharedXML\Backdrop.lua"/-->
     <!--Script file="Blizzard_SharedXML\Shared\LoadSystem\LoadSystemTemplates.lua"/-->
     <!--Script file="Blizzard_SharedXML\LayoutFrame.lua"/-->
-    <!--Script file="Blizzard_SharedXML\SharedTooltipTemplates.lua"/-->
+    <Script file="Blizzard_SharedXML\Classic\SharedTooltipTemplates.lua"/>
     <!--Script file="Blizzard_SharedXML\SecureUIPanelTemplates.lua"/-->
     <!--Script file="Blizzard_SharedXML\Spinner.lua"/-->
-    <!--Script file="Blizzard_SharedXML\Classic\SharedUIPanelTemplates.lua"/-->
+    <Script file="Blizzard_SharedXML\Classic\SharedUIPanelTemplates.lua"/>
     <!--Script file="Blizzard_SharedXML\PortraitFrame.lua"/-->
     <!--Script file="Blizzard_SharedXML\Classic\SliderTemplates.lua"/-->
     <!--Script file="Blizzard_SharedXML\Shared\Tabs\MinimalTab.lua"/-->
     <!--Script file="Blizzard_SharedXML\ScriptAnimationUtil.lua"/-->
     <!--Script file="Blizzard_SharedXML\SharedBasicControls.lua"/-->
-    <!--Script file="Blizzard_SharedXML\Classic\UIDropDownMenu.lua"/-->
+    <Script file="Blizzard_SharedXML\Classic\UIDropDownMenu.lua"/>
     <!--Script file="Blizzard_SharedXML\Classic\UIDropDownMenuTemplates.lua"/-->
     <!--Script file="Blizzard_SharedXML\KeyCommand.lua"/-->
     <!--Script file="Blizzard_SharedXML\CustomBindingButtonMixin.lua"/-->
