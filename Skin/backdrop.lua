@@ -359,7 +359,9 @@ local BackdropMixin do
             r, g, b, a = backdropInfo.backdropBorderColor:GetRGBA()
         end
         self:SetBackdropBorderColor(r, g, b, a)
-        if _G.canaccesssecrets(self) then
+        -- canaccesssecrets is the Midnight (12.x) secret-values API; classic
+        -- clients have no secrets, so everything is accessible there.
+        if not _G.canaccesssecrets or _G.canaccesssecrets(self) then
             self:SetupTextureCoordinates()
         end
     end
