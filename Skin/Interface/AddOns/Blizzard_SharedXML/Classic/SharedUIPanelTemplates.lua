@@ -182,6 +182,35 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         end
     end
 
+    -- Classic-wide EditBox enhancements: with the parchment input art gone,
+    -- dark-on-dark boxes need a focus cue, and text sits flush against the
+    -- backdrop edge without insets. Wraps the core helper (classic clients
+    -- only — this file never loads on retail).
+    do
+        local CoreFrameTypeEditBox = Skin.FrameTypeEditBox
+        local function OnFocusGained(self)
+            if self.SetBackdropBorderColor then
+                self:SetBackdropBorderColor(Color.highlight)
+            end
+        end
+        local function OnFocusLost(self)
+            if self.SetBackdropBorderColor then
+                self:SetBackdropBorderColor(Color.button)
+            end
+        end
+        function Skin.FrameTypeEditBox(EditBox)
+            CoreFrameTypeEditBox(EditBox)
+
+            local left = EditBox:GetTextInsets()
+            if left == 0 then
+                EditBox:SetTextInsets(5, 5, 0, 0)
+            end
+
+            EditBox:HookScript("OnEditFocusGained", OnFocusGained)
+            EditBox:HookScript("OnEditFocusLost", OnFocusLost)
+        end
+    end
+
     function Skin.InputBoxTemplate(EditBox)
         Skin.FrameTypeEditBox(EditBox)
 
@@ -229,6 +258,23 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         Slider.backdropColor = Color.frame
         Slider.backdropColorAlpha = Color.frame.a
         Slider.backdropBorderColor = Color.button
+    end
+
+    -- Classic-art variant of the trim scrollbar (Classic\Scroll\
+    -- TrimScrollBar.xml): same WowTrimScrollBarMixin parts, but a
+    -- Background child frame instead of the trim Backplate texture.
+    function Skin.WowClassicScrollBar(EventFrame)
+        Skin.VerticalScrollBarTemplate(EventFrame)
+
+        if EventFrame.Background then
+            Util.HideFrameTextures(EventFrame.Background)
+        end
+        local thumb = (EventFrame.Track and EventFrame.Track.Thumb) or EventFrame.Thumb
+        if thumb then
+            Skin.WowTrimScrollBarThumbScripts(thumb)
+        end
+        Skin.WowTrimScrollBarStepperScripts(EventFrame.Back)
+        Skin.WowTrimScrollBarStepperScripts(EventFrame.Forward)
     end
 
     function Skin.NineSlicePanelTemplate(Frame)

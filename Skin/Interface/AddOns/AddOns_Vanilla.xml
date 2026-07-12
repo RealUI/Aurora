@@ -442,7 +442,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\Vanilla\QuestLogFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Vanilla\QuestInfo.lua"/-->
     <Script file="Blizzard_UIPanels_Game\Vanilla\MerchantFrame.lua"/>
-    <!--Script file="Blizzard_UIPanels_Game\Classic\TradeFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\Classic\TradeFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Vanilla\ContainerFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\ContainerFrame_Shared.lua"/-->
     <Script file="Blizzard_UIPanels_Game\Classic\ContainerFrame.lua"/>
@@ -464,7 +464,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\Classic\PetitionFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Shared\GossipFrameShared.lua"/-->
     <Script file="Blizzard_UIPanels_Game\Classic\GossipFrame.lua"/>
-    <!--Script file="Blizzard_UIPanels_Game\Classic\MailFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\Classic\MailFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Classic\RatingMenuFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\BattlefieldFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Shared\PlayerInteractionFrameManager.lua"/-->
