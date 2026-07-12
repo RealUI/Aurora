@@ -472,7 +472,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_SharedXML\BenchmarkUtil.lua"/-->
     <!--Script file="Blizzard_SharedXML\VectorLib.lua"/-->
     <!--Script file="Blizzard_SharedXML\Mainline\NineSliceLayouts.lua"/-->
-    <Script file="Blizzard_SharedXML\Mainline\NineSlice.lua"/>
+    <Script file="Blizzard_SharedXML\NineSlice.lua"/>
     <!--Script file="Blizzard_SharedXML\EasingUtil.lua"/-->
     <!--Script file="Blizzard_SharedXML\BindingUtil.lua"/-->
     <!--Script file="Blizzard_SharedXML\InputUtil.lua"/-->
