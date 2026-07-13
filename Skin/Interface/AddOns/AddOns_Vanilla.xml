@@ -20,7 +20,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_ActionBar\Classic\PetActionBarFrame.lua"/-->
     <!--Script file="Blizzard_ActionBar\Classic\Localization.lua"/-->
     <!-- End of section added for Blizzard_ActionBar by the Aurora XML Updater -->
-    <!--Script file="Blizzard_ActionBarController\Blizzard_ActionBarController.lua"/-->
+    <Script file="Blizzard_ActionBarController\Classic\Blizzard_ActionBarController.lua"/>
     <!--Script file="Blizzard_ActionStatus\Blizzard_ActionStatus.lua"/-->
     <!--Script file="Blizzard_AddOnList\Blizzard_AddOnList.lua"/-->
     <!--Script file="Blizzard_AddOnPerformance\Blizzard_AddOnPerformance.lua"/-->
@@ -190,7 +190,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_Kiosk\Blizzard_Kiosk.lua"/-->
     <!--Script file="Blizzard_LoadLocale\Blizzard_LoadLocale.lua"/-->
     <!--Script file="Blizzard_MacroUI\Blizzard_MacroUI.lua"/-->
-    <!--Script file="Blizzard_MainMenuBarBagButtons\Blizzard_MainMenuBarBagButtons.lua"/-->
+    <Script file="Blizzard_MainMenuBarBagButtons\Classic\Blizzard_MainMenuBarBagButtons.lua"/>
     <!--Script file="Blizzard_MapCanvas\Blizzard_MapCanvas.lua"/-->
     <!-- This section is added for Blizzard_Menu by the Aurora XML Updater -->
     <!--Script file="Blizzard_Menu\MenuConstants.lua"/-->
