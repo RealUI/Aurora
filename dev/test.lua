@@ -1426,7 +1426,11 @@ function commands.test()
 
 
                 local Dialog = _G.CreateFrame("Frame", "AuroraTestFrame", optionsFrame, "UIPanelDialogTemplate")
-                Skin.UIPanelDialogTemplate(Dialog)
+                -- Mainline-only skin; the classic layer has no
+                -- UIPanelDialogTemplate skin yet
+                if Skin.UIPanelDialogTemplate then
+                    Skin.UIPanelDialogTemplate(Dialog)
+                end
                 Dialog:SetSize(300, 300)
                 Dialog:ClearAllPoints()
                 Dialog:SetPoint("TOPRIGHT", optionsFrame, "TOPLEFT", -10, 0)
