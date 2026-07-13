@@ -1,0 +1,28 @@
+## Interface: 20506
+## X-Min-Interface: 20506
+## Title: Aurora
+## Notes: Minimalistic window theme.
+## Author: Haleth/Lightsword, Gethe, Hanshi/arnvid
+## Version: 12.0.7.0
+## RequiredDeps: Blizzard_Deprecated, Blizzard_DeprecatedCurrencyScript, Blizzard_DeprecatedGuildScript, Blizzard_DeprecatedItemScript, Blizzard_DeprecatedPvpScript, Blizzard_DeprecatedSoundScript, Blizzard_DeprecatedSpellScript
+## OptionalDeps: Ace3, LibTextDump-1.0, BugSack, WagoAnalytics
+## SavedVariables: AuroraConfig
+## X-Website: http://www.wowinterface.com/downloads/info18589.html
+## X-Curse-Project-ID: 278735
+## X-WoWI-ID: 18589
+## X-Wago-ID: JZKbRK19
+
+libs\Libs.xml
+Skin\skin.xml
+Skin\Interface\AddOns\AddOns_TBC.xml
+
+config.lua
+analytics.lua
+compatibility.lua
+integration.lua
+aurora.lua
+gui.lua
+
+#@do-not-package@
+dev\test.lua
+#@end-do-not-package@
