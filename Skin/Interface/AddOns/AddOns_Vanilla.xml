@@ -412,9 +412,8 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_StaticPopup_Game\GameDialogDefsUtil.lua"/-->
     <!--Script file="Blizzard_StaticPopup_Game\GameDialogDefs.lua"/-->
     <!--Script file="Blizzard_StaticPopup_Game\Classic\GameDialogDefs.lua"/-->
-    <!--Script file="Blizzard_StaticPopup_Game\GameDialog.lua"/-->
-    <!--Script file="Blizzard_StaticPopup_Game\Classic\GameDialog.lua"/-->
-    <!--Script file="Blizzard_StaticPopup_Game\Classic\StaticPopupSpecial.lua"/-->
+    <Script file="Blizzard_StaticPopup_Game\Classic\GameDialog.lua"/>
+    <Script file="Blizzard_StaticPopup_Game\Classic\StaticPopupSpecial.lua"/>
     <!--Script file="Blizzard_StaticPopup_Game\Classic\InviteConfirmationDialog.lua"/-->
     <!-- End of section added for Blizzard_StaticPopup_Game by the Aurora XML Updater -->
     <!--Script file="Blizzard_StatusUI\Blizzard_StatusUI.lua"/-->

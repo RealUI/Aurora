@@ -120,6 +120,47 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         Button:SetPoint("TOPRIGHT", 1.2, 0)
     end
 
+    -- TAINT-SAFE button skin (widget API only — no FrameTypeButton table
+    -- writes). For buttons whose OnClick chains into protected calls, e.g.
+    -- static popup accept buttons. Same implementation as the Mainline layer.
+    function Skin.TaintSafeUIPanelButtonTemplate(Button)
+        if not Button then return end
+        if Button.ClearNormalTexture then
+            Button:ClearNormalTexture()
+            Button:ClearPushedTexture()
+            Button:ClearDisabledTexture()
+            local hl = Button:GetHighlightTexture()
+            if hl then hl:Hide() end
+        elseif Button.SetNormalTexture then
+            Button:SetNormalTexture("")
+            Button:SetPushedTexture("")
+            Button:SetHighlightTexture("")
+            Button:SetDisabledTexture("")
+        end
+        if Button.Left then Button.Left:SetAlpha(0) end
+        if Button.Right then Button.Right:SetAlpha(0) end
+        if Button.Middle then Button.Middle:SetAlpha(0) end
+        if Button.TopLeftCorner then Button.TopLeftCorner:SetAlpha(0) end
+        if Button.TopRightCorner then Button.TopRightCorner:Hide() end
+        if Button.LeftEdge then Button.LeftEdge:SetAlpha(0) end
+        if Button.RightEdge then Button.RightEdge:Hide() end
+        if Button.BottomLeftCorner then Button.BottomLeftCorner:SetAlpha(0) end
+        if Button.BottomRightCorner then Button.BottomRightCorner:Hide() end
+        if Button.TopEdge then Button.TopEdge:SetAlpha(0) end
+        if Button.BottomEdge then Button.BottomEdge:Hide() end
+        Button:SetNormalTexture("Interface\\Buttons\\White8x8")
+        Button:GetNormalTexture():SetVertexColor(Color.button:GetRGB())
+        Button:SetPushedTexture("Interface\\Buttons\\White8x8")
+        Button:GetPushedTexture():SetVertexColor(Color.border:GetRGB())
+        Button:SetDisabledTexture("Interface\\Buttons\\White8x8")
+        Button:GetDisabledTexture():SetVertexColor(Color.border.r, Color.border.g, Color.border.b, 0.5)
+        Button:SetHighlightTexture("Interface\\Buttons\\White8x8", "ADD")
+        Button:GetHighlightTexture():SetVertexColor(1, 1, 1) -- static: not a theme color
+        Button:GetHighlightTexture():SetAlpha(0.25)
+        if Button.LeftSeparator then Button.LeftSeparator:Hide() end
+        if Button.RightSeparator then Button.RightSeparator:Hide() end
+    end
+
     function Skin.UIPanelButtonNoTooltipTemplate(Button)
         Skin.FrameTypeButton(Button)
         Button.Left:SetAlpha(0)
