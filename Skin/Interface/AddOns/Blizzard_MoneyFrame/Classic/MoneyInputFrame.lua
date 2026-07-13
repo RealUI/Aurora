@@ -17,9 +17,10 @@ local Skin = Aurora.Skin
 ]]
 
 do --[[ Classic\MoneyInputFrame.xml ]]
+    local money = {"gold", "silver", "copper"}
     function Skin.MoneyInputFrameTemplate(Frame)
-        for _, key in ipairs({"gold", "silver", "copper"}) do
-            local EditBox = Frame[key]
+        for i = 1, #money do
+            local EditBox = Frame[money[i]]
             if EditBox then
                 -- strip the border art BEFORE the backdrop is created
                 local name = EditBox:GetName()
@@ -30,6 +31,26 @@ do --[[ Classic\MoneyInputFrame.xml ]]
                     end
                 end
                 Skin.FrameTypeEditBox(EditBox)
+                -- widen the backdrop and clear the right side for the coin
+                EditBox:SetBackdropOption("offsets", {
+                    left = -5,
+                    right = 15,
+                    top = 0,
+                    bottom = 0,
+                })
+
+                local bg = EditBox:GetBackdropTexture("bg")
+                if bg and EditBox.texture then
+                    EditBox.texture:ClearAllPoints()
+                    EditBox.texture:SetPoint("LEFT", bg, "RIGHT", 2, 0)
+                end
+
+                if i > 1 then
+                    EditBox:SetPoint("LEFT", Frame[money[i - 1]], "RIGHT", 6, 0)
+                    EditBox:SetSize(35, 20)
+                else
+                    EditBox:SetSize(70, 20)
+                end
             end
         end
     end
