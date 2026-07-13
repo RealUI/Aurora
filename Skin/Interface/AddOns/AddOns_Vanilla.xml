@@ -39,7 +39,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_BNet\Blizzard_BNet.lua"/-->
     <!--Script file="Blizzard_BuffFrame\Blizzard_BuffFrame.lua"/-->
     <!--Script file="Blizzard_Calendar\Blizzard_Calendar.lua"/-->
-    <!--Script file="Blizzard_CastingBar\Blizzard_CastingBar.lua"/-->
+    <Script file="Blizzard_CastingBar\Vanilla\Blizzard_CastingBar.lua"/>
     <!--Script file="Blizzard_CatalogShop\Blizzard_CatalogShop.lua"/-->
     <!--Script file="Blizzard_Channels\Blizzard_Channels.lua"/-->
     <Script file="Blizzard_CharacterFrame\Vanilla\Blizzard_CharacterFrame.lua"/>
@@ -68,12 +68,12 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_ChatFrameBase\Shared\MacroExecutionManager.lua"/-->
     <!--Script file="Blizzard_ChatFrameBase\Classic\ChatEmoteConstants.lua"/-->
     <!--Script file="Blizzard_ChatFrameBase\Classic\SlashCommandsOverrides.lua"/-->
-    <!--Script file="Blizzard_ChatFrameBase\Classic\ChatFrame.lua"/-->
+    <Script file="Blizzard_ChatFrameBase\Classic\ChatFrame.lua"/>
     <!--Script file="Blizzard_ChatFrameBase\Shared\ChatAlertFrameMixin.lua"/-->
     <!--Script file="Blizzard_ChatFrameBase\Classic\ChannelFrameButtonMixin.lua"/-->
     <!--Script file="Blizzard_ChatFrameBase\Classic\FriendFrameButtonMixin.lua"/-->
     <!--Script file="Blizzard_ChatFrameBase\Shared\FloatingChatFrame.lua"/-->
-    <!--Script file="Blizzard_ChatFrameBase\Classic\FloatingChatFrame.lua"/-->
+    <Script file="Blizzard_ChatFrameBase\Classic\FloatingChatFrame.lua"/>
     <!-- End of section added for Blizzard_ChatFrameBase by the Aurora XML Updater -->
     <!--Script file="Blizzard_ChatFrameUtil\Blizzard_ChatFrameUtil.lua"/-->
     <!--Script file="Blizzard_ClassMenu\Blizzard_ClassMenu.lua"/-->
@@ -179,7 +179,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_GroupFinder\Classic\PVPHelper.lua"/-->
     <!--Script file="Blizzard_GroupFinder\Classic\Localization.lua"/-->
     <!-- End of section added for Blizzard_GroupFinder by the Aurora XML Updater -->
-    <!--Script file="Blizzard_GroupFinder_VanillaStyle\Blizzard_GroupFinder_VanillaStyle.lua"/-->
+    <Script file="Blizzard_GroupFinder_VanillaStyle\Blizzard_GroupFinder_VanillaStyle.lua"/>
     <!--Script file="Blizzard_GuildControlUI\Blizzard_GuildControlUI.lua"/-->
     <!--Script file="Blizzard_HelpFrame\Blizzard_HelpFrame.lua"/-->
     <!--Script file="Blizzard_HelpPlate\Blizzard_HelpPlate.lua"/-->
@@ -500,7 +500,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!-- End of section added for Blizzard_UnitPopup by the Aurora XML Updater -->
     <!--Script file="Blizzard_UnitPopupShared\Blizzard_UnitPopupShared.lua"/-->
     <!--Script file="Blizzard_VoiceToggleButton\Blizzard_VoiceToggleButton.lua"/-->
-    <!--Script file="Blizzard_WorldMap\Blizzard_WorldMap.lua"/-->
+    <Script file="Blizzard_WorldMap\Vanilla\Blizzard_WorldMap.lua"/>
     <!--Script file="Blizzard_WowSurveyUI\Blizzard_WowSurveyUI.lua"/-->
     <!--Script file="Blizzard_WowTokenUI\Blizzard_WowTokenUI.lua"/-->
 
