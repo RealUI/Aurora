@@ -242,7 +242,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_HelpFrame\Classic\Blizzard_HelpFrame.lua"/>
     <!--Script file="Blizzard_HelpPlate\Blizzard_HelpPlate.lua"/-->
     <!--Script file="Blizzard_IME\Blizzard_IME.lua"/-->
-    <!--Script file="Blizzard_InspectUI\Blizzard_InspectUI.lua"/-->
+    <Script file="Blizzard_InspectUI\TBC\Blizzard_InspectUI.lua"/>
     <Script file="Blizzard_ItemButton\Blizzard_ItemButton.lua"/>
     <!--Script file="Blizzard_ItemSocketingUI\Blizzard_ItemSocketingUI.lua"/-->
     <!--Script file="Blizzard_Kiosk\Blizzard_Kiosk.lua"/-->
@@ -511,7 +511,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!-- This section is added for Blizzard_UIPanels_Game by the Aurora XML Updater -->
     <!--Script file="Blizzard_UIPanels_Game\Shared\CastingBarFrameTemplates.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Shared\CastingBarFrame.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\Classic\CastingBarFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\Classic\CastingBarFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Shared\ExtraAbilityContainer.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\SpellBookFrame.lua"/-->
     <Script file="Blizzard_UIPanels_Game\Vanilla\SpellBookFrame.lua"/>
@@ -527,7 +527,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_UIPanels_Game\TBC\QuestFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\TBC\QuestLogFrame.lua"/-->
     <Script file="Blizzard_UIPanels_Game\TBC\QuestInfo.lua"/>
-    <!--Script file="Blizzard_UIPanels_Game\TBC\MerchantFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\MerchantFrame.lua"/>
     <Script file="Blizzard_UIPanels_Game\Classic\TradeFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Vanilla\ContainerFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\ContainerFrame_Shared.lua"/-->
@@ -543,7 +543,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\Classic\UnitPositionFrameTemplates.lua"/-->
     <Script file="Blizzard_UIPanels_Game\Classic\TabardFrame.lua"/>
     <Script file="Blizzard_UIPanels_Game\Classic\PetStable.lua"/>
-    <!--Script file="Blizzard_UIPanels_Game\TBC\BankFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\BankFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Shared\SocialQueue.lua"/-->
     <Script file="Blizzard_UIPanels_Game\Classic\GuildRegistrarFrame.lua"/>
     <Script file="Blizzard_UIPanels_Game\Classic\PetitionFrame.lua"/>
@@ -589,7 +589,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!-- End of section added for Blizzard_UnitPopup by the Aurora XML Updater -->
     <!--Script file="Blizzard_UnitPopupShared\Blizzard_UnitPopupShared.lua"/-->
     <!--Script file="Blizzard_VoiceToggleButton\Blizzard_VoiceToggleButton.lua"/-->
-    <!--Script file="Blizzard_WorldMap\Blizzard_WorldMap.lua"/-->
+    <Script file="Blizzard_WorldMap\TBC\Blizzard_WorldMap.lua"/>
     <!--Script file="Blizzard_WowSurveyUI\Blizzard_WowSurveyUI.lua"/-->
     <!--Script file="Blizzard_WowTokenUI\Blizzard_WowTokenUI.lua"/-->
 
