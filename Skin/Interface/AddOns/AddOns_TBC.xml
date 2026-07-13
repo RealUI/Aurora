@@ -43,7 +43,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_ActionBar\Shared\SpellFlyout.lua"/-->
     <!--Script file="Blizzard_ActionBar\Shared\Localization.lua"/-->
     <!-- End of section added for Blizzard_ActionBar by the Aurora XML Updater -->
-    <Script file="Blizzard_ActionBarController\Classic\Blizzard_ActionBarController.lua"/>
+    <Script file="Blizzard_ActionBarController\TBC\Blizzard_ActionBarController.lua"/>
     <!--Script file="Blizzard_ActionStatus\Blizzard_ActionStatus.lua"/-->
     <Script file="Blizzard_AddOnList\TBC\Blizzard_AddOnList.lua"/>
     <!--Script file="Blizzard_AddOnPerformance\Blizzard_AddOnPerformance.lua"/-->
@@ -71,7 +71,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_CatalogShopTopUpFlow\Blizzard_CatalogShopTopUpFlow.lua"/-->
     <!--Script file="Blizzard_Channels\Blizzard_Channels.lua"/-->
     <!--Script file="Blizzard_CharacterCustomize\Blizzard_CharacterCustomize.lua"/-->
-    <!--Script file="Blizzard_CharacterFrame\Blizzard_CharacterFrame.lua"/-->
+    <Script file="Blizzard_CharacterFrame\TBC\Blizzard_CharacterFrame.lua"/>
     <!-- This section is added for Blizzard_ChatFrame by the Aurora XML Updater -->
     <!--Script file="Blizzard_ChatFrame\Shared\VoiceChatTranscriptionButton.lua"/-->
     <!--Script file="Blizzard_ChatFrame\Classic\VoiceChatHeadsetButton.lua"/-->
