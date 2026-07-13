@@ -207,9 +207,9 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_Minimap\Blizzard_Minimap.lua"/-->
     <!-- This section is added for Blizzard_MoneyFrame by the Aurora XML Updater -->
     <!--Script file="Blizzard_MoneyFrame\Shared\MoneyFrame.lua"/-->
-    <!--Script file="Blizzard_MoneyFrame\Classic\MoneyFrame.lua"/-->
+    <Script file="Blizzard_MoneyFrame\Classic\MoneyFrame.lua"/>
     <!--Script file="Blizzard_MoneyFrame\Shared\MoneyInputFrame.lua"/-->
-    <!--Script file="Blizzard_MoneyFrame\Classic\MoneyInputFrame.lua"/-->
+    <Script file="Blizzard_MoneyFrame\Classic\MoneyInputFrame.lua"/>
     <!--Script file="Blizzard_MoneyFrame\Classic\Localization.lua"/-->
     <!-- End of section added for Blizzard_MoneyFrame by the Aurora XML Updater -->
     <!--Script file="Blizzard_MovePad\Blizzard_MovePad.lua"/-->
@@ -424,7 +424,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_TimeManager\Blizzard_TimeManager.lua"/-->
     <!--Script file="Blizzard_TokenUI\Blizzard_TokenUI.lua"/-->
     <Script file="Blizzard_TradeSkillUI\Vanilla\Blizzard_TradeSkillUI.lua"/>
-    <!--Script file="Blizzard_TrainerUI\Blizzard_TrainerUI.lua"/-->
+    <Script file="Blizzard_TrainerUI\Classic\Blizzard_TrainerUI.lua"/>
     <!--Script file="Blizzard_UIErrorsFrame\Blizzard_UIErrorsFrame.lua"/-->
     <!-- This section is added for Blizzard_UIPanels_Game by the Aurora XML Updater -->
     <!--Script file="Blizzard_UIPanels_Game\Classic\SpellBookFrame.lua"/-->
@@ -486,7 +486,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!-- End of section added for Blizzard_UIParent by the Aurora XML Updater -->
     <!--Script file="Blizzard_UIParentPanelManager\Blizzard_UIParentPanelManager.lua"/-->
     <!--Script file="Blizzard_UIWidgets\Blizzard_UIWidgets.lua"/-->
-    <!--Script file="Blizzard_UnitFrame\Blizzard_UnitFrame.lua"/-->
+    <Script file="Blizzard_UnitFrame\Classic\Blizzard_UnitFrame.lua"/>
     <!--Script file="Blizzard_UnitFrameUtil\Blizzard_UnitFrameUtil.lua"/-->
     <!-- This section is added for Blizzard_UnitPopup by the Aurora XML Updater -->
     <!--Script file="Blizzard_UnitPopup\UnitPopupSlider.lua"/-->
