@@ -37,7 +37,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_BindingUI\Blizzard_BindingUI.lua"/-->
     <!--Script file="Blizzard_BlackMarketUI\Blizzard_BlackMarketUI.lua"/-->
     <!--Script file="Blizzard_BNet\Blizzard_BNet.lua"/-->
-    <!--Script file="Blizzard_BuffFrame\Blizzard_BuffFrame.lua"/-->
+    <Script file="Blizzard_BuffFrame\Classic\Blizzard_BuffFrame.lua"/>
     <!--Script file="Blizzard_Calendar\Blizzard_Calendar.lua"/-->
     <Script file="Blizzard_CastingBar\Vanilla\Blizzard_CastingBar.lua"/>
     <!--Script file="Blizzard_CatalogShop\Blizzard_CatalogShop.lua"/-->
