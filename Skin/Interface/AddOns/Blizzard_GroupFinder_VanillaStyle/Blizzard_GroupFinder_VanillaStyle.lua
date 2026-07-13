@@ -61,22 +61,45 @@ function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
             texture:SetTexture("")
         end
     end
-    Browse.BackgroundArt:SetAlpha(0)
+    if Browse.BackgroundArt then
+        Browse.BackgroundArt:SetAlpha(0)
+    end
 
-    Skin.UIDropDownMenuTemplate(Browse.CategoryDropDown)
-    Skin.UIDropDownMenuTemplate(Browse.ActivityDropDown)
+    -- era: legacy UIDropDownMenus (CategoryDropDown); anniversary 2.5.6:
+    -- modern WowStyle1 dropdowns with lowercase-d parentKeys
+    if Browse.CategoryDropDown then
+        Skin.UIDropDownMenuTemplate(Browse.CategoryDropDown)
+        Skin.UIDropDownMenuTemplate(Browse.ActivityDropDown)
+    else
+        if Browse.CategoryDropdown then
+            Skin.DropdownButton(Browse.CategoryDropdown)
+        end
+        if Browse.ActivityDropdown then
+            Skin.DropdownButton(Browse.ActivityDropdown)
+        end
+    end
 
     -- Square refresh button: strip the SquareButton states, keep the icon
     local refresh = Browse.RefreshButton
-    refresh:SetNormalTexture("")
-    refresh:SetPushedTexture("")
-    refresh:SetDisabledTexture("")
-    Skin.FrameTypeButton(refresh)
+    if refresh then
+        refresh:SetNormalTexture("")
+        refresh:SetPushedTexture("")
+        refresh:SetDisabledTexture("")
+        Skin.FrameTypeButton(refresh)
+    end
 
-    Skin.WowClassicScrollBar(Browse.ScrollBar)
-    Skin.UIPanelButtonTemplate(Browse.SendMessageButton)
-    Skin.UIPanelButtonTemplate(Browse.GroupInviteButton)
-    Skin.TooltipBackdropTemplate(_G.LFGBrowseSearchEntryTooltip)
+    if Browse.ScrollBar then
+        Skin.WowClassicScrollBar(Browse.ScrollBar)
+    end
+    if Browse.SendMessageButton then
+        Skin.UIPanelButtonTemplate(Browse.SendMessageButton)
+    end
+    if Browse.GroupInviteButton then
+        Skin.UIPanelButtonTemplate(Browse.GroupInviteButton)
+    end
+    if _G.LFGBrowseSearchEntryTooltip then
+        Skin.TooltipBackdropTemplate(_G.LFGBrowseSearchEntryTooltip)
+    end
 
     -------------
     -- Listing --
@@ -88,18 +111,40 @@ function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
             texture:SetTexture("")
         end
     end
-    Listing.BackgroundArt:SetAlpha(0)
+    if Listing.BackgroundArt then
+        Listing.BackgroundArt:SetAlpha(0)
+    end
 
-    Skin.UIPanelButtonTemplate(Listing.BackButton)
-    Skin.UIPanelButtonTemplate(Listing.PostButton)
-    Skin.UIPanelButtonTemplate(Listing.GroupRoleButtons.RolePollButton)
-    Skin.UIDropDownMenuTemplate(Listing.GroupRoleButtons.RoleDropDown)
+    for _, key in ipairs({"BackButton", "PostButton"}) do
+        if Listing[key] then
+            Skin.UIPanelButtonTemplate(Listing[key])
+        end
+    end
+    local roleButtons = Listing.GroupRoleButtons
+    if roleButtons then
+        if roleButtons.RolePollButton then
+            Skin.UIPanelButtonTemplate(roleButtons.RolePollButton)
+        end
+        if roleButtons.RoleDropDown then
+            Skin.UIDropDownMenuTemplate(roleButtons.RoleDropDown)
+        elseif roleButtons.RoleDropdown then
+            Skin.DropdownButton(roleButtons.RoleDropdown)
+        end
+    end
 
     local ActivityView = Listing.ActivityView
-    ActivityView.BarLeft:SetAlpha(0)
-    ActivityView.BarMiddle:SetAlpha(0)
-    ActivityView.BarRight:SetAlpha(0)
-    Skin.WowClassicScrollBar(ActivityView.ScrollBar)
-    -- Container chrome only — the EditBox inside is secure (see header)
-    Skin.UIPanelInputScrollFrameTemplate(ActivityView.Comment)
+    if ActivityView then
+        for _, key in ipairs({"BarLeft", "BarMiddle", "BarRight"}) do
+            if ActivityView[key] then
+                ActivityView[key]:SetAlpha(0)
+            end
+        end
+        if ActivityView.ScrollBar then
+            Skin.WowClassicScrollBar(ActivityView.ScrollBar)
+        end
+        -- Container chrome only — the EditBox inside is secure (see header)
+        if ActivityView.Comment then
+            Skin.UIPanelInputScrollFrameTemplate(ActivityView.Comment)
+        end
+    end
 end

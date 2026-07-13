@@ -1,8 +1,10 @@
 local _, private = ...
 if private.shouldSkip() then return end
--- Retail resolves the Mainline/ file first; this flat file is the
--- classic-family port. Belt and suspenders:
-if private.isRetail then return end
+-- ERA-ONLY: the 2.5.6 anniversary client (and Mists) runs the RETAIL-MODERN
+-- action bar system (Blizzard_ActionBar Classic\MainActionBar + Shared\ —
+-- no MoveMicroButtons/MainMenuBarArtFrame). TBC needs its own port of the
+-- Mainline retail path (TBC spec Milestone C).
+if not private.isVanilla then return end
 
 --[[ Lua Globals ]]
 -- luacheck: globals floor ipairs tinsert select unpack

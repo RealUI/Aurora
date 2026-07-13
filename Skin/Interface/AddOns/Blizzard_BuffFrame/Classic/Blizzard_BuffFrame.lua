@@ -1,5 +1,8 @@
 local _, private = ...
 if private.shouldSkip() then return end
+-- ERA-ONLY: anniversary (TBC) and Mists run the retail-modern BuffFrame
+-- (AuraFrameMixin) — see the TBC/ sibling file
+if not private.isVanilla then return end
 
 --[[ Lua Globals ]]
 -- luacheck: globals
