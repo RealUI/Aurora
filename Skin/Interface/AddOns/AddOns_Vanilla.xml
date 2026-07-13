@@ -438,8 +438,8 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\Vanilla\QuestFrameTemplates.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\QuestFrame.lua"/-->
     <Script file="Blizzard_UIPanels_Game\Vanilla\QuestFrame.lua"/>
-    <!--Script file="Blizzard_UIPanels_Game\Vanilla\QuestLogFrame.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\Vanilla\QuestInfo.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\Vanilla\QuestLogFrame.lua"/>
+    <Script file="Blizzard_UIPanels_Game\Vanilla\QuestInfo.lua"/>
     <Script file="Blizzard_UIPanels_Game\Vanilla\MerchantFrame.lua"/>
     <Script file="Blizzard_UIPanels_Game\Classic\TradeFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Vanilla\ContainerFrame.lua"/-->
