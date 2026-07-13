@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals select
+-- luacheck: globals select ipairs
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -73,9 +73,17 @@ function private.FrameXML.GossipFrame()
         end
     end
 
-    if _G.GossipSharedQuestButtonMixin then
-        _G.hooksecurefunc(_G.GossipSharedQuestButtonMixin, "UpdateTitleForQuest",
-            Hook.GossipSharedQuestButtonMixin.UpdateTitleForQuest)
+    -- Each CreateFromMixins derivation COPIES UpdateTitleForQuest before we
+    -- can hook its source table, so every layer must be hooked separately.
+    -- Era templates bind the base mixin; anniversary derives TWICE and its
+    -- templates bind Gossip(Available|Active)QuestButtonMixin from
+    -- Blizzard's Classic\GossipFrame.lua.
+    for _, mixinName in ipairs({"GossipSharedQuestButtonMixin", "GossipSharedAvailableQuestButtonMixin", "GossipSharedActiveQuestButtonMixin", "GossipAvailableQuestButtonMixin", "GossipActiveQuestButtonMixin"}) do
+        local mixin = _G[mixinName]
+        if mixin and mixin.UpdateTitleForQuest then
+            _G.hooksecurefunc(mixin, "UpdateTitleForQuest",
+                Hook.GossipSharedQuestButtonMixin.UpdateTitleForQuest)
+        end
     end
 
     local GreetingPanel = GossipFrame.GreetingPanel

@@ -524,9 +524,9 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\TBC\QuestScrollFrameAndPanelTemplates.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\TBC\QuestFrameTemplates.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\QuestFrame.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\TBC\QuestFrame.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\[Game]\QuestLogFrame.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\[Game]\QuestInfo.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\QuestFrame.lua"/>
+    <!--Script file="Blizzard_UIPanels_Game\TBC\QuestLogFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\QuestInfo.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\TBC\MerchantFrame.lua"/-->
     <Script file="Blizzard_UIPanels_Game\Classic\TradeFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Vanilla\ContainerFrame.lua"/-->
