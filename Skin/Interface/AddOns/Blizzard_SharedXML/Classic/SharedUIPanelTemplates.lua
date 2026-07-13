@@ -120,6 +120,18 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         Button:SetPoint("TOPRIGHT", 1.2, 0)
     end
 
+    -- Silver stretch button (9 sheet pieces as parentKeys)
+    local stretchPieces = {"TopLeft", "TopRight", "BottomLeft", "BottomRight", "TopMiddle", "MiddleLeft", "MiddleRight", "MiddleMiddle", "BottomMiddle"}
+    function Skin.UIMenuButtonStretchTemplate(Button)
+        for i = 1, #stretchPieces do
+            local piece = Button[stretchPieces[i]]
+            if piece then
+                piece:SetAlpha(0)
+            end
+        end
+        Skin.FrameTypeButton(Button)
+    end
+
     -- TAINT-SAFE button skin (widget API only — no FrameTypeButton table
     -- writes). For buttons whose OnClick chains into protected calls, e.g.
     -- static popup accept buttons. Same implementation as the Mainline layer.
