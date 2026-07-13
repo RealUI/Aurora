@@ -429,10 +429,10 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!-- This section is added for Blizzard_UIPanels_Game by the Aurora XML Updater -->
     <!--Script file="Blizzard_UIPanels_Game\Classic\SpellBookFrame.lua"/-->
     <Script file="Blizzard_UIPanels_Game\Vanilla\SpellBookFrame.lua"/>
-    <!--Script file="Blizzard_UIPanels_Game\Classic\SkillFrame.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\Vanilla\ReputationFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\Classic\SkillFrame.lua"/>
+    <Script file="Blizzard_UIPanels_Game\Vanilla\ReputationFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Classic\FriendshipStatusBar.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\Vanilla\HonorFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\Vanilla\HonorFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Classic\HonorFrame_Shared.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\HonorFrameTemplates.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Vanilla\QuestFrameTemplates.lua"/-->
