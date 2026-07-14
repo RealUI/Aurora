@@ -24,7 +24,7 @@ files["Skin/Interface/AddOns/Blizzard_ProfessionsCustomerOrders/Blizzard_Profess
     max_cyclomatic_complexity = false,
 }
 
-files["Skin/Interface/AddOns/Blizzard_Transmog/Blizzard_Transmog.lua"] = {
+files["Skin/Interface/AddOns/Blizzard_Transmog/Mainline/Blizzard_Transmog.lua"] = {
     max_cyclomatic_complexity = false,
 }
 
