@@ -7,6 +7,12 @@ local Base = Aurora.Base
 local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
+--[[ SHARED retail + Mists: the 5.5.4 Blizzard_ArchaeologyUI XML is
+    byte-identical to retail's (verified 2026-07-14). Mainline-only skin
+    helpers (square page buttons, scroll frames, help plate button) are
+    existence-guarded so the Mists load degrades gracefully.
+]]
+
 local r, g, b = Color.grayLight:GetRGB()
 
 do --[[ AddOns\Blizzard_ArchaeologyUI.lua ]]
@@ -94,8 +100,10 @@ function private.AddOns.Blizzard_ArchaeologyUI()
         end
     end
 
-    Skin.UIPanelSquareButton(summaryPage.prevPageButton, "LEFT")
-    Skin.UIPanelSquareButton(summaryPage.nextPageButton, "RIGHT")
+    if Skin.UIPanelSquareButton then
+        Skin.UIPanelSquareButton(summaryPage.prevPageButton, "LEFT")
+        Skin.UIPanelSquareButton(summaryPage.nextPageButton, "RIGHT")
+    end
 
 
     -------------------
@@ -137,8 +145,10 @@ function private.AddOns.Blizzard_ArchaeologyUI()
         end
     end
 
-    Skin.UIPanelSquareButton(completedPage.prevPageButton, "LEFT")
-    Skin.UIPanelSquareButton(completedPage.nextPageButton, "RIGHT")
+    if Skin.UIPanelSquareButton then
+        Skin.UIPanelSquareButton(completedPage.prevPageButton, "LEFT")
+        Skin.UIPanelSquareButton(completedPage.nextPageButton, "RIGHT")
+    end
 
 
     ------------------
@@ -170,14 +180,18 @@ function private.AddOns.Blizzard_ArchaeologyUI()
     _G.ArchaeologyFrameArtifactPageSolveFrameStatusBarBarBG:Hide()
 
     Skin.UIPanelButtonTemplate(artifactPage.backButton)
-    Skin.ScrollFrameTemplate(artifactPage.historyScroll)
+    if Skin.ScrollFrameTemplate then
+        Skin.ScrollFrameTemplate(artifactPage.historyScroll)
+    end
     artifactPage.historyScroll.child.text:SetTextColor(r, g, b)
 
 
     --------------
     -- HelpPage --
     --------------
-    Skin.MainHelpPlateButton(ArchaeologyFrame.infoButton)
+    if Skin.MainHelpPlateButton then
+        Skin.MainHelpPlateButton(ArchaeologyFrame.infoButton)
+    end
     ArchaeologyFrame.infoButton:SetPoint("TOPLEFT", 3, -3)
 
     local helpPage = ArchaeologyFrame.helpPage
@@ -193,7 +207,9 @@ function private.AddOns.Blizzard_ArchaeologyUI()
     _G.ArchaeologyFrameHelpPageDigTex:SetTexCoord(0.056640625, 0.857421875, 0.171875, 0.90234375)
     _G.ArchaeologyFrameHelpPageDigTitle:SetTextColor(r, g, b)
     _G.ArchaeologyFrameHelpPageDigTitle:SetPoint("TOP", _G.ArchaeologyFrameHelpPageDigTex, 0, 19)
-    Skin.ScrollFrameTemplate(_G.ArchaeologyFrameHelpPageHelpScroll)
+    if Skin.ScrollFrameTemplate then
+        Skin.ScrollFrameTemplate(_G.ArchaeologyFrameHelpPageHelpScroll)
+    end
     _G.ArchaeologyFrameHelpPageHelpScrollHelpText:SetTextColor(r, g, b)
 
 
