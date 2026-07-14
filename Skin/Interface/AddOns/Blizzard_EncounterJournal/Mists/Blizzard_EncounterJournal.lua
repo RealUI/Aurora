@@ -20,7 +20,11 @@ local Color, Util = Aurora.Color, Aurora.Util
 ]]
 
 local function SafeScrollBar(bar)
-    if bar and Skin.MinimalScrollBar then
+    if not bar then return end
+    if bar.Track and Skin.WowTrimScrollBar then
+        -- live classic WowTrimScrollBar hybrid (handled by the shared skin)
+        Skin.WowTrimScrollBar(bar)
+    elseif Skin.MinimalScrollBar then
         Skin.MinimalScrollBar(bar)
     end
 end

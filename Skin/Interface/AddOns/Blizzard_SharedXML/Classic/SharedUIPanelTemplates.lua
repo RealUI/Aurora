@@ -175,17 +175,26 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
 
     function Skin.UIPanelButtonNoTooltipTemplate(Button)
         if private.isMists then
-            -- live Mists buttons carry RedButton plate/cap art under keys
-            -- that match NEITHER the era template NOR the source dump
-            -- (probe-verified: .Middle alpha 0 yet red persists) — sweep
-            -- every texture region except the hover highlight, BEFORE the
-            -- backdrop goes on
-            local highlight = Button:GetHighlightTexture()
+            -- live Mists buttons: plate/cap art under keys matching
+            -- NEITHER the era template NOR the dump — full region sweep.
+            -- CRITICAL (probe-verified): the ENABLED state is a LOCKED
+            -- HighlightTexture (visible with no mouseover) — it must be
+            -- flattened, not preserved, or every enabled button shows
+            -- the stock red plate
             for i = 1, _G.select("#", Button:GetRegions()) do
                 local region = _G.select(i, Button:GetRegions())
-                if region:GetObjectType() == "Texture" and region ~= highlight then
+                if region:GetObjectType() == "Texture" then
                     region:SetAlpha(0)
                 end
+            end
+            local highlight = Button:GetHighlightTexture()
+            if highlight then
+                local r, g, b = Color.highlight:GetRGB()
+                highlight:SetBlendMode("BLEND")
+                highlight:SetColorTexture(r, g, b, 0.2)
+                highlight:SetAlpha(1)
+                highlight:ClearAllPoints()
+                highlight:SetAllPoints()
             end
         end
         Skin.FrameTypeButton(Button)
@@ -542,32 +551,63 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
             bottom = 6,
         })
 
-        Button.LeftActive:SetAlpha(0)
-        Button.RightActive:SetAlpha(0)
-        Button.MiddleActive:SetAlpha(0)
-        Button.Left:SetAlpha(0)
-        Button.Right:SetAlpha(0)
-        Button.Middle:SetAlpha(0)
-
-        Button.LeftHighlight:SetAlpha(0)
-        Button.RightHighlight:SetAlpha(0)
-        Button.MiddleHighlight:SetAlpha(0)
+        -- guarded: Mists tab variants carry only a subset of these keys
+        -- (some use named globals / Center instead)
+        for _, key in ipairs({
+            "LeftActive", "RightActive", "MiddleActive",
+            "Left", "Right", "Middle", "Center",
+            "LeftHighlight", "RightHighlight", "MiddleHighlight",
+            "LeftDisabled", "RightDisabled", "MiddleDisabled",
+        }) do
+            if Button[key] then
+                Button[key]:SetAlpha(0)
+            end
+        end
+        local name = Button:GetName()
+        if name then
+            for _, suffix in ipairs({
+                "Left", "Middle", "Right",
+                "LeftDisabled", "MiddleDisabled", "RightDisabled",
+            }) do
+                if _G[name..suffix] then
+                    _G[name..suffix]:SetAlpha(0)
+                end
+            end
+        end
 
         local bg = Button:GetBackdropTexture("bg")
-        Button.Text:ClearAllPoints()
-        Button.Text:SetAllPoints(bg)
+        if Button.Text then
+            Button.Text:ClearAllPoints()
+            Button.Text:SetAllPoints(bg)
+        end
 
         Button._auroraTabResize = true
     end
     function Skin.TabButtonTemplate(Button)
-        Button.LeftDisabled:SetAlpha(0)
-        Button.MiddleDisabled:SetAlpha(0)
-        Button.RightDisabled:SetAlpha(0)
-        Button.Left:SetAlpha(0)
-        Button.Middle:SetAlpha(0)
-        Button.Right:SetAlpha(0)
+        -- guarded: live variants (e.g. Mists wardrobe tabs) may differ
+        for _, key in ipairs({
+            "LeftDisabled", "MiddleDisabled", "RightDisabled",
+            "Left", "Middle", "Right",
+        }) do
+            if Button[key] then
+                Button[key]:SetAlpha(0)
+            end
+        end
+        local name = Button:GetName()
+        if name then
+            for _, suffix in ipairs({
+                "LeftDisabled", "MiddleDisabled", "RightDisabled",
+                "Left", "Middle", "Right",
+            }) do
+                if _G[name..suffix] then
+                    _G[name..suffix]:SetAlpha(0)
+                end
+            end
+        end
 
-        Button.HighlightTexture:SetTexture("")
+        if Button.HighlightTexture then
+            Button.HighlightTexture:SetTexture("")
+        end
         Button._auroraTabResize = true
     end
     function Skin.PanelTopTabButtonTemplate(Button)
