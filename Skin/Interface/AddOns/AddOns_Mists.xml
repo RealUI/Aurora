@@ -70,7 +70,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_CatalogShopSharedTemplates\Blizzard_CatalogShopSharedTemplates.lua"/-->
     <!--Script file="Blizzard_CatalogShopSharedUtil\Blizzard_CatalogShopSharedUtil.lua"/-->
     <!--Script file="Blizzard_CatalogShopTopUpFlow\Blizzard_CatalogShopTopUpFlow.lua"/-->
-    <!--Script file="Blizzard_ChallengesUI\Blizzard_ChallengesUI.lua"/-->
+    <Script file="Blizzard_ChallengesUI\Mists\Blizzard_ChallengesUI.lua"/>
     <!--Script file="Blizzard_Channels\Blizzard_Channels.lua"/-->
     <!--Script file="Blizzard_CharacterCustomize\Blizzard_CharacterCustomize.lua"/-->
     <Script file="Blizzard_CharacterFrame\Mists\Blizzard_CharacterFrame.lua"/>
@@ -570,8 +570,8 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\Classic\QuestFrame.lua"/-->
     <Script file="Blizzard_UIPanels_Game\TBC\QuestFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Wrath\QuestPOI.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\Cata\QuestLogFrame.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\Wrath\QuestInfo.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\Cata\QuestLogFrame.lua"/>
+    <Script file="Blizzard_UIPanels_Game\Wrath\QuestInfo.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Wrath\WatchFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Mists\WatchFrameScenario.lua"/-->
     <Script file="Blizzard_UIPanels_Game\TBC\MerchantFrame.lua"/>
