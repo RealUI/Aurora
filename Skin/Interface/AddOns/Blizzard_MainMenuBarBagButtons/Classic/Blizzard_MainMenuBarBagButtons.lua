@@ -1,5 +1,9 @@
 local _, private = ...
 if private.shouldSkip() then return end
+-- ERA-ONLY: anniversary's bag bar is managed by the modern BagsBar layout
+-- (scaled/positioned by its container) — era-shaped skinning mangles it;
+-- stock there, matching retail Aurora precedent for modern bars
+if not private.isVanilla then return end
 
 --[[ Lua Globals ]]
 -- luacheck: globals ipairs
