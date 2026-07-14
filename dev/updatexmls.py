@@ -2,7 +2,7 @@ import os
 import re
 import sys
 
-version = '0.2.0'
+version = '0.2.1'
 author = 'Hanshi/arnvid'
 
 # All paths are anchored to this script's location: dev/ inside the Aurora
@@ -114,14 +114,16 @@ def parse_gametypes(value):
     return {t for t in re.split(r'[,\s]+', value.lower()) if t}
 
 
-def parse_toc(toc_file, family, gametypes):
+def parse_toc(toc_file, family, gametypes, game):
     """Return (loads_here, [file entries]) for one TOC as seen by one client.
 
     Header handling: '## AllowLoad: Glue' addons never load in-game and
     '## AllowLoadGameType:' must include one of the client's gametype tokens.
     Line handling: '[AllowLoadGameType ...]' directives filter lines the
-    same way; other bracket directives are ignored. [Family] is substituted
-    with the client's family before directives are parsed.
+    same way; other bracket directives are ignored. [Family] and [Game] are
+    substituted with the client's family/game dir before directives are
+    parsed ([Game] observed on the 2.5.6 anniversary TOCs, e.g.
+    Blizzard_UIPanels_Game's `[Game]\\QuestInfo.lua`).
     """
     entries = []
     with open(toc_file, 'r', encoding='utf-8-sig', errors='replace') as file:
@@ -137,7 +139,7 @@ def parse_toc(toc_file, family, gametypes):
                 if m and m.group(1).lower() == 'glue':
                     return False, []
                 continue
-            line = line.replace('[Family]', family)
+            line = line.replace('[Family]', family).replace('[Game]', game)
             path, _, directives = line.partition(' ')
             allowed = True
             for directive in re.findall(r'\[([^\]]+)\]', directives):
@@ -186,7 +188,7 @@ def generate_manifest(flavor, cfg):
         toc_file = resolve_toc(addon_path, dirname, cfg['toc_order'])
         if toc_file is None:
             continue
-        loads_here, files = parse_toc(toc_file, cfg['family'], cfg['gametypes'])
+        loads_here, files = parse_toc(toc_file, cfg['family'], cfg['gametypes'], flavor)
         if not loads_here:
             continue
         if dirname in aurora_addons:
