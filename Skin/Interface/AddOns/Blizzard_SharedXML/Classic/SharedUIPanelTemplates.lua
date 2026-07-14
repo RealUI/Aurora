@@ -174,10 +174,34 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
     end
 
     function Skin.UIPanelButtonNoTooltipTemplate(Button)
+        if private.isMists then
+            -- live Mists buttons carry RedButton plate/cap art under keys
+            -- that match NEITHER the era template NOR the source dump
+            -- (probe-verified: .Middle alpha 0 yet red persists) — sweep
+            -- every texture region except the hover highlight, BEFORE the
+            -- backdrop goes on
+            local highlight = Button:GetHighlightTexture()
+            for i = 1, _G.select("#", Button:GetRegions()) do
+                local region = _G.select(i, Button:GetRegions())
+                if region:GetObjectType() == "Texture" and region ~= highlight then
+                    region:SetAlpha(0)
+                end
+            end
+        end
         Skin.FrameTypeButton(Button)
-        Button.Left:SetAlpha(0)
-        Button.Middle:SetAlpha(0)
-        Button.Right:SetAlpha(0)
+        -- era/TBC: three-slice plate parentKeys (may be absent on Mists
+        -- variants)
+        if Button.Left then Button.Left:SetAlpha(0) end
+        if Button.Middle then Button.Middle:SetAlpha(0) end
+        if Button.Right then Button.Right:SetAlpha(0) end
+        -- Mists: RedButton ATLAS state textures on top of the plates —
+        -- clear them or every enabled button stays red (no-ops on
+        -- era/TBC, whose template has no state textures)
+        if Button.ClearNormalTexture then
+            Button:ClearNormalTexture()
+            Button:ClearPushedTexture()
+            Button:ClearDisabledTexture()
+        end
     end
     function Skin.UIPanelButtonTemplate(Button)
         Skin.UIPanelButtonNoTooltipTemplate(Button)
