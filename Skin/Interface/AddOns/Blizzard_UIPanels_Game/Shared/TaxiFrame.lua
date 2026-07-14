@@ -23,6 +23,11 @@ function private.FrameXML.TaxiFrame()
     if TaxiFrame.NineSlice then
         Util.HideFrameTextures(TaxiFrame.NineSlice)
     end
+    -- the flight map is rendered INTO InsetBg (SetTaxiMap(self.InsetBg)) —
+    -- it must survive the sweep
+    if TaxiFrame.InsetBg then
+        TaxiFrame.InsetBg:SetAlpha(1)
+    end
     if TaxiFrame.TopTileStreaks then
         TaxiFrame.TopTileStreaks:SetTexture("")
     end

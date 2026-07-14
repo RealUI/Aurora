@@ -73,7 +73,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_ChallengesUI\Blizzard_ChallengesUI.lua"/-->
     <!--Script file="Blizzard_Channels\Blizzard_Channels.lua"/-->
     <!--Script file="Blizzard_CharacterCustomize\Blizzard_CharacterCustomize.lua"/-->
-    <!--Script file="Blizzard_CharacterFrame\Blizzard_CharacterFrame.lua"/-->
+    <Script file="Blizzard_CharacterFrame\Mists\Blizzard_CharacterFrame.lua"/>
     <!-- This section is added for Blizzard_ChatFrame by the Aurora XML Updater -->
     <!--Script file="Blizzard_ChatFrame\Shared\VoiceChatTranscriptionButton.lua"/-->
     <!--Script file="Blizzard_ChatFrame\Classic\VoiceChatHeadsetButton.lua"/-->
