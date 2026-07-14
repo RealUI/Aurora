@@ -505,7 +505,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_TradeSkillUI\TBC\Blizzard_TradeSkillUI.lua"/>
     <Script file="Blizzard_TrainerUI\Classic\Blizzard_TrainerUI.lua"/>
     <!--Script file="Blizzard_TransformManipulator\Blizzard_TransformManipulator.lua"/-->
-    <!--Script file="Blizzard_Transmog\Blizzard_Transmog.lua"/-->
+    <Script file="Blizzard_Transmog\Blizzard_Transmog.lua"/>
     <!--Script file="Blizzard_TransmogShared\Blizzard_TransmogShared.lua"/-->
     <!--Script file="Blizzard_UIErrorsFrame\Blizzard_UIErrorsFrame.lua"/-->
     <!-- This section is added for Blizzard_UIPanels_Game by the Aurora XML Updater -->
@@ -564,7 +564,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!-- This section is added for Blizzard_UIPanelTemplates by the Aurora XML Updater -->
     <!--Script file="Blizzard_UIPanelTemplates\Classic\AutoCastTemplates.lua"/-->
     <!--Script file="Blizzard_UIPanelTemplates\Shared\UIPanelSpellButtonFrame.lua"/-->
-    <!--Script file="Blizzard_UIPanelTemplates\Classic\UIPanelTemplates.lua"/-->
+    <Script file="Blizzard_UIPanelTemplates\Classic\UIPanelTemplates.lua"/>
     <!-- End of section added for Blizzard_UIPanelTemplates by the Aurora XML Updater -->
     <!-- This section is added for Blizzard_UIParent by the Aurora XML Updater -->
     <!--Script file="Blizzard_UIParent\ChatBubbleTemplates.lua"/-->

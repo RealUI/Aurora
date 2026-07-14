@@ -473,7 +473,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!-- This section is added for Blizzard_UIPanelTemplates by the Aurora XML Updater -->
     <!--Script file="Blizzard_UIPanelTemplates\Classic\AutoCastShine.lua"/-->
     <!--Script file="Blizzard_UIPanelTemplates\Shared\UIPanelSpellButtonFrame.lua"/-->
-    <!--Script file="Blizzard_UIPanelTemplates\Classic\UIPanelTemplates.lua"/-->
+    <Script file="Blizzard_UIPanelTemplates\Classic\UIPanelTemplates.lua"/>
     <!-- End of section added for Blizzard_UIPanelTemplates by the Aurora XML Updater -->
     <!-- This section is added for Blizzard_UIParent by the Aurora XML Updater -->
     <!--Script file="Blizzard_UIParent\ChatBubbleTemplates.lua"/-->

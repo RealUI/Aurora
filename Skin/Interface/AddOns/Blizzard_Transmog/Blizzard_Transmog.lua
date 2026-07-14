@@ -10,6 +10,14 @@ local Base = Aurora.Base
 local Skin = Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
+--[[ SHARED retail + Mists: the 5.5.4 Blizzard_Transmog is retail-modern
+    (identical TOC; Blizzard_Transmog.xml differs by one collapsedWidth
+    KeyValue — verified 2026-07-14). Skin helpers that only exist in
+    Mainline-dir files (help plate, spell button frame, nine-slice search
+    box, icon selector popup, model scene controls) are existence-guarded
+    so the Mists load degrades gracefully instead of erroring.
+]]
+
 do --[[ AddOns\Blizzard_Transmog.lua ]]
     -- Skin template for the wardrobe collection tabs (Items / Sets / Custom Sets / Situations)
     function Skin.TransmogWardrobeCollectionTabTemplate(Button)
@@ -65,7 +73,7 @@ function private.AddOns.Blizzard_Transmog()
     Skin.PortraitFrameTemplate(TransmogFrame)
 
     -- Help button
-    if TransmogFrame.HelpPlateButton then
+    if TransmogFrame.HelpPlateButton and Skin.MainHelpPlateButton then
         Skin.MainHelpPlateButton(TransmogFrame.HelpPlateButton)
     end
 
@@ -81,7 +89,7 @@ function private.AddOns.Blizzard_Transmog()
         if OutfitCollection.DividerBar then OutfitCollection.DividerBar:SetAlpha(0) end
 
         -- Show Equipped Gear spell frame
-        if OutfitCollection.ShowEquippedGearSpellFrame then
+        if OutfitCollection.ShowEquippedGearSpellFrame and Skin.UIPanelSpellButtonFrameTemplate then
             Skin.UIPanelSpellButtonFrameTemplate(OutfitCollection.ShowEquippedGearSpellFrame.Button)
         end
 
@@ -113,7 +121,7 @@ function private.AddOns.Blizzard_Transmog()
     ----====#####################====----
     --   OutfitPopup (IconSelector)     --
     ----====#####################====----
-    if TransmogFrame.OutfitPopup then
+    if TransmogFrame.OutfitPopup and Skin.IconSelectorPopupFrameTemplate then
         Skin.IconSelectorPopupFrameTemplate(TransmogFrame.OutfitPopup)
     end
 
@@ -145,7 +153,8 @@ function private.AddOns.Blizzard_Transmog()
         end
 
         -- Model scene rotate controls
-        if CharacterPreview.ModelScene and CharacterPreview.ModelScene.ControlFrame then
+        if CharacterPreview.ModelScene and CharacterPreview.ModelScene.ControlFrame
+            and Skin.ModelSceneControlFrameTemplateLeftButtonTemplate then
             Skin.ModelSceneControlFrameTemplateLeftButtonTemplate(CharacterPreview.ModelScene.ControlFrame.rotateLeftButton)
             Skin.ModelSceneControlFrameTemplateRightButtonTemplate(CharacterPreview.ModelScene.ControlFrame.rotateRightButton)
         end
@@ -208,7 +217,7 @@ function private.AddOns.Blizzard_Transmog()
             if ItemsFrame then
                 -- Filter / Search
                 if ItemsFrame.FilterButton then Skin.FilterButton(ItemsFrame.FilterButton) end
-                if ItemsFrame.SearchBox then Skin.SearchBoxNineSliceTemplate(ItemsFrame.SearchBox) end
+                if ItemsFrame.SearchBox and Skin.SearchBoxNineSliceTemplate then Skin.SearchBoxNineSliceTemplate(ItemsFrame.SearchBox) end
 
                 -- Weapon dropdown
                 if ItemsFrame.WeaponDropdown then Skin.DropdownButton(ItemsFrame.WeaponDropdown) end
@@ -228,7 +237,7 @@ function private.AddOns.Blizzard_Transmog()
             local SetsFrame = TabContent.SetsFrame
             if SetsFrame then
                 if SetsFrame.FilterButton then Skin.FilterButton(SetsFrame.FilterButton) end
-                if SetsFrame.SearchBox then Skin.SearchBoxNineSliceTemplate(SetsFrame.SearchBox) end
+                if SetsFrame.SearchBox and Skin.SearchBoxNineSliceTemplate then Skin.SearchBoxNineSliceTemplate(SetsFrame.SearchBox) end
             end
 
             ----
