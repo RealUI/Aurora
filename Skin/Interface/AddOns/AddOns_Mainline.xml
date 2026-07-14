@@ -750,8 +750,8 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_UnitPopup\Mainline\UnitPopupSlider.lua"/>
     <Script file="Blizzard_UnitPopup\Mainline\UnitPopupCustomControls.lua"/>
     <!--Script file="Blizzard_UnitPopup\Mainline\UnitPopupUtils.lua"/-->
-    <!--Script file="Blizzard_UnitPopup\[Game]\UnitPopupButtons.lua"/-->
-    <!--Script file="Blizzard_UnitPopup\[Game]\UnitPopupMenus.lua"/-->
+    <!--Script file="Blizzard_UnitPopup\Mainline\UnitPopupButtons.lua"/-->
+    <!--Script file="Blizzard_UnitPopup\Mainline\UnitPopupMenus.lua"/-->
     <!--Script file="Blizzard_UnitPopup\Mainline\UnitPopup.lua"/-->
     <!-- End of section added for Blizzard_UnitPopup by the Aurora XML Updater -->
     <!--Script file="Blizzard_UnitPopupShared\Blizzard_UnitPopupShared.lua"/-->
