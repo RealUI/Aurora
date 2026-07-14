@@ -124,7 +124,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_ClassMenu\Blizzard_ClassMenu.lua"/-->
     <!--Script file="Blizzard_ClientSavedVariables\Blizzard_ClientSavedVariables.lua"/-->
     <!--Script file="Blizzard_CodeOfConduct\Blizzard_CodeOfConduct.lua"/-->
-    <!--Script file="Blizzard_Collections\Blizzard_Collections.lua"/-->
+    <Script file="Blizzard_Collections\Mists\Blizzard_Collections.lua"/>
     <!--Script file="Blizzard_Colors\Blizzard_Colors.lua"/-->
     <!--Script file="Blizzard_CombatAudioAlerts\Blizzard_CombatAudioAlerts.lua"/-->
     <!--Script file="Blizzard_CombatLog\Blizzard_CombatLog.lua"/-->
