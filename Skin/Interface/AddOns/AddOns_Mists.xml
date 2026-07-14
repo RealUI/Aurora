@@ -557,7 +557,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\Shared\ExtraAbilityContainer.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\SpellBookFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Cata\SpellBookProfessions.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\Mists\SpellBookFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\Mists\SpellBookFrame.lua"/>
     <Script file="Blizzard_UIPanels_Game\Classic\SkillFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Classic\ReputationFrame.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Cata\ReputationFrame.lua"/-->
