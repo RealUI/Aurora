@@ -57,7 +57,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_AnimaDiversionUI\Blizzard_AnimaDiversionUI.lua"/>
     <!--Script file="Blizzard_APIDocumentation\Blizzard_APIDocumentation.lua"/-->
     <!--Script file="Blizzard_APIDocumentationGenerated\Blizzard_APIDocumentationGenerated.lua"/-->
-    <Script file="Blizzard_ArchaeologyUI\Mainline\Blizzard_ArchaeologyUI.lua"/>
+    <Script file="Blizzard_ArchaeologyUI\Blizzard_ArchaeologyUI.lua"/>
     <!--Script file="Blizzard_ArdenwealdGardening\Blizzard_ArdenwealdGardening.lua"/-->
     <Script file="Blizzard_ArtifactUI\Blizzard_ArtifactUI.lua"/>
     <!--Script file="Blizzard_AsyncRequest\Blizzard_AsyncRequest.lua"/-->
