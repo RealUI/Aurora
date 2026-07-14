@@ -134,7 +134,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_CompactRaidFrames\Blizzard_CompactRaidFrames.lua"/-->
     <!--Script file="Blizzard_Console\Blizzard_Console.lua"/-->
     <!--Script file="Blizzard_CooldownBroadcaster\Blizzard_CooldownBroadcaster.lua"/-->
-    <!--Script file="Blizzard_CraftUI\Blizzard_CraftUI.lua"/-->
+    <Script file="Blizzard_CraftUI\TBC\Blizzard_CraftUI.lua"/>
     <!--Script file="Blizzard_CUFProfiles\Blizzard_CUFProfiles.lua"/-->
     <!--Script file="Blizzard_CustomizationUI\Blizzard_CustomizationUI.lua"/-->
     <!--Script file="Blizzard_DebugTools\Blizzard_DebugTools.lua"/-->
@@ -284,7 +284,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_QuestTimer\Blizzard_QuestTimer.lua"/>
     <!--Script file="Blizzard_QueueStatusFrame\Blizzard_QueueStatusFrame.lua"/-->
     <!--Script file="Blizzard_QuickKeybind\Blizzard_QuickKeybind.lua"/-->
-    <!--Script file="Blizzard_RaidFrame\Blizzard_RaidFrame.lua"/-->
+    <Script file="Blizzard_RaidFrame\Classic\Blizzard_RaidFrame.lua"/>
     <!--Script file="Blizzard_RaidUI\Blizzard_RaidUI.lua"/-->
     <!--Script file="Blizzard_ReadyCheck\Blizzard_ReadyCheck.lua"/-->
     <!--Script file="Blizzard_ReforgingUI\Blizzard_ReforgingUI.lua"/-->
@@ -502,7 +502,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_TextStatusBar\Blizzard_TextStatusBar.lua"/-->
     <!--Script file="Blizzard_TimeManager\Blizzard_TimeManager.lua"/-->
     <!--Script file="Blizzard_TokenUI\Blizzard_TokenUI.lua"/-->
-    <!--Script file="Blizzard_TradeSkillUI\Blizzard_TradeSkillUI.lua"/-->
+    <Script file="Blizzard_TradeSkillUI\TBC\Blizzard_TradeSkillUI.lua"/>
     <Script file="Blizzard_TrainerUI\Classic\Blizzard_TrainerUI.lua"/>
     <!--Script file="Blizzard_TransformManipulator\Blizzard_TransformManipulator.lua"/-->
     <!--Script file="Blizzard_Transmog\Blizzard_Transmog.lua"/-->
@@ -525,7 +525,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\TBC\QuestFrameTemplates.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Classic\QuestFrame.lua"/-->
     <Script file="Blizzard_UIPanels_Game\TBC\QuestFrame.lua"/>
-    <!--Script file="Blizzard_UIPanels_Game\TBC\QuestLogFrame.lua"/-->
+    <Script file="Blizzard_UIPanels_Game\TBC\QuestLogFrame.lua"/>
     <Script file="Blizzard_UIPanels_Game\TBC\QuestInfo.lua"/>
     <Script file="Blizzard_UIPanels_Game\TBC\MerchantFrame.lua"/>
     <Script file="Blizzard_UIPanels_Game\Classic\TradeFrame.lua"/>
