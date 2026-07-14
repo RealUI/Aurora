@@ -42,7 +42,11 @@ function private.FrameXML.BankFrame()
         bottom = 70,
     })
 
-    Skin.UIPanelCloseButton(_G.BankCloseButton)
+    -- Mists (which reuses this TBC file) has no BankCloseButton global
+    local close = _G.BankCloseButton or BankFrame.CloseButton
+    if close then
+        Skin.UIPanelCloseButton(close)
+    end
 
     -- Slot backgrounds and rivets
     Util.HideFrameTextures(_G.BankSlotsFrame)

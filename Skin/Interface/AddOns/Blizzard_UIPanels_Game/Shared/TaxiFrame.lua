@@ -8,30 +8,32 @@ if private.isRetail then return end
 --[[ Core ]]
 local Aurora = private.Aurora
 local Skin = Aurora.Skin
+local Util = Aurora.Util
+
+--[[ Mists (5.5.4) flight master — the Shared\ TaxiFrame is a MODERN
+    BasicFrameTemplateWithInset (no TaxiMerchant/TaxiCloseButton globals the
+    old skin expected; verified against wow-ui-source-classic). Era/TBC use
+    the Classic\ file instead — same registration key, never co-loaded.
+]]
 
 function private.FrameXML.TaxiFrame()
     local TaxiFrame = _G.TaxiFrame
+
+    Util.HideFrameTextures(TaxiFrame, true)
+    if TaxiFrame.NineSlice then
+        Util.HideFrameTextures(TaxiFrame.NineSlice)
+    end
+    if TaxiFrame.TopTileStreaks then
+        TaxiFrame.TopTileStreaks:SetTexture("")
+    end
     Skin.FrameTypeFrame(TaxiFrame)
-    TaxiFrame:SetBackdropOption("offsets", {
-        left = 20,
-        right = 46,
-        top = 74,
-        bottom = 84,
-    })
 
-    local portrait, tl, tr, bl, br = TaxiFrame:GetRegions()
-    portrait:Hide()
-    tl:Hide()
-    tr:Hide()
-    bl:Hide()
-    br:Hide()
+    if TaxiFrame.Inset then
+        Skin.InsetFrameTemplate(TaxiFrame.Inset)
+    end
 
-    local bg = TaxiFrame:GetBackdropTexture("bg")
-    _G.TaxiMerchant:ClearAllPoints()
-    _G.TaxiMerchant:SetPoint("TOPLEFT", bg)
-    _G.TaxiMerchant:SetPoint("BOTTOMRIGHT", bg, "TOPRIGHT", 0, -private.FRAME_TITLE_HEIGHT)
-    _G.TaxiMerchant:SetDrawLayer("OVERLAY", 5)
-
-    Skin.UIPanelCloseButton(_G.TaxiCloseButton)
-    _G.TaxiCloseButton:SetPoint("TOPRIGHT", bg, 5.6, 5)
+    local close = TaxiFrame.CloseButton or _G.TaxiCloseButton
+    if close then
+        Skin.UIPanelCloseButton(close)
+    end
 end

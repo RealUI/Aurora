@@ -35,7 +35,10 @@ end
 
 do --[[ FrameXML\RaidFinder.xml ]]
     function Skin.RaidFinderRoleButtonTemplate(Button)
-        Skin.LFGRoleButtonWithBackgroundAndRewardTemplate(Button)
+        -- the LFG role button skin chain is Mainline-only; stock on classic
+        if Skin.LFGRoleButtonWithBackgroundAndRewardTemplate then
+            Skin.LFGRoleButtonWithBackgroundAndRewardTemplate(Button)
+        end
     end
 end
 
@@ -56,21 +59,37 @@ function private.FrameXML.RaidFinder()
     --------------------------
     _G.RaidFinderQueueFrameBackground:Hide()
 
+    -- Several LFG skin chains are Mainline-only — guard everything on
+    -- classic (5.5.4 loads this file); unskinned pieces are Milestone C
     Skin.RaidFinderRoleButtonTemplate(_G.RaidFinderQueueFrameRoleButtonTank)
     Skin.RaidFinderRoleButtonTemplate(_G.RaidFinderQueueFrameRoleButtonHealer)
     Skin.RaidFinderRoleButtonTemplate(_G.RaidFinderQueueFrameRoleButtonDPS)
-    Skin.LFGRoleButtonTemplate(_G.RaidFinderQueueFrameRoleButtonLeader)
+    if Skin.LFGRoleButtonTemplate then
+        Skin.LFGRoleButtonTemplate(_G.RaidFinderQueueFrameRoleButtonLeader)
+    end
     Skin.DropdownButton(_G.RaidFinderQueueFrameSelectionDropdown)
     _G.RaidFinderQueueFrameSelectionDropdown:ClearAllPoints()
     _G.RaidFinderQueueFrameSelectionDropdown:SetPoint("BOTTOMLEFT", _G.RaidFinderQueueFrame, "BOTTOMLEFT", 131, 289)
     _G.RaidFinderQueueFrameSelectionDropdown:SetPoint("BOTTOMRIGHT", _G.RaidFinderQueueFrame, "BOTTOMRIGHT", -30, 289)
 
-    Skin.ScrollFrameTemplate(_G.RaidFinderQueueFrameScrollFrame)
-    Skin.LFGRewardFrameTemplate(_G.RaidFinderQueueFrameScrollFrameChildFrame)
+    if Skin.ScrollFrameTemplate then
+        Skin.ScrollFrameTemplate(_G.RaidFinderQueueFrameScrollFrame)
+    end
+    if Skin.LFGRewardFrameTemplate then
+        Skin.LFGRewardFrameTemplate(_G.RaidFinderQueueFrameScrollFrameChildFrame)
+    end
 
-    Skin.LFGBackfillCoverTemplate(_G.RaidFinderQueueFramePartyBackfill)
-    Skin.LFGCooldownCoverTemplate(_G.RaidFinderQueueFrame.CooldownFrame)
-    Skin.UIPanelButtonTemplate(_G.RaidFinderQueueFrameIneligibleFrame.leaveQueueButton)
+    if Skin.LFGBackfillCoverTemplate and _G.RaidFinderQueueFramePartyBackfill then
+        Skin.LFGBackfillCoverTemplate(_G.RaidFinderQueueFramePartyBackfill)
+    end
+    if Skin.LFGCooldownCoverTemplate and _G.RaidFinderQueueFrame.CooldownFrame then
+        Skin.LFGCooldownCoverTemplate(_G.RaidFinderQueueFrame.CooldownFrame)
+    end
+    if _G.RaidFinderQueueFrameIneligibleFrame and _G.RaidFinderQueueFrameIneligibleFrame.leaveQueueButton then
+        Skin.UIPanelButtonTemplate(_G.RaidFinderQueueFrameIneligibleFrame.leaveQueueButton)
+    end
 
-    Skin.MagicButtonTemplate(_G.RaidFinderFrameFindRaidButton)
+    if _G.RaidFinderFrameFindRaidButton then
+        Skin.MagicButtonTemplate(_G.RaidFinderFrameFindRaidButton)
+    end
 end
