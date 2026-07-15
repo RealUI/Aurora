@@ -1,4 +1,10 @@
-﻿## [12.0.7.1] ##
+﻿## [12.0.7.2] ##
+### Fixed ###
+
+  * fix: remove CooldownViewer grid-padding hook - writing childXPadding/oldGridSettings from addon context tainted the CDM and caused mass secret-value errors at raid-end cinematics [mainline]
+
+
+## [12.0.7.1] ##
 ### Added ###
 
   * add: **Classic Era (Vanilla) support** — new `Aurora_Vanilla.toc` / `AddOns_Vanilla.xml`, full skin coverage across FrameXML and Blizzard AddOns:
@@ -658,7 +664,9 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.0.7.0...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.0.7.2...develop
+[12.0.7.2]: https://github.com/Gethe/Aurora/compare/12.0.7.1...12.0.7.2
+[12.0.7.1]: https://github.com/Gethe/Aurora/compare/12.0.7.0...12.0.7.1
 [12.0.7.0]: https://github.com/Gethe/Aurora/compare/12.0.5.13...12.0.7.0
 [12.0.5.13]: https://github.com/Gethe/Aurora/compare/12.0.5.12...12.0.5.13
 [12.0.5.12]: https://github.com/Gethe/Aurora/compare/12.0.5.11...12.0.5.12
