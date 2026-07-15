@@ -134,54 +134,19 @@ local function SkinItemFrame(frame)
     skinnedFrames[frame] = true
 end
 
--- Blizzard's default grid gap (RefreshLayout: childXPadding/Y = iconPadding - 4)
--- nets out to ~1px even at 100% Icon Size, relying on the IconOverlay
--- decorative ring (which we hide, see HideIconOverlay) to fake breathing room
--- between icons. On top of that, each item frame is scaled by viewer.iconScale
--- (the Edit Mode "Icon Size" % setting) via itemFrame:SetScale, so above 100%
--- the gap goes negative and bare square icons bleed into their neighbor.
--- Restore a minimum gap always, plus extra proportional to how much the
--- scale grows the frame beyond 100%.
-local MIN_ICON_GAP = 3
-
--- Nominal (unscaled) icon size per item template, taken from CooldownViewer.xml.
--- BuffBar's item frame itself is a 220x30 bar, but the icon portion (frame.Icon,
--- a 30x30 child, or h-12 after Aurora resizes it) is what actually overlaps —
--- use its size, not the full bar width.
---
--- These are hardcoded rather than read via itemFrame/icon:GetWidth()/GetHeight()
--- because for aura-backed items (BuffIcon/BuffBar, tied to auraSpellID/
--- auraInstanceID) Blizzard's newer "secret value" protections can make those
--- live geometry queries return secret-poisoned numbers — merely comparing one
--- (e.g. `w > 0`) from addon code throws "execution tainted by 'RealUI_Skins'".
--- Static constants sidestep that entirely.
-local NOMINAL_ICON_SIZE = {
-    CooldownViewerEssentialItemTemplate = 50,
-    CooldownViewerUtilityItemTemplate   = 30,
-    CooldownViewerBuffIconItemTemplate  = 40,
-    CooldownViewerBuffBarItemTemplate   = 30,
-}
-
-local function CompensateGridPaddingForScale(viewer)
-    local scale = viewer.iconScale or 1
-
-    local container = viewer.GetItemContainerFrame and viewer:GetItemContainerFrame()
-    if not container then return end
-
-    local size = NOMINAL_ICON_SIZE[viewer.itemTemplate]
-    if not size then return end
-
-    local scaleGap = (scale > 1) and (scale - 1) * size or 0
-    local gap = MIN_ICON_GAP + scaleGap
-    container.childXPadding = (container.childXPadding or 0) + gap
-    container.childYPadding = (container.childYPadding or 0) + gap
-
-    -- RefreshLayout already called container:Layout() with the old padding
-    -- before this post-hook ran; force a fresh pass so our values take effect now.
-    if container.Layout then
-        container:Layout()
-    end
-end
+-- NOTE (grid gap): Blizzard's default grid gap (RefreshLayout:
+-- childXPadding/Y = iconPadding - 4) nets out to ~1px at the RealUI preset
+-- padding values, relying on the IconOverlay decorative ring (which we hide,
+-- see HideIconOverlay) for breathing room. Aurora used to compensate by
+-- writing container.childXPadding/childYPadding from a RefreshLayout
+-- post-hook and re-running container:Layout() — DO NOT reintroduce that.
+-- GridLayoutFrameMixin reads childXPadding and oldGridSettings in its secure
+-- dirty-check/layout paths (Blizzard_SharedXML/LayoutFrame.lua), so
+-- addon-written values there taint the whole CooldownViewer execution and
+-- every secret-value comparison downstream errors out ("execution tainted
+-- by 'RealUI_Skins'", mass errors at raid-end cinematics). The gap is now
+-- provided securely via the EditMode "Icon Padding" setting in RealUI's
+-- EditModeTemplates.lua presets instead.
 
 -- Skin all current children of a viewer frame.
 -- Called at skin-function time (catches pre-existing items) and from OnShow
@@ -234,7 +199,6 @@ function private.AddOns.Blizzard_CooldownViewer()
             viewer:HookScript("OnShow", function(self)
                 SkinViewerChildren(self)
             end)
-            _G.hooksecurefunc(viewer, "RefreshLayout", CompensateGridPaddingForScale)
         end
     end
 
