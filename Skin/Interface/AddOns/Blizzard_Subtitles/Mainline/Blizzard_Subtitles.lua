@@ -5,9 +5,8 @@ if private.shouldSkip() then return end
 -- luacheck: globals
 
 --[[ Core ]]
-local Aurora = private.Aurora
-local Base = Aurora.Base
-local Color = Aurora.Color
+-- (imports intentionally removed — the whole skin is disabled, see the
+-- note below; re-import Base/Color when re-enabling)
 
 function private.AddOns.Blizzard_Subtitles()
     -- Do NOT modify SubtitleBackground (Blizzard dynamically resizes/recolors via CVar).

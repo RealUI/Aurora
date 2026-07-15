@@ -1,5 +1,7 @@
 local _, private = ...
-if private.shouldSkip() then return end
+if private.shouldSkip() then
+    return
+end
 
 --[[ Lua Globals ]]
 -- luacheck: globals ipairs select
@@ -17,9 +19,10 @@ local Color, Util = Aurora.Color, Aurora.Util
     region indexes replaced with texture sweeps. Evidence:
     wow-ui-source-classic/Interface/AddOns/Blizzard_AchievementUI/Cata/.
 ]]
-
 local function SkinScrollBar(bar)
-    if not bar then return end
+    if not bar then
+        return
+    end
     if bar.Track and Skin.WowTrimScrollBar then
         Skin.WowTrimScrollBar(bar)
     else
@@ -29,18 +32,28 @@ end
 
 -- shared row treatment for achievement plates (list, summary, comparison)
 local function SkinAchievementPlate(button, name)
-    if button._auroraSkinned then return end
+    if button._auroraSkinned then
+        return
+    end
     button._auroraSkinned = true
 
     button:DisableDrawLayer("BORDER")
     if button.background then
         button.background:SetColorTexture(0, 0, 0, 0.25)
     end
-    for _, suffix in ipairs({
-        "TitleBackground", "Glow", "RewardBackground", "PlusMinus",
-        "Highlight", "IconOverlay", "GuildCornerL", "GuildCornerR",
-    }) do
-        local texture = _G[name..suffix]
+    for _, suffix in ipairs(
+        {
+            "TitleBackground",
+            "Glow",
+            "RewardBackground",
+            "PlusMinus",
+            "Highlight",
+            "IconOverlay",
+            "GuildCornerL",
+            "GuildCornerR"
+        }
+    ) do
+        local texture = _G[name .. suffix]
         if texture then
             texture:SetAlpha(0)
         end
@@ -53,7 +66,7 @@ local function SkinAchievementPlate(button, name)
     if icon and icon.SetTexCoord then
         Base.CropIcon(icon)
     end
-    local iconTexture = _G[name.."IconTexture"]
+    local iconTexture = _G[name .. "IconTexture"]
     if iconTexture then
         Base.CropIcon(iconTexture)
     end
@@ -64,10 +77,13 @@ local function SkinAchievementPlate(button, name)
     end
 end
 
-do --[[ AddOns\Blizzard_AchievementUI.lua ]]
+do
+    --[[ AddOns\Blizzard_AchievementUI.lua ]]
     function Hook.AchievementButton_DisplayAchievement(button, category, achievement)
         local _, _, _, completed = _G.GetAchievementInfo(category, achievement)
-        if not button.label then return end
+        if not button.label then
+            return
+        end
         if completed then
             if button.accountWide then
                 button.label:SetTextColor(0, 0.6, 1)
@@ -86,39 +102,41 @@ do --[[ AddOns\Blizzard_AchievementUI.lua ]]
         end
     end
     function Hook.AchievementObjectives_DisplayCriteria(objectivesFrame, id)
-        if not id then return end
+        if not id then
+            return
+        end
         for i = 1, _G.GetAchievementNumCriteria(id) do
-            local name = _G["AchievementFrameCriteria"..i.."Name"]
+            local name = _G["AchievementFrameCriteria" .. i .. "Name"]
             if name and _G.select(2, name:GetTextColor()) == 0 then
                 name:SetTextColor(Color.white:GetRGB())
             end
-            local meta = _G["AchievementFrameMeta"..i]
+            local meta = _G["AchievementFrameMeta" .. i]
             if meta and meta.label and _G.select(2, meta.label:GetTextColor()) == 0 then
                 meta.label:SetTextColor(Color.white:GetRGB())
             end
         end
     end
     function Hook.AchievementButton_GetProgressBar(index)
-        local bar = _G["AchievementFrameProgressBar"..index]
+        local bar = _G["AchievementFrameProgressBar" .. index]
         if bar and not bar._auroraSkinned then
             bar._auroraSkinned = true
             Skin.FrameTypeStatusBar(bar)
-            local name = "AchievementFrameProgressBar"..index
-            if _G[name.."BG"] then
-                _G[name.."BG"]:SetColorTexture(0, 0, 0, 0.25)
+            local name = "AchievementFrameProgressBar" .. index
+            if _G[name .. "BG"] then
+                _G[name .. "BG"]:SetColorTexture(0, 0, 0, 0.25)
             end
             for _, suffix in ipairs({"BorderLeft", "BorderCenter", "BorderRight"}) do
-                if _G[name..suffix] then
-                    _G[name..suffix]:Hide()
+                if _G[name .. suffix] then
+                    _G[name .. suffix]:Hide()
                 end
             end
         end
     end
     function Hook.AchievementFrameSummary_UpdateAchievements()
         local index = 1
-        local button = _G["AchievementFrameSummaryAchievement"..index]
+        local button = _G["AchievementFrameSummaryAchievement" .. index]
         while button do
-            SkinAchievementPlate(button, "AchievementFrameSummaryAchievement"..index)
+            SkinAchievementPlate(button, "AchievementFrameSummaryAchievement" .. index)
             if button.label then
                 if button.accountWide then
                     button.label:SetTextColor(0, 0.6, 1)
@@ -126,31 +144,35 @@ do --[[ AddOns\Blizzard_AchievementUI.lua ]]
                     button.label:SetTextColor(Color.grayLight:GetRGB())
                 end
             end
-            local description = _G["AchievementFrameSummaryAchievement"..index.."Description"]
+            local description = _G["AchievementFrameSummaryAchievement" .. index .. "Description"]
             if description then
                 description:SetTextColor(Color.grayLight:GetRGB())
             end
             index = index + 1
-            button = _G["AchievementFrameSummaryAchievement"..index]
+            button = _G["AchievementFrameSummaryAchievement" .. index]
         end
     end
 end
 
 -- gaudy gold status bars (summary categories, comparison summaries)
 local function SkinAchievementStatusBar(bar)
-    if not bar or bar._auroraSkinned then return end
+    if not bar or bar._auroraSkinned then
+        return
+    end
     bar._auroraSkinned = true
 
     local name = bar:GetName()
     Skin.FrameTypeStatusBar(bar)
     if name then
-        for _, suffix in ipairs({"Left", "Middle", "Right", "FillBar", "ButtonHighlight", "BorderLeft", "BorderCenter", "BorderRight"}) do
-            if _G[name..suffix] then
-                _G[name..suffix]:SetAlpha(0)
+        for _, suffix in ipairs(
+            {"Left", "Middle", "Right", "FillBar", "ButtonHighlight", "BorderLeft", "BorderCenter", "BorderRight"}
+        ) do
+            if _G[name .. suffix] then
+                _G[name .. suffix]:SetAlpha(0)
             end
         end
-        if _G[name.."Title"] then
-            _G[name.."Title"]:SetTextColor(Color.white:GetRGB())
+        if _G[name .. "Title"] then
+            _G[name .. "Title"]:SetTextColor(Color.white:GetRGB())
         end
     end
     if bar.text then
@@ -160,38 +182,58 @@ end
 
 function private.AddOns.Blizzard_AchievementUI()
     local AchievementFrame = _G.AchievementFrame
-    if not AchievementFrame then return end
+    if not AchievementFrame then
+        return
+    end
 
     -- root: metal shield chrome; extend the backdrop ABOVE the frame
     -- rect to make a header band for the title + points
     Util.HideFrameTextures(AchievementFrame, true)
     Base.SetBackdrop(AchievementFrame, Color.frame, Color.frame.a)
-    AchievementFrame:SetBackdropOption("offsets", {
-        left = 0,
-        right = 0,
-        top = -22,
-        bottom = 0,
-    })
+    AchievementFrame:SetBackdropOption(
+        "offsets",
+        {
+            left = 0,
+            right = 0,
+            top = -22,
+            bottom = 0
+        }
+    )
     if _G.AchievementFrameHeader then
         Util.HideFrameTextures(_G.AchievementFrameHeader, true)
     end
-    for _, name in ipairs({
-        "AchievementFrameHeaderLeftDDLInset", "AchievementFrameHeaderRightDDLInset",
-        "AchievementFrameSummaryBackground", "AchievementFrameAchievementsBackground",
-        "AchievementFrameStatsBG", "AchievementFrameComparisonBackground",
-        "AchievementFrameComparisonHeaderBG", "AchievementFrameComparisonHeaderPortrait",
-        "AchievementFrameComparisonHeaderPortraitBg", "AchievementFrameComparisonDark",
-        "AchievementFrameComparisonSummaryPlayerBackground",
-        "AchievementFrameComparisonSummaryFriendBackground",
-        "AchievementFrameSummaryAchievementsHeaderHeader",
-        "AchievementFrameSummaryCategoriesHeaderTexture",
-        "AchievementFrameCategoriesContainerScrollBarBG",
-    }) do
+    for _, name in ipairs(
+        {
+            "AchievementFrameHeaderLeftDDLInset",
+            "AchievementFrameHeaderRightDDLInset",
+            "AchievementFrameSummaryBackground",
+            "AchievementFrameAchievementsBackground",
+            "AchievementFrameStatsBG",
+            "AchievementFrameComparisonBackground",
+            "AchievementFrameComparisonHeaderBG",
+            "AchievementFrameComparisonHeaderPortrait",
+            "AchievementFrameComparisonHeaderPortraitBg",
+            "AchievementFrameComparisonDark",
+            "AchievementFrameComparisonSummaryPlayerBackground",
+            "AchievementFrameComparisonSummaryFriendBackground",
+            "AchievementFrameSummaryAchievementsHeaderHeader",
+            "AchievementFrameSummaryCategoriesHeaderTexture",
+            "AchievementFrameCategoriesContainerScrollBarBG"
+        }
+    ) do
         if _G[name] then
             _G[name]:SetAlpha(0)
         end
     end
-    for _, name in ipairs({"AchievementFrameCategories", "AchievementFrameSummary", "AchievementFrameAchievements", "AchievementFrameStats", "AchievementFrameComparison"}) do
+    for _, name in ipairs(
+        {
+            "AchievementFrameCategories",
+            "AchievementFrameSummary",
+            "AchievementFrameAchievements",
+            "AchievementFrameStats",
+            "AchievementFrameComparison"
+        }
+    ) do
         local frame = _G[name]
         if frame then
             Util.HideFrameTextures(frame, true)
@@ -222,7 +264,7 @@ function private.AddOns.Blizzard_AchievementUI()
     AchievementFrame.maxTabWidth = 150
     local tabs = {}
     for i = 1, 3 do
-        local tab = _G["AchievementFrameTab"..i]
+        local tab = _G["AchievementFrameTab" .. i]
         if tab then
             -- these tabs carry extra angled/selected art beyond the six
             -- standard pieces — sweep first, then the tab skin adds its
@@ -239,12 +281,15 @@ function private.AddOns.Blizzard_AchievementUI()
             -- whose width we set from the text
             tab._auroraSideWidth = nil
             tab._auroraTabResize = nil
-            tab:SetBackdropOption("offsets", {
-                left = 0,
-                right = 0,
-                top = 4,
-                bottom = 6,
-            })
+            tab:SetBackdropOption(
+                "offsets",
+                {
+                    left = 0,
+                    right = 0,
+                    top = 4,
+                    bottom = 6
+                }
+            )
             tabs[#tabs + 1] = tab
         end
     end
@@ -258,8 +303,8 @@ function private.AddOns.Blizzard_AchievementUI()
         local previous
         for i = 1, #tabs do
             local tab = tabs[i]
-            local text = tab.text or _G["AchievementFrameTab"..i.."Text"]
-                or (tab.GetFontString and tab:GetFontString())
+            local text =
+                tab.text or _G["AchievementFrameTab" .. i .. "Text"] or (tab.GetFontString and tab:GetFontString())
             if text then
                 text:ClearAllPoints()
                 text:SetPoint("CENTER", tab, 0, -1)
@@ -312,12 +357,16 @@ function private.AddOns.Blizzard_AchievementUI()
         AchievementFrame.searchPreviewContainer:DisableDrawLayer("OVERLAY")
     end
     for i = 1, 5 do
-        local preview = AchievementFrame["searchPreview"..i]
+        local preview = AchievementFrame["searchPreview" .. i]
         if preview then
             preview:ClearNormalTexture()
             preview:ClearPushedTexture()
-            if preview.iconFrame then preview.iconFrame:SetAlpha(0) end
-            if preview.icon then Base.CropIcon(preview.icon) end
+            if preview.iconFrame then
+                preview.iconFrame:SetAlpha(0)
+            end
+            if preview.icon then
+                Base.CropIcon(preview.icon)
+            end
         end
     end
     if AchievementFrame.showAllSearchResults then
@@ -329,7 +378,7 @@ function private.AddOns.Blizzard_AchievementUI()
     -- hook as backstop)
     local function SkinCategoryRows()
         local index = 1
-        local row = _G["AchievementFrameCategoriesContainerButton"..index]
+        local row = _G["AchievementFrameCategoriesContainerButton" .. index]
         while row do
             if not row._auroraSkinned then
                 row._auroraSkinned = true
@@ -339,12 +388,15 @@ function private.AddOns.Blizzard_AchievementUI()
                 Base.SetBackdrop(row, Color.button, 0.25)
                 -- rows are taller than their visible plate — inset the
                 -- backdrop and pin the hover/selected tint to it
-                row:SetBackdropOption("offsets", {
-                    left = 0,
-                    right = 0,
-                    top = 1,
-                    bottom = 2,
-                })
+                row:SetBackdropOption(
+                    "offsets",
+                    {
+                        left = 0,
+                        right = 0,
+                        top = 1,
+                        bottom = 2
+                    }
+                )
                 local bg = row:GetBackdropTexture("bg")
                 local highlight = row:GetHighlightTexture()
                 if highlight then
@@ -357,7 +409,7 @@ function private.AddOns.Blizzard_AchievementUI()
                 end
             end
             index = index + 1
-            row = _G["AchievementFrameCategoriesContainerButton"..index]
+            row = _G["AchievementFrameCategoriesContainerButton" .. index]
         end
     end
     SkinCategoryRows()
@@ -367,11 +419,11 @@ function private.AddOns.Blizzard_AchievementUI()
 
     -- achievement list rows
     local index = 1
-    local row = _G["AchievementFrameAchievementsContainerButton"..index]
+    local row = _G["AchievementFrameAchievementsContainerButton" .. index]
     while row do
-        SkinAchievementPlate(row, "AchievementFrameAchievementsContainerButton"..index)
+        SkinAchievementPlate(row, "AchievementFrameAchievementsContainerButton" .. index)
         index = index + 1
-        row = _G["AchievementFrameAchievementsContainerButton"..index]
+        row = _G["AchievementFrameAchievementsContainerButton" .. index]
     end
     if _G.AchievementButton_DisplayAchievement then
         _G.hooksecurefunc("AchievementButton_DisplayAchievement", Hook.AchievementButton_DisplayAchievement)
@@ -384,65 +436,76 @@ function private.AddOns.Blizzard_AchievementUI()
     end
 
     -- summary page
-    if _G.AchievementFrameSummary_UpdateAchievements then
-        _G.hooksecurefunc("AchievementFrameSummary_UpdateAchievements", Hook.AchievementFrameSummary_UpdateAchievements)
-    end
-    SkinAchievementStatusBar(_G.AchievementFrameSummaryCategoriesStatusBar)
-    index = 1
-    local catBar = _G["AchievementFrameSummaryCategoriesCategory"..index]
-    while catBar do
-        SkinAchievementStatusBar(catBar)
-        local label = _G["AchievementFrameSummaryCategoriesCategory"..index.."Label"]
-        if label then
-            label:SetTextColor(Color.white:GetRGB())
+    local function SkinSummaryAndStats()
+        if _G.AchievementFrameSummary_UpdateAchievements then
+            _G.hooksecurefunc(
+                "AchievementFrameSummary_UpdateAchievements",
+                Hook.AchievementFrameSummary_UpdateAchievements
+            )
         end
-        index = index + 1
-        catBar = _G["AchievementFrameSummaryCategoriesCategory"..index]
-    end
-
-    -- stats rows
-    index = 1
-    while _G["AchievementFrameStatsContainerButton"..index.."BG"]
-        or _G["AchievementFrameStatsContainerButton"..index] do
-        local name = "AchievementFrameStatsContainerButton"..index
-        for _, suffix in ipairs({"BG", "HeaderLeft", "HeaderMiddle", "HeaderRight"}) do
-            if _G[name..suffix] then
-                _G[name..suffix]:SetAlpha(0)
+        SkinAchievementStatusBar(_G.AchievementFrameSummaryCategoriesStatusBar)
+        index = 1
+        local catBar = _G["AchievementFrameSummaryCategoriesCategory" .. index]
+        while catBar do
+            SkinAchievementStatusBar(catBar)
+            local label = _G["AchievementFrameSummaryCategoriesCategory" .. index .. "Label"]
+            if label then
+                label:SetTextColor(Color.white:GetRGB())
             end
+            index = index + 1
+            catBar = _G["AchievementFrameSummaryCategoriesCategory" .. index]
         end
-        index = index + 1
+
+        -- stats rows
+        index = 1
+        while _G["AchievementFrameStatsContainerButton" .. index .. "BG"] or
+            _G["AchievementFrameStatsContainerButton" .. index] do
+            local name = "AchievementFrameStatsContainerButton" .. index
+            for _, suffix in ipairs({"BG", "HeaderLeft", "HeaderMiddle", "HeaderRight"}) do
+                if _G[name .. suffix] then
+                    _G[name .. suffix]:SetAlpha(0)
+                end
+            end
+            index = index + 1
+        end
     end
+    SkinSummaryAndStats()
 
     -- comparison pane
-    for _, name in ipairs({"AchievementFrameComparisonSummaryPlayer", "AchievementFrameComparisonSummaryFriend"}) do
-        local frame = _G[name]
-        if frame then
-            if frame.SetBackdrop then frame:SetBackdrop(nil) end
-            Util.HideFrameTextures(frame, true)
-            Base.SetBackdrop(frame, Color.frame, 0.25)
-        end
-    end
-    SkinAchievementStatusBar(_G.AchievementFrameComparisonSummaryPlayerStatusBar)
-    SkinAchievementStatusBar(_G.AchievementFrameComparisonSummaryFriendStatusBar)
-    index = 1
-    while _G["AchievementFrameComparisonContainerButton"..index.."Player"] do
-        local base = "AchievementFrameComparisonContainerButton"..index
-        for _, side in ipairs({"Player", "Friend"}) do
-            local button = _G[base..side]
-            if button then
-                SkinAchievementPlate(button, base..side)
-            end
-            local bg = _G[base..side.."Background"]
-            if bg then
-                bg:SetColorTexture(0, 0, 0, 0.25)
+    local function SkinComparisonPane()
+        for _, name in ipairs({"AchievementFrameComparisonSummaryPlayer", "AchievementFrameComparisonSummaryFriend"}) do
+            local frame = _G[name]
+            if frame then
+                if frame.SetBackdrop then
+                    frame:SetBackdrop(nil)
+                end
+                Util.HideFrameTextures(frame, true)
+                Base.SetBackdrop(frame, Color.frame, 0.25)
             end
         end
-        local description = _G[base.."PlayerDescription"]
-        if description then
-            description:SetTextColor(Color.grayLight:GetRGB())
+        SkinAchievementStatusBar(_G.AchievementFrameComparisonSummaryPlayerStatusBar)
+        SkinAchievementStatusBar(_G.AchievementFrameComparisonSummaryFriendStatusBar)
+        index = 1
+        while _G["AchievementFrameComparisonContainerButton" .. index .. "Player"] do
+            local base = "AchievementFrameComparisonContainerButton" .. index
+            for _, side in ipairs({"Player", "Friend"}) do
+                local button = _G[base .. side]
+                if button then
+                    SkinAchievementPlate(button, base .. side)
+                end
+                local bg = _G[base .. side .. "Background"]
+                if bg then
+                    bg:SetColorTexture(0, 0, 0, 0.25)
+                end
+            end
+            local description = _G[base .. "PlayerDescription"]
+            if description then
+                description:SetTextColor(Color.grayLight:GetRGB())
+            end
+            index = index + 1
         end
-        index = index + 1
     end
+    SkinComparisonPane()
 
     -- scrollbars
     SkinScrollBar(_G.AchievementFrameAchievementsContainerScrollBar)

@@ -1,5 +1,7 @@
 local _, private = ...
-if private.shouldSkip() then return end
+if private.shouldSkip() then
+    return
+end
 
 --[[ Lua Globals ]]
 -- luacheck: globals ipairs select
@@ -18,9 +20,10 @@ local Color, Util = Aurora.Color, Aurora.Util
     Cata/Blizzard_EncounterJournal.{xml,lua}; reference:
     Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua.
 ]]
-
 local function SafeScrollBar(bar)
-    if not bar then return end
+    if not bar then
+        return
+    end
     if bar.Track and Skin.WowTrimScrollBar then
         -- live classic WowTrimScrollBar hybrid (handled by the shared skin)
         Skin.WowTrimScrollBar(bar)
@@ -35,14 +38,23 @@ local function SafeScrollBox(box)
     end
 end
 
-do --[[ AddOns\Blizzard_EncounterJournal.lua ]]
+do
+    --[[ AddOns\Blizzard_EncounterJournal.lua ]]
     function Hook.EncounterJournal_UpdateButtonState(self)
         if self:GetParent().expanded then
-            if self.expandedIcon then self.expandedIcon:SetTextColor(Color.white:GetRGB()) end
-            if self.title then self.title:SetTextColor(Color.white:GetRGB()) end
+            if self.expandedIcon then
+                self.expandedIcon:SetTextColor(Color.white:GetRGB())
+            end
+            if self.title then
+                self.title:SetTextColor(Color.white:GetRGB())
+            end
         else
-            if self.expandedIcon then self.expandedIcon:SetTextColor(Color.grayLight:GetRGB()) end
-            if self.title then self.title:SetTextColor(Color.grayLight:GetRGB()) end
+            if self.expandedIcon then
+                self.expandedIcon:SetTextColor(Color.grayLight:GetRGB())
+            end
+            if self.title then
+                self.title:SetTextColor(Color.grayLight:GetRGB())
+            end
         end
     end
     function Hook.EncounterJournal_SetBullets(object)
@@ -59,7 +71,9 @@ do --[[ AddOns\Blizzard_EncounterJournal.lua ]]
     local numCreatureButtons = 1
     function Hook.EncounterJournal_ShowCreatures()
         local buttons = _G.EncounterJournal.encounter.info.creatureButtons
-        if not buttons then return end
+        if not buttons then
+            return
+        end
         local creatureButton = buttons[numCreatureButtons]
         while creatureButton do
             creatureButton:ClearNormalTexture()
@@ -70,11 +84,14 @@ do --[[ AddOns\Blizzard_EncounterJournal.lua ]]
     end
 end
 
-do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
+do
+    --[[ AddOns\Blizzard_EncounterJournal.xml ]]
     -- ornate EJ split buttons (difficulty, loot filters): art layouts
     -- vary — sweep, backdrop, white text
     function Skin.EJButtonTemplate(Button)
-        if not Button then return end
+        if not Button then
+            return
+        end
         for i = 1, _G.select("#", Button:GetRegions()) do
             local region = _G.select(i, Button:GetRegions())
             if region:GetObjectType() == "Texture" then
@@ -94,7 +111,9 @@ do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
     -- becomes a LIGHT GRAY chosen-plate on a lower sublayer; a SetTab
     -- hook re-shows the icon; hover = darker gray pinned to the icon.
     function Skin.EncounterTabTemplate(Button)
-        if not Button then return end
+        if not Button then
+            return
+        end
         Button:ClearNormalTexture()
         Button:ClearPushedTexture()
         Button:ClearDisabledTexture()
@@ -135,12 +154,15 @@ do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
 
     function Skin.EncounterBossButtonTemplate(Button)
         Skin.FrameTypeButton(Button)
-        Button:SetBackdropOption("offsets", {
-            left = 0,
-            right = 0,
-            top = 5,
-            bottom = 5,
-        })
+        Button:SetBackdropOption(
+            "offsets",
+            {
+                left = 0,
+                right = 0,
+                top = 5,
+                bottom = 5
+            }
+        )
         if Button.text then
             Button.text:SetTextColor(Color.white:GetRGB())
         end
@@ -148,12 +170,23 @@ do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
 
     -- accordion header (abilities + overview pools share the template)
     local paperPieces = {
-        "eLeftUp", "eRightUp", "eLeftDown", "eRightDown",
-        "cLeftUp", "cRightUp", "cLeftDown", "cRightDown",
-        "eMidUp", "eMidDown", "cMidUp", "cMidDown",
+        "eLeftUp",
+        "eRightUp",
+        "eLeftDown",
+        "eRightDown",
+        "cLeftUp",
+        "cRightUp",
+        "cLeftDown",
+        "cRightDown",
+        "eMidUp",
+        "eMidDown",
+        "cMidUp",
+        "cMidDown"
     }
     function Skin.EncounterInfoTemplate(Frame)
-        if Frame._auroraSkinned then return end
+        if Frame._auroraSkinned then
+            return
+        end
         Frame._auroraSkinned = true
 
         local button = Frame.button
@@ -167,8 +200,8 @@ do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
             local name = button:GetName()
             if name then
                 for _, suffix in ipairs({"HighlightLeft", "HighlightRight", "HighlightMid"}) do
-                    if _G[name..suffix] then
-                        _G[name..suffix]:SetTexture("")
+                    if _G[name .. suffix] then
+                        _G[name .. suffix]:SetTexture("")
                     end
                 end
             end
@@ -183,8 +216,12 @@ do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
             end
         end
 
-        if Frame.descriptionBG then Frame.descriptionBG:SetTexture("") end
-        if Frame.descriptionBGBottom then Frame.descriptionBGBottom:SetTexture("") end
+        if Frame.descriptionBG then
+            Frame.descriptionBG:SetTexture("")
+        end
+        if Frame.descriptionBGBottom then
+            Frame.descriptionBGBottom:SetTexture("")
+        end
         if Frame.description then
             Frame.description:SetTextColor(Color.grayLight:GetRGB())
         end
@@ -194,16 +231,18 @@ do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
     end
 
     function Hook.EncounterJournal_ToggleHeaders()
-        for _, prefix in ipairs({
-            "EncounterJournalInfoHeader",
-            "EncounterJournalOverviewInfoHeader",
-        }) do
+        for _, prefix in ipairs(
+            {
+                "EncounterJournalInfoHeader",
+                "EncounterJournalOverviewInfoHeader"
+            }
+        ) do
             local index = 1
-            local header = _G[prefix..index]
+            local header = _G[prefix .. index]
             while header do
                 Skin.EncounterInfoTemplate(header)
                 index = index + 1
-                header = _G[prefix..index]
+                header = _G[prefix .. index]
             end
         end
     end
@@ -211,64 +250,91 @@ do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
     -- instance-select grid rows (Mainline treatment: crop the painting
     -- inside a backdrop)
     function Hook.EJInstanceSelectScrollUpdate(frame)
-        frame:ForEachFrame(function(child)
-            if child._auroraSkinned then return end
-            child._auroraSkinned = true
-            local bgImage = child.bgImage
-            if bgImage then
-                bgImage:SetAlpha(0.6)
-                bgImage:SetTexCoord(0.01953125, 0.66015625, 0.0390625, 0.7109375)
-                bgImage:SetPoint("TOPLEFT", 1, -1)
-                bgImage:SetPoint("BOTTOMRIGHT", -1, 1)
+        frame:ForEachFrame(
+            function(child)
+                if child._auroraSkinned then
+                    return
+                end
+                child._auroraSkinned = true
+                local bgImage = child.bgImage
+                if bgImage then
+                    bgImage:SetAlpha(0.6)
+                    bgImage:SetTexCoord(0.01953125, 0.66015625, 0.0390625, 0.7109375)
+                    bgImage:SetPoint("TOPLEFT", 1, -1)
+                    bgImage:SetPoint("BOTTOMRIGHT", -1, 1)
+                end
+                Skin.FrameTypeButton(child)
             end
-            Skin.FrameTypeButton(child)
-        end)
+        )
     end
     function Hook.EJBossesScrollBoxScrollUpdate(frame)
-        frame:ForEachFrame(function(child)
-            if child._auroraSkinned then return end
-            child._auroraSkinned = true
-            Skin.EncounterBossButtonTemplate(child)
-        end)
+        frame:ForEachFrame(
+            function(child)
+                if child._auroraSkinned then
+                    return
+                end
+                child._auroraSkinned = true
+                Skin.EncounterBossButtonTemplate(child)
+            end
+        )
     end
     -- loot rows
     function Hook.EJLootScrollUpdate(frame)
-        frame:ForEachFrame(function(child)
-            if child._auroraSkinned then return end
-            child._auroraSkinned = true
-            if child.icon then
-                Base.CropIcon(child.icon)
-            end
-            for _, key in ipairs({"boss", "slot", "armorType"}) do
-                if child[key] then
-                    child[key]:SetTextColor(Color.gray:GetRGB())
+        frame:ForEachFrame(
+            function(child)
+                if child._auroraSkinned then
+                    return
+                end
+                child._auroraSkinned = true
+                if child.icon then
+                    Base.CropIcon(child.icon)
+                end
+                for _, key in ipairs({"boss", "slot", "armorType"}) do
+                    if child[key] then
+                        child[key]:SetTextColor(Color.gray:GetRGB())
+                    end
+                end
+                if child.bossTexture then
+                    child.bossTexture:SetTexture("")
+                end
+                if child.bosslessTexture then
+                    child.bosslessTexture:SetTexture("")
                 end
             end
-            if child.bossTexture then child.bossTexture:SetTexture("") end
-            if child.bosslessTexture then child.bosslessTexture:SetTexture("") end
-        end)
+        )
     end
 end
 
 function private.AddOns.Blizzard_EncounterJournal()
     local EncounterJournal = _G.EncounterJournal
-    if not EncounterJournal then return end
+    if not EncounterJournal then
+        return
+    end
 
-    for _, name in ipairs({
-        "EncounterJournal_UpdateButtonState", "EncounterJournal_SetBullets",
-        "EncounterJournal_ToggleHeaders", "EncounterJournal_ShowCreatures",
-        "EncounterJournal_SetTab",
-    }) do
+    for _, name in ipairs(
+        {
+            "EncounterJournal_UpdateButtonState",
+            "EncounterJournal_SetBullets",
+            "EncounterJournal_ToggleHeaders",
+            "EncounterJournal_ShowCreatures",
+            "EncounterJournal_SetTab"
+        }
+    ) do
         if _G[name] then
             _G.hooksecurefunc(name, Hook[name])
         end
     end
 
     Skin.PortraitFrameTemplate(EncounterJournal)
-    for _, key in ipairs({
-        "InsetBorderBottomLeft", "InsetBorderBottomRight",
-        "InsetBorderBottom", "InsetBorderLeft", "InsetBorderRight",
-    }) do
+    for _, key in ipairs(
+        {
+            "InsetBorderBottomLeft",
+            "InsetBorderBottomRight",
+            "InsetBorderBottom",
+            "InsetBorderLeft",
+            "InsetBorderRight"
+        }
+    ) do
         if EncounterJournal[key] then
             EncounterJournal[key]:SetAlpha(0)
         end
@@ -292,23 +358,27 @@ function private.AddOns.Blizzard_EncounterJournal()
     end
 
     -- instance select (landing page)
-    local instanceSelect = EncounterJournal.instanceSelect
-    if instanceSelect then
-        if instanceSelect.bg then
-            instanceSelect.bg:SetAlpha(0)
-        end
-        if instanceSelect.ExpansionDropdown then
-            Skin.DropdownButton(instanceSelect.ExpansionDropdown)
-        end
-        SafeScrollBox(instanceSelect.ScrollBox)
-        SafeScrollBar(instanceSelect.ScrollBar)
-        if instanceSelect.ScrollBox and instanceSelect.ScrollBox.ForEachFrame then
-            Hook.EJInstanceSelectScrollUpdate(instanceSelect.ScrollBox)
-            if instanceSelect.ScrollBox.Update then
-                _G.hooksecurefunc(instanceSelect.ScrollBox, "Update", Hook.EJInstanceSelectScrollUpdate)
+    local function SkinInstanceSelect()
+        local instanceSelect = EncounterJournal.instanceSelect
+        if instanceSelect then
+            if instanceSelect.bg then
+                instanceSelect.bg:SetAlpha(0)
+            end
+            if instanceSelect.ExpansionDropdown then
+                Skin.DropdownButton(instanceSelect.ExpansionDropdown)
+            end
+            SafeScrollBox(instanceSelect.ScrollBox)
+            SafeScrollBar(instanceSelect.ScrollBar)
+            if instanceSelect.ScrollBox and instanceSelect.ScrollBox.ForEachFrame then
+                Hook.EJInstanceSelectScrollUpdate(instanceSelect.ScrollBox)
+                if instanceSelect.ScrollBox.Update then
+                    _G.hooksecurefunc(instanceSelect.ScrollBox, "Update", Hook.EJInstanceSelectScrollUpdate)
+                end
             end
         end
     end
+    SkinInstanceSelect()
+
     -- bottom dungeon/raid grid tabs (flattened tabs need a real gap)
     Skin.EJButtonTemplate(EncounterJournal.dungeonsTab)
     Skin.EJButtonTemplate(EncounterJournal.raidsTab)
@@ -318,102 +388,109 @@ function private.AddOns.Blizzard_EncounterJournal()
     end
 
     -- encounter pane
-    local encounter = EncounterJournal.encounter
-    if encounter then
-        local instance = encounter.instance
-        if instance then
-            -- loreBG (instance painting) is content — kept
-            if instance.titleBG then
-                instance.titleBG:SetAlpha(0)
-            end
-            SafeScrollBar(instance.LoreScrollBar)
-            if instance.LoreScrollingFont and instance.LoreScrollingFont.SetTextColor then
-                instance.LoreScrollingFont:SetTextColor(Color.grayLight)
-            end
-        end
-
-        local info = encounter.info
-        if info then
-            info:DisableDrawLayer("BACKGROUND")
-            if info.leftShadow then info.leftShadow:SetAlpha(0) end
-            if info.rightShadow then info.rightShadow:SetAlpha(0) end
-            if info.encounterTitle then
-                info.encounterTitle:SetTextColor(Color.white:GetRGB())
-            end
-            if info.instanceTitle then
-                info.instanceTitle:SetTextColor(Color.white:GetRGB())
-            end
-            -- instanceButton.icon is a SHEET slice — CropIcon would show
-            -- the wrong region (wood plank); the ornate ring is BOTH the
-            -- normal and the hover texture
-            if info.instanceButton then
-                if info.instanceButton.ClearNormalTexture then
-                    info.instanceButton:ClearNormalTexture()
+    local function SkinEncounterPane()
+        local encounter = EncounterJournal.encounter
+        if encounter then
+            local instance = encounter.instance
+            if instance then
+                -- loreBG (instance painting) is content — kept
+                if instance.titleBG then
+                    instance.titleBG:SetAlpha(0)
                 end
-                if info.instanceButton.ClearHighlightTexture then
-                    info.instanceButton:ClearHighlightTexture()
+                SafeScrollBar(instance.LoreScrollBar)
+                if instance.LoreScrollingFont and instance.LoreScrollingFont.SetTextColor then
+                    instance.LoreScrollingFont:SetTextColor(Color.grayLight)
                 end
             end
 
-            Skin.EncounterTabTemplate(info.overviewTab)
-            Skin.EncounterTabTemplate(info.lootTab)
-            Skin.EncounterTabTemplate(info.bossTab)
-            Skin.EncounterTabTemplate(info.modelTab)
-
-            SafeScrollBox(info.BossesScrollBox)
-            SafeScrollBar(info.BossesScrollBar)
-            if info.BossesScrollBox and info.BossesScrollBox.ForEachFrame then
-                Hook.EJBossesScrollBoxScrollUpdate(info.BossesScrollBox)
-                if info.BossesScrollBox.Update then
-                    _G.hooksecurefunc(info.BossesScrollBox, "Update", Hook.EJBossesScrollBoxScrollUpdate)
+            local info = encounter.info
+            if info then
+                info:DisableDrawLayer("BACKGROUND")
+                if info.leftShadow then
+                    info.leftShadow:SetAlpha(0)
                 end
-            end
-
-            Skin.EJButtonTemplate(info.difficulty)
-            Skin.EJButtonTemplate(info.reset)
-
-            if info.detailsScroll then
-                if info.detailsScroll.child and info.detailsScroll.child.description then
-                    info.detailsScroll.child.description:SetTextColor(Color.grayLight:GetRGB())
+                if info.rightShadow then
+                    info.rightShadow:SetAlpha(0)
                 end
-                SafeScrollBar(info.detailsScroll.ScrollBar)
-            end
-            if info.overviewScroll then
-                local child = info.overviewScroll.child
-                if child then
-                    if child.loreDescription then
-                        child.loreDescription:SetTextColor(Color.grayLight:GetRGB())
+                if info.encounterTitle then
+                    info.encounterTitle:SetTextColor(Color.white:GetRGB())
+                end
+                if info.instanceTitle then
+                    info.instanceTitle:SetTextColor(Color.white:GetRGB())
+                end
+                -- instanceButton.icon is a SHEET slice — CropIcon would show
+                -- the wrong region (wood plank); the ornate ring is BOTH the
+                -- normal and the hover texture
+                if info.instanceButton then
+                    if info.instanceButton.ClearNormalTexture then
+                        info.instanceButton:ClearNormalTexture()
                     end
-                    if child.header then
-                        child.header:SetAlpha(0)
-                    end
-                    if child.overviewDescription and child.overviewDescription.Text then
-                        child.overviewDescription.Text:SetTextColor("p", Color.grayLight:GetRGB())
+                    if info.instanceButton.ClearHighlightTexture then
+                        info.instanceButton:ClearHighlightTexture()
                     end
                 end
-                SafeScrollBar(info.overviewScroll.ScrollBar)
-            end
 
-            local loot = info.LootContainer
-            if loot then
-                Skin.EJButtonTemplate(loot.filter)
-                Skin.EJButtonTemplate(loot.slotFilter)
-                Skin.EJButtonTemplate(loot.classClearFilter)
-                SafeScrollBox(loot.ScrollBox)
-                SafeScrollBar(loot.ScrollBar)
-                if loot.ScrollBox and loot.ScrollBox.ForEachFrame then
-                    Hook.EJLootScrollUpdate(loot.ScrollBox)
-                    if loot.ScrollBox.Update then
-                        _G.hooksecurefunc(loot.ScrollBox, "Update", Hook.EJLootScrollUpdate)
+                Skin.EncounterTabTemplate(info.overviewTab)
+                Skin.EncounterTabTemplate(info.lootTab)
+                Skin.EncounterTabTemplate(info.bossTab)
+                Skin.EncounterTabTemplate(info.modelTab)
+
+                SafeScrollBox(info.BossesScrollBox)
+                SafeScrollBar(info.BossesScrollBar)
+                if info.BossesScrollBox and info.BossesScrollBox.ForEachFrame then
+                    Hook.EJBossesScrollBoxScrollUpdate(info.BossesScrollBox)
+                    if info.BossesScrollBox.Update then
+                        _G.hooksecurefunc(info.BossesScrollBox, "Update", Hook.EJBossesScrollBoxScrollUpdate)
                     end
                 end
-            end
 
-            if info.model and info.model.dungeonBG then
-                info.model.dungeonBG:SetAlpha(0)
+                Skin.EJButtonTemplate(info.difficulty)
+                Skin.EJButtonTemplate(info.reset)
+
+                if info.detailsScroll then
+                    if info.detailsScroll.child and info.detailsScroll.child.description then
+                        info.detailsScroll.child.description:SetTextColor(Color.grayLight:GetRGB())
+                    end
+                    SafeScrollBar(info.detailsScroll.ScrollBar)
+                end
+                if info.overviewScroll then
+                    local child = info.overviewScroll.child
+                    if child then
+                        if child.loreDescription then
+                            child.loreDescription:SetTextColor(Color.grayLight:GetRGB())
+                        end
+                        if child.header then
+                            child.header:SetAlpha(0)
+                        end
+                        if child.overviewDescription and child.overviewDescription.Text then
+                            child.overviewDescription.Text:SetTextColor("p", Color.grayLight:GetRGB())
+                        end
+                    end
+                    SafeScrollBar(info.overviewScroll.ScrollBar)
+                end
+
+                local loot = info.LootContainer
+                if loot then
+                    Skin.EJButtonTemplate(loot.filter)
+                    Skin.EJButtonTemplate(loot.slotFilter)
+                    Skin.EJButtonTemplate(loot.classClearFilter)
+                    SafeScrollBox(loot.ScrollBox)
+                    SafeScrollBar(loot.ScrollBar)
+                    if loot.ScrollBox and loot.ScrollBox.ForEachFrame then
+                        Hook.EJLootScrollUpdate(loot.ScrollBox)
+                        if loot.ScrollBox.Update then
+                            _G.hooksecurefunc(loot.ScrollBox, "Update", Hook.EJLootScrollUpdate)
+                        end
+                    end
+                end
+
+                if info.model and info.model.dungeonBG then
+                    info.model.dungeonBG:SetAlpha(0)
+                end
             end
         end
     end
+    SkinEncounterPane()
 
     -- item tooltip
     local Tooltip = _G.EncounterJournalTooltip
