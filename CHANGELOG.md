@@ -1,4 +1,57 @@
-﻿## [12.0.7.0] ##
+﻿## [12.0.7.1] ##
+### Added ###
+
+  * add: **Classic Era (Vanilla) support** — new `Aurora_Vanilla.toc` / `AddOns_Vanilla.xml`, full skin coverage across FrameXML and Blizzard AddOns:
+  * ActionBarController & MainMenuBar, StanceBar, BuffFrame, CastingBar, ChatFrame
+  * ContainerFrame (bags), GameDialog & StaticPopup, GossipFrame, LootFrame
+  * MailFrame, MerchantFrame (+ NavButtons backport), MoneyFrame, TradeFrame, TrainerUI, UnitFrame
+  * QuestFrame, QuestInfo, QuestLog, CharacterFrame (incl. Reputation/Skills/Honor tabs)
+  * WorldMap, Blizzard_GroupFinder_VanillaStyle
+  * AddOnList, AuctionUI, BankFrame, BattlefieldFrame, BindingUI, CoinPick, ColorPicker, CraftUI, FriendsFrame, GuildRegistration, HelpFrame, InspectUI, ItemTextFrame, MacroUI, MirrorTimer, Petition, SpellbookFrame, StackSplit, TabardFrame, TaxiFrame, TradeSkillUI
+  * shared menu/dropdown/template layer additions (Dialog family, sliders, check/radio buttons), Classic font file, `Util.HideFrameTextures`, CinematicFrame capability fix
+  * add: **Burning Crusade Classic (TBC) support** — new `Aurora_TBC.toc`, full skin coverage:
+  * CharacterFrame, ActionBarController, QuestInfo/QuestFrame, GossipFrame updates
+  * InspectUI, CastingBar, BankFrame, MerchantFrame, WorldMap, TaxiFrame
+  * CraftUI, RaidFrame, TradeSkillUI, QuestLog, SpellBookFrame (all pages)
+  * spec/glyph/talent/reforge UI
+  * 2.5.6 Anniversary-client `[Game]` token TOC-parsing compatibility
+  * add: **Mists of Pandaria Classic support** — new `Aurora_Mists.toc`, full skin coverage:
+  * LFG/LFR/LFPvP group-finder frames, EncounterJournal, ScenarioFinder
+  * item upgrade window (modernized ReforgingUI), Collections (all tabs)
+  * QuestLogFrame, QuestInfo, Blizzard_AchievementUI
+  * add: `isMists` build-flavor check in Aurora core
+
+### Changed ###
+
+  * chg: HybridScrollFrame made shared across all client flavors
+  * chg: TransmogUI enabled for TBC and Mists
+  * chg: ArchaeologyUI (5.5.4) shared between Mainline and Mists
+  * chg: CharacterFrame and TrimScrollBar shared across flavors
+  * chg: shared Classic code paths adjusted to also run correctly on Mists
+  * chg: `MainMenuBarBagButtons` no longer skinned on the Anniversary (TBC) client
+  * chg: `TradePlayerInputMoneyFrame` intentionally left unskinned on Era — Blizzard's `SetForbidden()` anti-scam hardening prevents addon tampering with trade gold
+  * chg: `MoneyInputFrame` coin placement adjusted on Vanilla
+  * chg: reworked interface-build detection to accommodate multiple WoW client versions side by side
+  * chg: reorganized addon manifest entries so Mainline-only addons load only on the Mainline path, leaving room for the other client builds
+  * chg: fixed stale AddOn entry `Blizzard_HousingPhotoSharing` → `Blizzard_PhotoSharing`
+  * chg: numerous `AddOns_*.xml` manifest and path updates as Mainline/TBC/Vanilla/Mists skin coverage expanded
+  * chg: attempted mitigation of Blizzard_CooldownViewer (CDM) taint/errors occurring at the end of raid/boss-fight cutscenes
+  * chg: luacheck configuration fixed so it no longer breaks Aurora nightly builds
+  * chg: removed outdated pkgmeta files
+
+### Fixed ###
+
+  * fix: `SubtitlesFrame` backdrop caused a persistent translucent black bar across the bottom of the screen during every movie/cinematic, whether or not subtitle text was on screen; the unconditional backdrop on the full 128px-tall subtitle strip has been disabled ([#179])
+  * fix: guard against widget types that expose an invalid `GetName` reference
+  * fix: `updatexmls.py` manifest generator made compatible with multiple WoW client versions
+  * fix: Aurora test scripts failing to load on Classic clients
+  * fix: Era-only guardrails and initial TBC compatibility fixes
+  * fix: `[Game]` token substitution in TOC parsing for the 2.5.6 Anniversary client
+  * fix: Mainline `Blizzard_Menu` variant handling corrected on Vanilla
+  * fix: backdrop safeguard added on Vanilla
+
+
+## [12.0.7.0] ##
 ### Added ###
 
   * add: skin `Blizzard_ExpansionLandingPage`
