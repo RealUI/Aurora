@@ -33,22 +33,38 @@ function Skin.CharacterFrameTabButtonTemplate(Button)
         bottom = 6,
     })
 
-    _G[name.."LeftDisabled"]:SetAlpha(0)
-    _G[name.."MiddleDisabled"]:SetAlpha(0)
-    _G[name.."RightDisabled"]:SetAlpha(0)
-    _G[name.."Left"]:SetAlpha(0)
-    _G[name.."Middle"]:SetAlpha(0)
-    _G[name.."Right"]:SetAlpha(0)
+    -- guarded: live tab variants (e.g. AchievementFrameTab2 on Mists)
+    -- carry only a subset of the named pieces (or no name at all) — one
+    -- nil here would be module-fatal
+    if name then
+        for _, suffix in ipairs({
+            "LeftDisabled", "MiddleDisabled", "RightDisabled",
+            "Left", "Middle", "Right",
+        }) do
+            if _G[name..suffix] then
+                _G[name..suffix]:SetAlpha(0)
+            end
+        end
+    end
+    for _, key in ipairs({"LeftDisabled", "MiddleDisabled", "RightDisabled", "Left", "Middle", "Right"}) do
+        if Button[key] then
+            Button[key]:SetAlpha(0)
+        end
+    end
 
-    _G[name.."HighlightTexture"]:SetTexture("")
+    if name and _G[name.."HighlightTexture"] then
+        _G[name.."HighlightTexture"]:SetTexture("")
+    end
 
     -- Single-point anchor only: PanelTemplates_TabResize measures the text
     -- via SetWidth(0)+GetWidth() (auto width). A two-point anchor (e.g.
     -- SetAllPoints on the backdrop) makes GetWidth return the anchor-derived
     -- width, which feeds back into the tab width and grows it every resize.
-    local text = _G[name.."Text"]
-    text:ClearAllPoints()
-    text:SetPoint("CENTER", Button)
+    local text = (name and _G[name.."Text"]) or (Button.GetFontString and Button:GetFontString())
+    if text then
+        text:ClearAllPoints()
+        text:SetPoint("CENTER", Button)
+    end
 
     Button._auroraTabResize = true
 end

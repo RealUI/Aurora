@@ -64,7 +64,13 @@ do --[[ SharedXML\TrimScrollBar.xml ]]
                 if thumb.Begin then thumb.Begin:Hide() end
                 if thumb.End then thumb.End:Hide() end
                 if thumb.Middle then thumb.Middle:Hide() end
-                Skin.FrameTypeButton(thumb)
+                -- some live thumbs are plain Frames (no Enable/Disable to
+                -- hook) — FrameTypeButton would be module-fatal
+                if thumb:GetObjectType() == "Button" then
+                    Skin.FrameTypeButton(thumb)
+                else
+                    Base.SetBackdrop(thumb)
+                end
             end
             for _, key in ipairs({"Back", "Forward"}) do
                 local stepper = EventFrame[key]
