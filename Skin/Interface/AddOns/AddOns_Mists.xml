@@ -6,7 +6,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     </Script>
 
     <!--Script file="Blizzard_AccessibilityTemplates\Blizzard_AccessibilityTemplates.lua"/-->
-    <!--Script file="Blizzard_AchievementUI\Blizzard_AchievementUI.lua"/-->
+    <Script file="Blizzard_AchievementUI\Mists\Blizzard_AchievementUI.lua"/>
     <!-- This section is added for Blizzard_ActionBar by the Aurora XML Updater -->
     <!--Script file="Blizzard_ActionBar\Shared\ActionButtonUtil.lua"/-->
     <!--Script file="Blizzard_ActionBar\Classic\ActionButtonUtilOverrides.lua"/-->
