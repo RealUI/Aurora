@@ -39,16 +39,19 @@ do --[[ FrameXML\QuestMapFrame.lua ]]
         kit = Util.GetTextureKit(covenantData and covenantData.textureKit, true)
         for callingHeader in _G.QuestScrollFrame.covenantCallingsHeaderFramePool:EnumerateActive() do
             callingHeader.Background:SetTexture("")
-            callingHeader._auroraBG:SetColorTexture(Util.uiTextureKits.alt.color:GetRGB())
+            if callingHeader._auroraBG then
+                callingHeader._auroraBG:SetColorTexture(Util.uiTextureKits.alt.color:GetRGB())
+            end
+            if callingHeader._auroraOverlay then
+                overlay = callingHeader._auroraOverlay
+                overlay:SetPoint("CENTER", callingHeader._auroraBG, "RIGHT", -25, 0)
+                overlay:SetAtlas(kit.emblem)
+                overlay:SetSize(66.33, 76.56)
 
-            overlay = callingHeader._auroraOverlay
-            overlay:SetPoint("CENTER", callingHeader._auroraBG, "RIGHT", -25, 0)
-            overlay:SetAtlas(kit.emblem)
-            overlay:SetSize(66.33, 76.56)
-
-            overlay:SetBlendMode("BLEND")
-            overlay:SetVertexColor(0, 0, 0) -- static: not a theme color
-            callingHeader.HighlightBackground:SetColorTexture(Color.white.r, Color.white.g, Color.white.b, Color.frame.a)
+                overlay:SetBlendMode("BLEND")
+                overlay:SetVertexColor(0, 0, 0) -- static: not a theme color
+                callingHeader.HighlightTexture:SetColorTexture(Color.white.r, Color.white.g, Color.white.b, Color.frame.a)
+            end
         end
 
         local separator = _G.QuestMapFrame.QuestsFrame.ScrollFrame.Contents.Separator
@@ -197,7 +200,7 @@ do --[[ FrameXML\QuestMapFrame.xml ]]
         Button._auroraOverlay = overlay
 
         Button.Divider:Hide()
-        Button.HighlightBackground:SetAllPoints(clipFrame)
+        Button.HighlightTexture:SetAllPoints(clipFrame)
     end
     function Skin.QuestLogTitleTemplate(Button)
     end
