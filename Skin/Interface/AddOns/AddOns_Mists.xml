@@ -20,6 +20,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_ActionBar\Classic\ReputationBarOverrides.lua"/-->
     <!--Script file="Blizzard_ActionBar\Classic\MainMenuBar.lua"/-->
     <!--Script file="Blizzard_ActionBar\Shared\ActionButton.lua"/-->
+    <!--Script file="Blizzard_ActionBar\Classic\ActionButtonOverrides.lua"/-->
     <!--Script file="Blizzard_ActionBar\Shared\ActionButtonComponentTemplate.lua"/-->
     <!--Script file="Blizzard_ActionBar\Classic\ActionButtonTemplate.lua"/-->
     <!--Script file="Blizzard_ActionBar\Shared\ActionBar.lua"/-->

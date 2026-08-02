@@ -12,9 +12,12 @@ local Base = Aurora.Base
 local Skin = Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
---[[ SHARED retail + Mists: the 5.5.4 Blizzard_Transmog is retail-modern
-    (identical TOC; Blizzard_Transmog.xml differs by one collapsedWidth
-    KeyValue — verified 2026-07-14). Skin helpers that only exist in
+--[[ SHARED retail + Mists: the 5.5.4 Blizzard_Transmog is retail-modern.
+    As of 5.5.4.68806 the TOCs are no longer identical: Blizzard_Transmog.lua
+    moved from an XML <Script> tag into the TOC ahead of the [Family]
+    overrides file, and ShowEquippedGearSpellFrameMixin gained a Classic
+    ApplyOverrides() extension point (visual resize only — nothing Aurora
+    hooks; verified 2026-08-02). Skin helpers that only exist in
     Mainline-dir files (help plate, spell button frame, nine-slice search
     box, icon selector popup, model scene controls) are existence-guarded
     so the Mists load degrades gracefully instead of erroring.

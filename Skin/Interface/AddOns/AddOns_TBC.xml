@@ -20,6 +20,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_ActionBar\Classic\ReputationBarOverrides.lua"/-->
     <!--Script file="Blizzard_ActionBar\Classic\MainMenuBar.lua"/-->
     <!--Script file="Blizzard_ActionBar\Shared\ActionButton.lua"/-->
+    <!--Script file="Blizzard_ActionBar\Classic\ActionButtonOverrides.lua"/-->
     <!--Script file="Blizzard_ActionBar\Shared\ActionButtonComponentTemplate.lua"/-->
     <!--Script file="Blizzard_ActionBar\Classic\ActionButtonTemplate.lua"/-->
     <!--Script file="Blizzard_ActionBar\Shared\ActionBar.lua"/-->
@@ -51,7 +52,6 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_APIDocumentationGenerated\Blizzard_APIDocumentationGenerated.lua"/-->
     <!--Script file="Blizzard_ArenaUI\Blizzard_ArenaUI.lua"/-->
     <!--Script file="Blizzard_AsyncRequest\Blizzard_AsyncRequest.lua"/-->
-    <!--Script file="Blizzard_AuctionHouseUI\Blizzard_AuctionHouseUI.lua"/-->
     <Script file="Blizzard_AuctionUI\Classic\Blizzard_AuctionUI.lua"/>
     <!--Script file="Blizzard_AuthChallengeUI\Blizzard_AuthChallengeUI.lua"/-->
     <!--Script file="Blizzard_AutoComplete\Blizzard_AutoComplete.lua"/-->
@@ -386,6 +386,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_SharedXML\Shared\Selector\Blizzard_GridSelectorUI.lua"/-->
     <Script file="Blizzard_SharedXML\Shared\Selector\Blizzard_ScrollBoxSelector.lua"/>
     <!--Script file="Blizzard_SharedXML\Classic\Selector\Blizzard_ScrollBoxSelector.lua"/-->
+    <!--Script file="Blizzard_SharedXML\HelpTip.lua"/-->
     <!--Script file="Blizzard_SharedXML\ScrollingMessageFrame.lua"/-->
     <!--Script file="Blizzard_SharedXML\DropDownToggleButton.lua"/-->
     <!--Script file="Blizzard_SharedXML\AnimationTemplates.lua"/-->
