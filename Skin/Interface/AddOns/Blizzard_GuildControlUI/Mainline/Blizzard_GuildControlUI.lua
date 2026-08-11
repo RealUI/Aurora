@@ -30,6 +30,23 @@ do --[[ AddOns\Blizzard_GuildControlUI.lua ]]
             skinnedPerms = skinnedPerms + 1
         end
     end
+    function Hook.GuildControlUI_Discord_Update(self)
+        -- 12.1: DiscordLinkFrame/DiscordUnlinkFrame are created lazily on
+        -- first update of the Discord pane
+        local linked = _G.DiscordLinkFrame
+        if linked and not linked._auroraSkinned then
+            linked._auroraSkinned = true
+            Skin.UIPanelButtonTemplate(linked.button)
+            if linked.SeparateStream and linked.SeparateStream.Button then
+                Skin.UICheckButtonTemplate(linked.SeparateStream.Button)
+            end
+        end
+        local unlinked = _G.DiscordUnlinkFrame
+        if unlinked and not unlinked._auroraSkinned then
+            unlinked._auroraSkinned = true
+            Skin.UIPanelButtonTemplate(unlinked.button)
+        end
+    end
 end
 
 do --[[ AddOns\Blizzard_GuildControlUI.xml ]]
@@ -110,4 +127,15 @@ function private.AddOns.Blizzard_GuildControlUI()
     Skin.GuildPermissionCheckBoxTemplate(_G.GuildControlUIRankSettingsFrameCheckbox16)
     Skin.InputBoxTemplate(rankPermFrame.goldBox)
     Skin.GuildPermissionCheckBoxTemplate(_G.GuildControlUIRankSettingsFrameCheckbox18)
+
+    -- 12.1: Discord rank pane (shown when C_Discord.IsEnabled())
+    local discordFrame = GuildControlUI.discordFrame
+    if discordFrame then
+        Skin.DropdownButton(discordFrame.serverDropdown)
+        Skin.DropdownButton(discordFrame.channelDropdown)
+        Skin.UIPanelButtonTemplate(discordFrame.channelButton)
+        if _G.GuildControlUI_Discord_Update then
+            _G.hooksecurefunc("GuildControlUI_Discord_Update", Hook.GuildControlUI_Discord_Update)
+        end
+    end
 end
