@@ -2,7 +2,7 @@ import os
 import re
 import sys
 
-version = '0.2.1'
+version = '0.3.0'
 author = 'Hanshi/arnvid'
 
 # All paths are anchored to this script's location: dev/ inside the Aurora
@@ -35,7 +35,10 @@ flavors = {
         'toc_order': ['Vanilla', 'Classic', ''],
         'family': 'Classic',
         'gametypes': {'classic', 'vanilla'},
-        'skin_dirs': ['Vanilla', 'Classic'],
+        # TBC is a last-resort fallback: 1.15.9 converged era onto the same
+        # retail architecture the TBC skins were written for, so era reuses
+        # them wherever no Vanilla/Classic skin exists.
+        'skin_dirs': ['Vanilla', 'Classic', 'TBC'],
         'adp': 10,
     },
     'TBC': {
@@ -117,13 +120,17 @@ def parse_gametypes(value):
 def parse_toc(toc_file, family, gametypes, game):
     """Return (loads_here, [file entries]) for one TOC as seen by one client.
 
-    Header handling: '## AllowLoad: Glue' addons never load in-game and
-    '## AllowLoadGameType:' must include one of the client's gametype tokens.
+    Header handling: '## AllowLoad: Glue' addons never load in-game;
+    '## AllowLoadGameType:' must include one of the client's gametype tokens
+    and '## ExcludeLoadGameType:' must not.
     Line handling: '[AllowLoadGameType ...]' directives filter lines the
-    same way; other bracket directives are ignored. [Family] and [Game] are
-    substituted with the client's family/game dir before directives are
-    parsed ([Game] observed on the 2.5.6 anniversary TOCs, e.g.
-    Blizzard_UIPanels_Game's `[Game]\\QuestInfo.lua`).
+    same way, and '[ExcludeLoadGameType ...]' drops a line when it names one
+    of the client's gametype tokens (new in era 1.15.9, e.g.
+    Blizzard_Minimap_Classic.toc's `[ExcludeLoadGameType vanilla]`); other
+    bracket directives are ignored. [Family] and [Game] are substituted with
+    the client's family/game dir before directives are parsed ([Game]
+    observed on the 2.5.6 anniversary TOCs, e.g. Blizzard_UIPanels_Game's
+    `[Game]\\QuestInfo.lua`).
     """
     entries = []
     with open(toc_file, 'r', encoding='utf-8-sig', errors='replace') as file:
@@ -135,16 +142,26 @@ def parse_toc(toc_file, family, gametypes, game):
                 m = re.match(r'##\s*AllowLoadGameType:\s*(.+)', line, re.IGNORECASE)
                 if m and not (parse_gametypes(m.group(1)) & gametypes):
                     return False, []
+                m = re.match(r'##\s*ExcludeLoadGameType:\s*(.+)', line, re.IGNORECASE)
+                if m and (parse_gametypes(m.group(1)) & gametypes):
+                    return False, []
                 m = re.match(r'##\s*AllowLoad:\s*(\S+)', line, re.IGNORECASE)
                 if m and m.group(1).lower() == 'glue':
                     return False, []
                 continue
             line = line.replace('[Family]', family).replace('[Game]', game)
-            path, _, directives = line.partition(' ')
+            # Split on any whitespace run: era 1.15.9 TOCs separate the path
+            # from its directives with tabs, not spaces.
+            parts = line.split(None, 1)
+            path = parts[0]
+            directives = parts[1] if len(parts) > 1 else ''
             allowed = True
             for directive in re.findall(r'\[([^\]]+)\]', directives):
                 m = re.match(r'AllowLoadGameType\s+(.+)', directive, re.IGNORECASE)
                 if m and not (parse_gametypes(m.group(1)) & gametypes):
+                    allowed = False
+                m = re.match(r'ExcludeLoadGameType\s+(.+)', directive, re.IGNORECASE)
+                if m and (parse_gametypes(m.group(1)) & gametypes):
                     allowed = False
             if allowed and path:
                 entries.append(path.replace('/', '\\'))
@@ -231,23 +248,28 @@ def find_and_list_unused_files():
         print("No unused .lua files found.")
 
 
-_app_intro()
-requested = sys.argv[1:]
-unknown = [f for f in requested if f not in flavors]
-if unknown:
-    print(f"Unknown flavor(s): {', '.join(unknown)} — choose from: {', '.join(flavors)}")
-    sys.exit(1)
+def main():
+    _app_intro()
+    requested = sys.argv[1:]
+    unknown = [f for f in requested if f not in flavors]
+    if unknown:
+        print(f"Unknown flavor(s): {', '.join(unknown)} — choose from: {', '.join(flavors)}")
+        sys.exit(1)
 
-ran = []
-for flavor, cfg in flavors.items():
-    if requested and flavor not in requested:
-        continue
-    if not os.path.isdir(os.path.join(cfg['tree'], 'Interface', 'AddOns')):
-        print(f"Skipping {flavor}: source tree not found at {cfg['tree']}")
-        continue
-    generate_manifest(flavor, cfg)
-    ran.append(flavor)
+    ran = []
+    for flavor, cfg in flavors.items():
+        if requested and flavor not in requested:
+            continue
+        if not os.path.isdir(os.path.join(cfg['tree'], 'Interface', 'AddOns')):
+            print(f"Skipping {flavor}: source tree not found at {cfg['tree']}")
+            continue
+        generate_manifest(flavor, cfg)
+        ran.append(flavor)
 
-if ran:
-    find_and_list_unused_files()
-print(f"\nGenerated manifests: {', '.join(ran) if ran else 'none'}")
+    if ran:
+        find_and_list_unused_files()
+    print(f"\nGenerated manifests: {', '.join(ran) if ran else 'none'}")
+
+
+if __name__ == '__main__':
+    main()
