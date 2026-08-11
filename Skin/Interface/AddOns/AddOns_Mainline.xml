@@ -339,7 +339,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_HelpPlate\Mainline\Blizzard_HelpPlate.lua"/>
     <Script file="Blizzard_HouseEditor\Blizzard_HouseEditor.lua"/>
     <Script file="Blizzard_HouseList\Blizzard_HouseList.lua"/>
-    <!--Script file="Blizzard_HousingBlueprint\Blizzard_HousingBlueprint.lua"/-->
+    <Script file="Blizzard_HousingBlueprint\Mainline\Blizzard_HousingBlueprint.lua"/>
     <Script file="Blizzard_HousingBulletinBoard\Blizzard_HousingBulletinBoard.lua"/>
     <Script file="Blizzard_HousingCharter\Blizzard_HousingCharter.lua"/>
     <Script file="Blizzard_HousingControls\Blizzard_HousingControls.lua"/>
@@ -666,8 +666,8 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_SharedXMLGame\Blizzard_SharedXMLGame.lua"/-->
     <!--Script file="Blizzard_SimpleCheckout\Blizzard_SimpleCheckout.lua"/-->
     <Script file="Blizzard_SocialToast\Mainline\Blizzard_SocialToast.lua"/>
-    <!--Script file="Blizzard_SocialUI\Blizzard_SocialUI.lua"/-->
-    <!--Script file="Blizzard_SocialUIShared\Blizzard_SocialUIShared.lua"/-->
+    <Script file="Blizzard_SocialUI\Mainline\Blizzard_SocialUI.lua"/>
+    <Script file="Blizzard_SocialUIShared\Mainline\Blizzard_SocialUIShared.lua"/>
     <Script file="Blizzard_Soulbinds\Blizzard_Soulbinds.lua"/>
     <Script file="Blizzard_SpellDiminishUI\Blizzard_SpellDiminishUI.lua"/>
     <!--Script file="Blizzard_SpellSearch\Blizzard_SpellSearch.lua"/-->
