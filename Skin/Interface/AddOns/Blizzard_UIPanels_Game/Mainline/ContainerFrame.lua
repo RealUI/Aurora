@@ -59,7 +59,9 @@ do --[[ FrameXML\ContainerFrame.lua ]]
 
             if link then
                 local _, _, _, _, _, _, _, _, _, _, _, itemClassID = _G.C_Item.GetItemInfo(link)
-                if itemClassID == _G.LE_ITEM_CLASS_QUESTITEM then
+                -- LE_ITEM_CLASS_QUESTITEM no longer exists (zero hits in
+                -- the 12.0.7 tree); the comparison was silently nil == id.
+                if itemClassID == _G.Enum.ItemClass.Questitem then
                     itemButton._questTexture:Show()
                     itemButton._auroraIconBorder:SetBackdropBorderColor(1, 1, 0)
                 end

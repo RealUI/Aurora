@@ -3,8 +3,9 @@ if private.shouldSkip() then return end
 
 --[[ TBC (anniversary) buff frame: the 2.5.6 client runs the RETAIL-MODERN
     BuffFrame (AuraFrameMixin, verified in wow-ui-source-anniversary) —
-    this is a copy of the Mainline skin. Era keeps the legacy Classic/
-    sibling. ]]
+    this is a copy of the Mainline skin. Era converged onto the same
+    AuraFrameMixin system in 1.15.9 and resolves this file via the TBC
+    skin-dir fallback (aurora-era-1159-convergence). ]]
 
 --[[ Lua Globals ]]
 -- luacheck: globals

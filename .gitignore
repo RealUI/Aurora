@@ -4,3 +4,4 @@
 
 ## Sublime Text ##
 *.sublime-workspace
+dev/__pycache__/

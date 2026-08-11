@@ -18,7 +18,10 @@ local Util = Aurora.Util
     - the MainMenuBar art shell (stone bar + gryphon end caps)
     - MainActionBar border art keys (guarded)
     - the XP/reputation StatusTrackingBar containers (taint-safe widget API)
-    Era keeps the legacy Classic/ sibling.
+    Era converged onto the same system in 1.15.9 and resolves this file via
+    the TBC skin-dir fallback (aurora-era-1159-convergence). Era-only
+    survivors (MainMenuTrackingBar_Configure) are existence-guarded below.
+    Micro buttons live in the Blizzard_MicroMenu module on both flavors.
 ]]
 
 do --[[ StatusTrackingBarTemplate (taint-safe, widget API only) ]]
@@ -84,5 +87,18 @@ function private.AddOns.Blizzard_ActionBar()
     end
     if _G.SecondaryStatusTrackingBarContainer then
         Skin.StatusTrackingBarContainerTemplate(_G.SecondaryStatusTrackingBarContainer)
+    end
+
+    -- Era survivor (Blizzard_ActionBar\Classic\MainMenuBar.lua): keep the
+    -- slimmed tracking-bar heights when the bar is repositioned
+    if _G.MainMenuTrackingBar_Configure then
+        _G.hooksecurefunc("MainMenuTrackingBar_Configure", function(frame, isOnTop)
+            if not frame.StatusBar then return end
+            if isOnTop then
+                frame.StatusBar:SetHeight(7)
+            else
+                frame.StatusBar:SetHeight(9)
+            end
+        end)
     end
 end

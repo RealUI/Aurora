@@ -13,7 +13,9 @@ local Skin = Aurora.Skin
     MinimalCheckboxArt rows + SharedButtonSmall footer buttons — verified in
     wow-ui-source-anniversary). Adapted from the Mainline skin; the
     SharedButtonSmall skin chain is Mainline-only, so a local three-slice
-    fallback is used. Era keeps the legacy Classic/ sibling.
+    fallback is used. Era converged onto the same AddonList in 1.15.9 and
+    resolves this file via the TBC skin-dir fallback
+    (aurora-era-1159-convergence).
 ]]
 
 local function SkinFooterButton(Button)

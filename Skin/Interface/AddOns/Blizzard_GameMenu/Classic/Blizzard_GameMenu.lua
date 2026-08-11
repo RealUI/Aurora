@@ -2,45 +2,45 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals ipairs
+-- luacheck: globals _G
 
 --[[ Core ]]
 local Aurora = private.Aurora
-local Skin = Aurora.Skin
+local Hook, Skin = Aurora.Hook, Aurora.Skin
 
---[[ Classic-family GameMenuFrame (era/TBC/Mists).
-    Evidence: wow-ui-source-*/Interface/AddOns/Blizzard_GameMenu/Classic/GameMenuFrame.xml
-    Plain BackdropTemplate dialog (BACKDROP_DIALOG_32_32) with a
-    UI-DialogBox-Header texture and GameMenuButtonTemplate buttons
-    (= UIPanelButtonTemplate, Blizzard_UIPanelTemplates/Classic).
+--[[ Classic-family GameMenuFrame (era 1.15.9 convergence / TBC / Mists):
+    the retail pooled-button menu (Shared\GameMenuFrame.lua —
+    GameMenuFrameMixin:InitButtons + buttonPool) on the classic
+    MainMenuFrameTemplate shell (Blizzard_SharedXML\Classic\Frame\
+    MainMenuFrameTemplates.xml: parentKey Border = DialogBorderNoCenter +
+    BACKDROP_DIALOG_32_32, parentKey Header = ClassicDialogHeaderTemplate).
+    Port of the Mainline skin. Buttons are MainMenuFrameButtonTemplate
+    (= classic UIPanelButtonTemplate). No Skin.FrameTypeFrame on the root —
+    the Border carries the dialog chrome (double-border otherwise).
 ]]
 
-local menuButtons = {
-    "GameMenuButtonHelp",
-    "GameMenuButtonStore",
-    "GameMenuButtonOptions",
-    "GameMenuButtonUIOptions",
-    "GameMenuButtonKeybindings",
-    "GameMenuButtonMacros",
-    "GameMenuButtonAddons",
-    "GameMenuButtonRatings",
-    "GameMenuButtonLogout",
-    "GameMenuButtonQuit",
-    "GameMenuButtonContinue",
-}
+function Hook.GameMenuInitButtons(menu)
+    if not menu.buttonPool then return end
+    for button in menu.buttonPool:EnumerateActive() do
+        if not button._auroraSkinned then
+            Skin.UIPanelButtonTemplate(button)
+            button._auroraSkinned = true
+        end
+    end
+end
 
 function private.AddOns.Blizzard_GameMenu()
     local GameMenuFrame = _G.GameMenuFrame
 
-    if _G.GameMenuFrameHeader then
-        _G.GameMenuFrameHeader:SetTexture("")
+    if GameMenuFrame.Border then
+        Skin.DialogBorderTemplate(GameMenuFrame.Border)
     end
-    Skin.FrameTypeFrame(GameMenuFrame)
+    if GameMenuFrame.Header and GameMenuFrame.Header.BG then
+        GameMenuFrame.Header.BG:SetTexture("")
+    end
 
-    for _, name in ipairs(menuButtons) do
-        local button = _G[name]
-        if button then
-            Skin.UIPanelButtonTemplate(button)
-        end
-    end
+    -- InitButtons runs at OnLoad (before this skin) and again per menu
+    -- open — hook for future opens, sweep the pool for existing buttons.
+    _G.hooksecurefunc(GameMenuFrame, "InitButtons", Hook.GameMenuInitButtons)
+    Hook.GameMenuInitButtons(GameMenuFrame)
 end

@@ -1,5 +1,5 @@
-## Interface: 11508
-## X-Min-Interface: 11508
+## Interface: 11509
+## X-Min-Interface: 11509
 ## Title: Aurora
 ## Notes: Minimalistic window theme.
 ## Author: Haleth/Lightsword, Gethe, Hanshi/arnvid

@@ -55,7 +55,10 @@ do --[[ Classic\ContainerFrame_Shared.lua ]]
 
             if link then
                 local _, _, _, _, _, _, _, _, _, _, _, itemClassID = _G.C_Item.GetItemInfo(link)
-                if itemClassID == _G.LE_ITEM_CLASS_QUESTITEM then
+                -- LE_ITEM_CLASS_QUESTITEM was deleted in the 1.15.9
+                -- convergence; Enum.ItemClass.Questitem is the same value
+                -- on every flavor.
+                if itemClassID == _G.Enum.ItemClass.Questitem then
                     itemButton._questTexture:Show()
                     itemButton._auroraIconBorder:SetBackdropBorderColor(1, 1, 0)
                 end
