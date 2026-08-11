@@ -244,4 +244,70 @@ function private.AddOns.Blizzard_CooldownViewer()
         local importCB = importDialog.CharacterSpecificLayoutCheckButton
         if importCB and importCB.Button then Skin.FrameTypeCheckButton(importCB.Button) end
     end
+
+    ------------------------------------------------
+    -- 12.1: settings side tabs, group-buff filter tab, edit-alert dialogs
+    ------------------------------------------------
+    if settings and settings.TabButtons then
+        -- CooldownViewerSettingsTabTemplate = LargeSideTabButtonTemplate
+        for _, tabButton in ipairs(settings.TabButtons) do
+            if tabButton.Background then tabButton.Background:SetAlpha(0) end
+            if tabButton.SelectedTexture then
+                -- flatten but keep Blizzard's selection show/hide meaningful
+                tabButton.SelectedTexture:SetDesaturated(true)
+                tabButton.SelectedTexture:SetVertexColor(Color.highlight:GetRGB())
+            end
+            if tabButton.Icon then
+                Base.CropIcon(tabButton.Icon, tabButton)
+            end
+        end
+    end
+
+    local groupBuffFilter = settings and settings.GroupBuffFilter
+    if groupBuffFilter then
+        if groupBuffFilter.Scroll and Skin.ScrollFrameTemplate then
+            Skin.ScrollFrameTemplate(groupBuffFilter.Scroll)
+        end
+
+        -- shownSection/hiddenSection are Lua-created (no parentKey names).
+        -- Their .Container is a GridLayoutFrame in a secure dirty-check path
+        -- — never write padding keys or call Layout() on it (see header
+        -- comment); only the header art and pooled item icons are touched.
+        local function SkinFilterItem(item)
+            if skinnedFrames[item] then return end
+            skinnedFrames[item] = true
+            if item.Icon then
+                Base.CropIcon(item.Icon)
+            end
+        end
+        local function SkinFilterSection(section)
+            if not section or skinnedFrames[section] then return end
+            skinnedFrames[section] = true
+            local header = section.Header
+            if header then -- ListHeaderThreeSliceTemplate: Left/Middle/Right trio
+                if header.Left then header.Left:SetAlpha(0) end
+                if header.Middle then header.Middle:SetAlpha(0) end
+                if header.Right then header.Right:SetAlpha(0) end
+            end
+            if section.itemPool then
+                Aurora.Util.WrapPoolAcquire(section.itemPool, SkinFilterItem)
+            end
+        end
+        SkinFilterSection(groupBuffFilter.shownSection)
+        SkinFilterSection(groupBuffFilter.hiddenSection)
+    end
+
+    local function SkinEditAlert(alert)
+        if not alert then return end
+        if alert.BG then Skin.DialogBorderDarkTemplate(alert.BG) end
+        if alert.CloseButton then Skin.UIPanelCloseButton(alert.CloseButton) end
+        if alert.AddButton then Skin.UIPanelButtonNoTooltipTemplate(alert.AddButton) end
+        if alert.Icon then Base.CropIcon(alert.Icon) end
+        if alert.VisualDropdown then Skin.DropdownButton(alert.VisualDropdown) end
+    end
+    SkinEditAlert(_G.CooldownViewerSettingsEditAlert)
+    SkinEditAlert(_G.GroupBuffFilterEditVisualAlert)
+    -- CooldownViewerDraggedItemBaseTemplate ghost: instance is file-local in
+    -- Blizzard code (CooldownViewerDraggedItem_Pickup) — unreachable without
+    -- frame-walking; cosmetic only, deliberately skipped.
 end
