@@ -296,7 +296,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_Menu\Classic\MenuTemplates.lua"/>
     <!--Script file="Blizzard_Menu\MenuUtil.lua"/-->
     <!-- End of section added for Blizzard_Menu by the Aurora XML Updater -->
-    <!--Script file="Blizzard_MicroMenu\Blizzard_MicroMenu.lua"/-->
+    <Script file="Blizzard_MicroMenu\Classic\Blizzard_MicroMenu.lua"/>
     <!--Script file="Blizzard_Minimap\Blizzard_Minimap.lua"/-->
     <!-- This section is added for Blizzard_MoneyFrame by the Aurora XML Updater -->
     <!--Script file="Blizzard_MoneyFrame\Shared\MoneyFrame.lua"/-->
