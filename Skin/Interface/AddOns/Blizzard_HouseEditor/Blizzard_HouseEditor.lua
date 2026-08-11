@@ -104,6 +104,18 @@ local function SkinCustomizationPane(pane)
     if pane.DyeSlotScrollBar then
         Skin.MinimalScrollBar(pane.DyeSlotScrollBar)
     end
+
+    -- 12.1: customization components moved under CustomizeComponentContainer
+    -- (PetPane layoutIndex 1, DyePane layoutIndex 2)
+    local container = pane.CustomizeComponentContainer
+    if container then
+        if container.PetPane and container.PetPane.BehaviorDropdown then
+            Skin.WowStyle2DropdownTemplate(container.PetPane.BehaviorDropdown)
+        end
+        -- container.DyePane (HousingDyePaneTemplate) stays stock first pass:
+        -- its slot/cost widgets are functional art; the scroll UI lives on
+        -- the DyeSelectionPopout, skinned via SkinModeFrameChildren
+    end
 end
 
 -- Skin the RoomComponentPane (housing-basic-container pattern)
@@ -170,6 +182,32 @@ local function SkinModeFrameChildren(modeFrame)
     -- RoomComponentCustomizationsPane (CustomizeMode)
     if modeFrame.RoomComponentCustomizationsPane then
         SkinRoomComponentPane(modeFrame.RoomComponentCustomizationsPane)
+    end
+
+    -- PetCustomizationsPane (CustomizeMode, 12.1) — chest-style panel,
+    -- structural clone of StoragePanel but with plain templates
+    local petPane = SafeFrame(modeFrame.PetCustomizationsPane)
+    if petPane and not petPane._auroraSkinned then
+        petPane._auroraSkinned = true
+        if petPane.Background then petPane.Background:SetAlpha(0) end
+        if petPane.HeaderBackground then petPane.HeaderBackground:SetAlpha(0) end
+        if petPane.CornerBorder then petPane.CornerBorder:SetAlpha(0) end
+        HideDecorativeRegions(petPane)
+        Base.SetBackdrop(petPane, Color.frame)
+
+        if petPane.SearchBox then Skin.SearchBoxTemplate(petPane.SearchBox) end
+        if petPane.Filters then Skin.FilterButton(petPane.Filters) end
+        if petPane.OptionsContainer then
+            if petPane.OptionsContainer.ScrollBox then
+                Skin.WowScrollBoxList(petPane.OptionsContainer.ScrollBox)
+            end
+            if petPane.OptionsContainer.ScrollBar then
+                Skin.MinimalScrollBar(petPane.OptionsContainer.ScrollBar)
+            end
+        end
+        if petPane.CollapseButton then
+            HideDecorativeRegions(petPane.CollapseButton)
+        end
     end
 
     -- FloorSelect (LayoutMode)
@@ -279,6 +317,12 @@ function private.AddOns.Blizzard_HouseEditor()
         -- CollapseButton
         if StoragePanel.CollapseButton then
             HideDecorativeRegions(StoragePanel.CollapseButton)
+        end
+
+        -- 12.1: embedded blueprint collection (Blizzard_HousingBlueprint
+        -- template; skin function defined in that module's file)
+        if StoragePanel.BlueprintCollection and Skin.HousingBlueprintCollectionTemplate then
+            Skin.HousingBlueprintCollectionTemplate(StoragePanel.BlueprintCollection)
         end
     end
 
