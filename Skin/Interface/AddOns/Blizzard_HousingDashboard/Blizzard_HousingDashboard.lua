@@ -346,4 +346,31 @@ function private.AddOns.Blizzard_HousingDashboard()
             if PreviewFrame.PreviewCornerRight then PreviewFrame.PreviewCornerRight:SetAlpha(0) end
         end
     end
+
+    ----
+    -- Collection tab content (12.1 — third side tab; blueprint templates
+    -- come from the Blizzard_HousingBlueprint module's Skin.* functions)
+    ----
+    local CollectionContent = HousingDashboardFrame.CollectionContent
+    if CollectionContent then
+        if CollectionContent.GearDropdown then
+            Skin.DropdownButton(CollectionContent.GearDropdown)
+        end
+        if CollectionContent.ContentSummary and Skin.HousingBlueprintContentSummaryTemplate then
+            Skin.HousingBlueprintContentSummaryTemplate(CollectionContent.ContentSummary)
+        end
+        if CollectionContent.BlueprintCollection and Skin.HousingBlueprintCollectionTemplate then
+            Skin.HousingBlueprintCollectionTemplate(CollectionContent.BlueprintCollection)
+        end
+        if CollectionContent.Divider then
+            CollectionContent.Divider:SetAlpha(0)
+        end
+        if CollectionContent.Categories then
+            local Categories = CollectionContent.Categories
+            if Categories.ScrollBox then Skin.WowScrollBoxList(Categories.ScrollBox) end
+            if Categories.ScrollBar then Skin.MinimalScrollBar(Categories.ScrollBar) end
+            if Categories.TopBorder then Categories.TopBorder:SetAlpha(0) end
+            if Categories.Background then Categories.Background:SetAlpha(0) end
+        end
+    end
 end
