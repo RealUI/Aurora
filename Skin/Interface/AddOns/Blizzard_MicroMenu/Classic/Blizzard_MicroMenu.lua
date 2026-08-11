@@ -6,7 +6,6 @@ if private.shouldSkip() then return end
 
 --[[ Core ]]
 local Aurora = private.Aurora
-local Base = Aurora.Base
 local Skin = Aurora.Skin
 
 --[[ Classic-family micro menu (era 1.15.9 convergence / TBC / Mists):
