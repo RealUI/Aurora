@@ -36,9 +36,14 @@ do --[[ FrameXML\ChatConfigFrame.lua ]]
     function Hook.ChatConfig_CreateColorSwatches(frame, swatchTable, swatchTemplate, title)
         local nameString = frame:GetName().."Swatch"
 
+        -- Guard the template lookup: 12.1 introduced
+        -- ChatConfigAdditionalColorSwatchTemplate (Discord colors) — an
+        -- unknown template here must degrade to stock, not nil-call.
+        local skinFunc = Skin[swatchTemplate]
+        if not skinFunc then return end
         for index, value in ipairs(swatchTable) do
             local swatchName = nameString..index
-            Skin[swatchTemplate](_G[swatchName])
+            skinFunc(_G[swatchName])
         end
     end
 end
@@ -99,6 +104,11 @@ do --[[ FrameXML\ChatConfigFrame.xml ]]
     function Skin.ChatConfigSwatchTemplate(Frame)
         Skin.ChatConfigBorderBoxTemplate(Frame)
         Skin.ColorSwatchTemplate(_G[Frame:GetName().."ColorSwatch"])
+    end
+    function Skin.ChatConfigAdditionalColorSwatchTemplate(Frame)
+        -- 12.1 Discord colors box: structurally identical to
+        -- ChatConfigSwatchTemplate (only the OnClick handler differs)
+        Skin.ChatConfigSwatchTemplate(Frame)
     end
     function Skin.ChatConfigTabTemplate(Button)
         Button.Left:Hide()
@@ -164,6 +174,9 @@ function private.FrameXML.ChatConfigFrame()
     Skin.WideChatConfigBoxWithHeaderAndClassColorsTemplate(_G.ChatConfigChannelSettingsLeft)
     Skin.ChatConfigBoxWithHeaderTemplate(_G.ChatConfigOtherSettingsCombat)
     Skin.ChatConfigBoxWithHeaderTemplate(_G.ChatConfigOtherSettingsPVP)
+    if _G.ChatConfigOtherSettingsAdditionalColors then -- 12.1 Discord colors
+        Skin.ChatConfigBoxWithHeaderTemplate(_G.ChatConfigOtherSettingsAdditionalColors)
+    end
     Skin.ChatConfigBoxWithHeaderTemplate(_G.ChatConfigOtherSettingsSystem)
     Skin.ChatConfigBoxWithHeaderTemplate(_G.ChatConfigOtherSettingsCreature)
 
