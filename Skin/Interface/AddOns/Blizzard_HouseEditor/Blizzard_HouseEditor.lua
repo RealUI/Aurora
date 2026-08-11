@@ -118,6 +118,34 @@ local function SkinCustomizationPane(pane)
     end
 end
 
+-- Skin the PetCustomizationsPane (12.1) — chest-style panel, structural
+-- clone of StoragePanel but with plain templates
+local function SkinPetCustomizationsPane(petPane)
+    if not SafeFrame(petPane) then return end
+    if petPane._auroraSkinned then return end
+    petPane._auroraSkinned = true
+
+    if petPane.Background then petPane.Background:SetAlpha(0) end
+    if petPane.HeaderBackground then petPane.HeaderBackground:SetAlpha(0) end
+    if petPane.CornerBorder then petPane.CornerBorder:SetAlpha(0) end
+    HideDecorativeRegions(petPane)
+    Base.SetBackdrop(petPane, Color.frame)
+
+    if petPane.SearchBox then Skin.SearchBoxTemplate(petPane.SearchBox) end
+    if petPane.Filters then Skin.FilterButton(petPane.Filters) end
+    if petPane.OptionsContainer then
+        if petPane.OptionsContainer.ScrollBox then
+            Skin.WowScrollBoxList(petPane.OptionsContainer.ScrollBox)
+        end
+        if petPane.OptionsContainer.ScrollBar then
+            Skin.MinimalScrollBar(petPane.OptionsContainer.ScrollBar)
+        end
+    end
+    if petPane.CollapseButton then
+        HideDecorativeRegions(petPane.CollapseButton)
+    end
+end
+
 -- Skin the RoomComponentPane (housing-basic-container pattern)
 local function SkinRoomComponentPane(pane)
     if not SafeFrame(pane) then return end
@@ -184,30 +212,9 @@ local function SkinModeFrameChildren(modeFrame)
         SkinRoomComponentPane(modeFrame.RoomComponentCustomizationsPane)
     end
 
-    -- PetCustomizationsPane (CustomizeMode, 12.1) — chest-style panel,
-    -- structural clone of StoragePanel but with plain templates
-    local petPane = SafeFrame(modeFrame.PetCustomizationsPane)
-    if petPane and not petPane._auroraSkinned then
-        petPane._auroraSkinned = true
-        if petPane.Background then petPane.Background:SetAlpha(0) end
-        if petPane.HeaderBackground then petPane.HeaderBackground:SetAlpha(0) end
-        if petPane.CornerBorder then petPane.CornerBorder:SetAlpha(0) end
-        HideDecorativeRegions(petPane)
-        Base.SetBackdrop(petPane, Color.frame)
-
-        if petPane.SearchBox then Skin.SearchBoxTemplate(petPane.SearchBox) end
-        if petPane.Filters then Skin.FilterButton(petPane.Filters) end
-        if petPane.OptionsContainer then
-            if petPane.OptionsContainer.ScrollBox then
-                Skin.WowScrollBoxList(petPane.OptionsContainer.ScrollBox)
-            end
-            if petPane.OptionsContainer.ScrollBar then
-                Skin.MinimalScrollBar(petPane.OptionsContainer.ScrollBar)
-            end
-        end
-        if petPane.CollapseButton then
-            HideDecorativeRegions(petPane.CollapseButton)
-        end
+    -- PetCustomizationsPane (CustomizeMode, 12.1)
+    if modeFrame.PetCustomizationsPane then
+        SkinPetCustomizationsPane(modeFrame.PetCustomizationsPane)
     end
 
     -- FloorSelect (LayoutMode)
