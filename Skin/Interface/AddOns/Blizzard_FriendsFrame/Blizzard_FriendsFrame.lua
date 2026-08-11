@@ -311,11 +311,16 @@ function private.FrameXML.FriendsFrame()
     Skin.UIPanelButtonTemplate(FriendsFriendsFrame.CloseButton)
 
     --------------------------
-    -- BattleTagInviteFrame --
+    -- BattleNetInviteFrame --
     --------------------------
-    Skin.DialogBorderTemplate(_G.BattleTagInviteFrame.Border)
-
-    local _, send, cancel = _G.BattleTagInviteFrame:GetChildren()
-    Skin.UIPanelButtonTemplate(send)
-    Skin.UIPanelButtonTemplate(cancel)
+    -- 12.1: BattleTagInviteFrame deleted; replaced by BattleNetInviteFrame
+    -- (Blizzard_AddFriend, a hard dependency of Blizzard_FriendsFrame, so
+    -- it exists at this ADDON_LOADED). Proper parentKeys now — no more
+    -- positional GetChildren.
+    local BattleNetInviteFrame = _G.BattleNetInviteFrame
+    if BattleNetInviteFrame then
+        Skin.DialogBorderTemplate(BattleNetInviteFrame.Border)
+        Skin.UIPanelButtonTemplate(BattleNetInviteFrame.SendButton)
+        Skin.UIPanelButtonTemplate(BattleNetInviteFrame.CancelButton)
+    end
 end

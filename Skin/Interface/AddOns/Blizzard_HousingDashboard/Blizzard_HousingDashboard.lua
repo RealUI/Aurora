@@ -111,8 +111,16 @@ do --[[ AddOns\Blizzard_HousingDashboard\Blizzard_HousingDashboard.xml ]]
     end
 
     function Skin.HousingDashboardSideTabTemplate(TabButton)
-        -- Hide the highlight atlas
-        if TabButton.Highlight then TabButton.Highlight:SetAlpha(0) end
+        -- 12.1: HousingDashboardSideTabTemplate was deleted; tabs are the
+        -- shared LargeSideTabButtonTemplate (SidePanelTabButtonMixin —
+        -- Background/Icon/SelectedTexture/TabGlow/HighlightTexture keys).
+        if TabButton.Highlight then TabButton.Highlight:SetAlpha(0) end -- pre-12.1
+        if TabButton.Background then TabButton.Background:SetAlpha(0) end
+        if TabButton.SelectedTexture then
+            -- flatten but keep Blizzard's selection show/hide meaningful
+            TabButton.SelectedTexture:SetDesaturated(true)
+            TabButton.SelectedTexture:SetVertexColor(Color.highlight:GetRGB())
+        end
 
         -- Crop the icon and create the colored border
         local icon = TabButton.Icon
@@ -141,18 +149,28 @@ function private.AddOns.Blizzard_HousingDashboard()
     Util.Mixin(HousingDashboardFrame, Hook.HousingDashboardFrameMixin)
 
     ----
-    -- Side Tab Buttons (2 buttons on the right side)
+    -- Side Tab Buttons (right side; 12.1 adds a third CollectionTabButton
+    -- and gathers them in the TabButtons parentArray)
     ----
-    Skin.HousingDashboardSideTabTemplate(HousingDashboardFrame.HouseInfoTabButton)
-    Skin.HousingDashboardSideTabTemplate(HousingDashboardFrame.CatalogTabButton)
+    if HousingDashboardFrame.TabButtons then
+        for _, tabButton in ipairs(HousingDashboardFrame.TabButtons) do
+            Skin.HousingDashboardSideTabTemplate(tabButton)
+        end
+    else
+        Skin.HousingDashboardSideTabTemplate(HousingDashboardFrame.HouseInfoTabButton)
+        Skin.HousingDashboardSideTabTemplate(HousingDashboardFrame.CatalogTabButton)
+    end
 
     ----
     -- HouseInfo Content
     ----
     local HouseInfoContent = HousingDashboardFrame.HouseInfoContent
 
-    -- Dropdown
-    if HouseInfoContent.HouseDropdown then
+    -- Dropdown (12.1: moved from HouseInfoContent.HouseDropdown to
+    -- HousingDashboardFrame.HouseDropdown.Dropdown, WowStyle1DropdownTemplate)
+    if HousingDashboardFrame.HouseDropdown and HousingDashboardFrame.HouseDropdown.Dropdown then
+        Skin.DropdownButton(HousingDashboardFrame.HouseDropdown.Dropdown)
+    elseif HouseInfoContent.HouseDropdown then
         Skin.WowStyle1ArrowDropdownTemplate(HouseInfoContent.HouseDropdown)
     end
 

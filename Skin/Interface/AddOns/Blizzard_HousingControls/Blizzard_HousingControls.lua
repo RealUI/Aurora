@@ -51,8 +51,11 @@ local function SkinControlFrame(Frame)
         Frame.OwnerNameText:SetTextColor(Color.highlight:GetRGB())
     end
 
-    if Frame.Buttons then
-        for _, button in ipairs(Frame.Buttons) do
+    -- 12.1: VisitorControlFrame's buttons moved under a ButtonContainer;
+    -- both layout mixins now expose GetButtons() — prefer it
+    local buttons = (Frame.GetButtons and Frame:GetButtons()) or Frame.Buttons
+    if buttons then
+        for _, button in ipairs(buttons) do
             Skin.BaseHousingControlButtonTemplate(button)
             if button.UpdateState then
                 button:UpdateState()

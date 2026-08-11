@@ -239,7 +239,7 @@ function commands.test()
                                 desc = "AchievementAlertSystem",
                                 type = "execute",
                                 func = function()
-                                    if not _G.AchievementFrame then _G.UIParentLoadAddOn("Blizzard_AchievementUI") end
+                                    if not _G.AchievementFrame then _G.C_AddOns.LoadAddOn("Blizzard_AchievementUI") end
                                     _G.AchievementAlertSystem:AddAlert(achievementID, isEarned)
                                 end,
                             },
@@ -248,7 +248,7 @@ function commands.test()
                                 desc = "CriteriaAlertSystem",
                                 type = "execute",
                                 func = function()
-                                    if not _G.AchievementFrame then _G.UIParentLoadAddOn("Blizzard_AchievementUI") end
+                                    if not _G.AchievementFrame then _G.C_AddOns.LoadAddOn("Blizzard_AchievementUI") end
                                     local criteriaString = _G.GetAchievementCriteriaInfo(achievementID, 1)
                                     _G.CriteriaAlertSystem:AddAlert(achievementID, criteriaString)
                                 end,

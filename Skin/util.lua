@@ -448,9 +448,16 @@ function Util.TestHook(table, func, name)
 end
 
 local debugTools
+-- 12.1 removed UIParentLoadAddOn (no shim); per-addon bootstraps replace it
+local function LoadDebugTools()
+    if _G.DebugTools_LoadUI then
+        return _G.DebugTools_LoadUI()
+    end
+    return _G.C_AddOns.LoadAddOn("Blizzard_DebugTools")
+end
 function Util.TableInspect(focusedTable)
     if not debugTools then
-        debugTools = _G.UIParentLoadAddOn("Blizzard_DebugTools")
+        debugTools = LoadDebugTools()
     end
     _G.DisplayTableInspectorWindow(focusedTable)
 end
@@ -461,7 +468,7 @@ end
 
 function Util.Dump(value)
     if not debugTools then
-        debugTools = _G.UIParentLoadAddOn("Blizzard_DebugTools")
+        debugTools = LoadDebugTools()
     end
 
     if type(value) ~= "function" then
