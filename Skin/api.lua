@@ -86,7 +86,18 @@ function Base.CropIcon(texture, parent)
     -- Use a protected call to avoid throwing an error for those textures.
     pcall(texture.SetTexCoord, texture, .08, .92, .08, .92)
     if parent then
+        -- 12.1: textures on AuraContainer secure-environment frames return
+        -- SECRET layer/subLevel values to insecure code — arithmetic on them
+        -- errors. When unknown, the border must go BELOW everything
+        -- (BACKGROUND): oUF aura icons draw at BORDER, and a higher-layer
+        -- fallback would paint the black border over the icon.
         local layer, subLevel = texture:GetDrawLayer()
+        if _G.issecretvalue(layer) or not layer then
+            layer = "BACKGROUND"
+        end
+        if _G.issecretvalue(subLevel) or type(subLevel) ~= "number" then
+            subLevel = 1
+        end
         local iconBorder = parent:CreateTexture(nil, layer, nil, subLevel - 1)
         iconBorder:SetPoint("TOPLEFT", texture, -1, 1)
         iconBorder:SetPoint("BOTTOMRIGHT", texture, 1, -1)
