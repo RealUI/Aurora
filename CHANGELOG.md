@@ -1,4 +1,37 @@
-﻿## [12.0.7.2] ##
+﻿## [12.1.0.0] ##
+### Added ###
+
+  * add: **Social UI skins** for the 12.1 social hub (`SocialUIFrame`, replaces FriendsFrame when Blizzard enables the system) — new `Blizzard_SocialUI` and `Blizzard_SocialUIShared` modules: hub frame, BattleNet bar, pooled side tabs, all six tab content frames (Friends/Recent Allies/Quick Join/Friend Requests/Recruit-a-Friend/Raid), ignore list, broadcast and unavailable-notice dialogs; the existing FriendsFrame skin is untouched and both UIs coexist [mainline]
+  * add: **Blizzard_HousingBlueprint** module — blueprint export/import/content-list/rename dialogs, plus the blueprint collections embedded in the House Editor storage panel and the Housing Dashboard [mainline]
+  * add: **Blizzard_MicroMenu** module — micro buttons moved to a new Blizzard addon in the classic convergence; restyle-only skin (the new grid layout owns positions), serves era, TBC, and Mists [classic]
+  * add: Housing Dashboard **Collection tab** (12.1's third side tab): gear dropdown, content summary, blueprint list, categories sidebar [mainline]
+  * add: House Editor **pet customization pane** (chest-style panel: search, filters, scroll list) and pet behavior dropdown in the decor customization pane [mainline]
+  * add: CooldownViewer 12.1 surfaces: settings side tabs, **group-buff filter** tab (section headers + pooled item icons; grid layout untouched per CDM taint rules), and both edit-alert dialogs [mainline]
+  * add: **Discord integration surfaces**: chat-config additional-colors box with its swatches, and the guild-control Discord rank pane incl. the lazily-created link/unlink frames [mainline]
+
+### Changed ###
+
+  * chg: TOC interface bumped to **120100** (12.1.0 "Curse of Ula'tek") on Mainline and **11509** (Classic Era 1.15.9) on Vanilla
+  * chg: **era 1.15.9 shared-codebase convergence** — vanilla skins re-routed to the already-modern TBC equivalents instead of repairing legacy files: BuffFrame (retail `AuraFrameMixin` system), AddOnList (ScrollBox-based), ActionBarController (chrome-only + StatusTrackingBar; per-button skinning retired — the modern button art machinery re-applies atlases, the lesson learned on anniversary), casting bar (`PlayerCastingBarFrame` via `Blizzard_UIPanels_Game`) [vanilla]
+  * chg: GameMenu skin rebuilt for the pooled-button `MainMenuFrameTemplate` menu shared by all converged classic clients (the old static-global skin was silently dead on TBC/Mists too) [classic]
+  * chg: skins orphaned by 12.1 addon extractions re-routed to their new homes: ColorPickerFrame, SplashFrame, chat bubbles (`Blizzard_ChatBubble`), RolePoll [mainline]
+  * chg: `updatexmls.py` v0.3.0 — new `[ExcludeLoadGameType]` TOC directive support, whitespace-agnostic directive parsing (era TOCs use tabs), TBC skin-dir fallback for the Vanilla flavor; all four `AddOns_*.xml` manifests regenerated against current client trees
+  * chg: `Blizzard_HousingControls` buttons resolved via the new `GetButtons()` accessor (12.1 moved the visitor buttons under a container) [mainline]
+  * chg: Housing Dashboard side tabs restyled for the shared `LargeSideTabButtonTemplate` (12.1 deleted the bespoke template); selection texture flattened but kept functional [mainline]
+
+### Fixed ###
+
+  * fix: era 1.15.9 hard errors at login — `AuraButton_Update`, `MoveMicroButtons`/`MICRO_BUTTONS`, `AddonListForceLoad`, and the deleted `Blizzard_CastingBar` addon all removed from the vanilla skin surface [vanilla]
+  * fix: FriendsFrame skin errored on 12.1 — `BattleTagInviteFrame` was deleted; now skins its replacement `BattleNetInviteFrame` (proper parentKeys, no more positional child fishing) [mainline]
+  * fix: `UIParentLoadAddOn` removed client-wide in 12.1 — debug-tools loader now uses `DebugTools_LoadUI` with a `C_AddOns.LoadAddOn` fallback [mainline]
+  * fix: chat-config swatch hook nil-called on 12.1's new Discord color template, aborting chat settings; unknown swatch templates now degrade to stock [mainline]
+  * fix: chat editbox header recolor silently dead since the convergence — Blizzard calls the `ChatFrameEditBoxMixin` method, not the deprecated global; rehooked mixin-copy-aware (table + existing instances) on classic and Mainline [shared]
+  * fix: quest-item bag highlight silently dead — `LE_ITEM_CLASS_QUESTITEM` no longer exists on any current client; replaced with `Enum.ItemClass.Questitem` on classic and Mainline [shared]
+  * fix: `CovenantCallingsHeaderTemplate` lost `HighlightBackground` in 11.x — use `HighlightTexture` and guard unskinned calling headers [mainline]
+  * fix: House Editor dye widgets follow their 12.1 move under `CustomizeComponentContainer` [mainline]
+
+
+## [12.0.7.2] ##
 ### Fixed ###
 
   * fix: remove CooldownViewer grid-padding hook - writing childXPadding/oldGridSettings from addon context tainted the CDM and caused mass secret-value errors at raid-end cinematics [mainline]
@@ -664,7 +697,8 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.0.7.2...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.0...develop
+[12.1.0.0]: https://github.com/Gethe/Aurora/compare/12.0.7.2...12.1.0.0
 [12.0.7.2]: https://github.com/Gethe/Aurora/compare/12.0.7.1...12.0.7.2
 [12.0.7.1]: https://github.com/Gethe/Aurora/compare/12.0.7.0...12.0.7.1
 [12.0.7.0]: https://github.com/Gethe/Aurora/compare/12.0.5.13...12.0.7.0
