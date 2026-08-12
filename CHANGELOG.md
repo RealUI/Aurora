@@ -1,4 +1,10 @@
-﻿## [12.1.0.0] ##
+﻿## [12.1.0.1] ##
+### Fixed ###
+
+  * fix: CropIcon secret-layer fallback goes to BACKGROUND - ARTWORK painted the border over BORDER-layer aura icons
+
+
+## [12.1.0.0] ##
 ### Added ###
 
   * add: **Social UI skins** for the 12.1 social hub (`SocialUIFrame`, replaces FriendsFrame when Blizzard enables the system) — new `Blizzard_SocialUI` and `Blizzard_SocialUIShared` modules: hub frame, BattleNet bar, pooled side tabs, all six tab content frames (Friends/Recent Allies/Quick Join/Friend Requests/Recruit-a-Friend/Raid), ignore list, broadcast and unavailable-notice dialogs; the existing FriendsFrame skin is untouched and both UIs coexist [mainline]
@@ -697,7 +703,8 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.0...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.1...develop
+[12.1.0.1]: https://github.com/Gethe/Aurora/compare/12.1.0.0...12.1.0.1
 [12.1.0.0]: https://github.com/Gethe/Aurora/compare/12.0.7.2...12.1.0.0
 [12.0.7.2]: https://github.com/Gethe/Aurora/compare/12.0.7.1...12.0.7.2
 [12.0.7.1]: https://github.com/Gethe/Aurora/compare/12.0.7.0...12.0.7.1
