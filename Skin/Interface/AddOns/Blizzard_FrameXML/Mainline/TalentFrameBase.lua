@@ -36,9 +36,16 @@ do --[[ FrameXML\TalentFrameBase.lua ]]
                         local color = _G.ITEM_QUALITY_COLORS[_G.Enum.ItemQuality.Legendary]
                         button._auroraIconBG:SetColorTexture(color.r, color.g, color.b)
                     elseif talentInfo.selected then
+                        -- Inspected unit's class can be secret in combat (WoW 12);
+                        -- indexing with a secret key throws — fall back to black.
                         local _, class = _G.UnitClass(talentUnit)
-                        local color = _G.CUSTOM_CLASS_COLORS[class]
-                        button._auroraIconBG:SetColorTexture(color:GetRGB())
+                        local color = class and not _G.issecretvalue(class)
+                            and _G.CUSTOM_CLASS_COLORS[class]
+                        if color then
+                            button._auroraIconBG:SetColorTexture(color:GetRGB())
+                        else
+                            button._auroraIconBG:SetColorTexture(Color.black:GetRGB())
+                        end
                     else
                         button._auroraIconBG:SetColorTexture(Color.black:GetRGB())
                     end

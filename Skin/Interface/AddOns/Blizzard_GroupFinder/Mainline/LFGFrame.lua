@@ -168,10 +168,14 @@ do
 
             local unit = prefix .. i
             if _G.UnitHasLFGDeserter(unit) or (self.showCooldown and _G.UnitHasLFGRandomCooldown(unit)) or self.showAll then
-                local _, classToken = _G.UnitName(unit)
+                -- Was UnitName's second return (the REALM) used as a class token —
+                -- the recolor never fired. Correct API + WoW 12 secret guards.
+                local _, classToken = _G.UnitClass(unit)
+                if _G.issecretvalue(classToken) then classToken = nil end
                 local classColor = classToken and _G.CUSTOM_CLASS_COLORS[classToken]
-                if classColor then
-                    self.Names[nextIndex]:SetFormattedText("|c%s%s|r", classColor.colorStr, _G.GetUnitName(unit, true))
+                local name = _G.GetUnitName(unit, true)
+                if classColor and name and not _G.issecretvalue(name) then
+                    self.Names[nextIndex]:SetFormattedText("|c%s%s|r", classColor.colorStr, name)
                 end
                 nextIndex = nextIndex + 1
             end

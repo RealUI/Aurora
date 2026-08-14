@@ -22,10 +22,16 @@ do --[[ FrameXML\RaidFinder.lua ]]
             if _G.UnitHasLFGDeserter(unit) and not _G.UnitIsUnit(unit, "player") then
                 cooldowns = cooldowns + 1
                 if cooldowns <= _G.MAX_RAID_FINDER_COOLDOWN_NAMES then
+                    -- WoW 12 combat: guard secret class token (table index) and
+                    -- secret name (SetFormattedText) — skip recolor when withheld.
+                    -- Shared file: also loads on Mists, where issecretvalue is nil.
+                    local isSecret = _G.issecretvalue or function() return false end
                     local _, classToken = _G.UnitClass(unit)
+                    if isSecret(classToken) then classToken = nil end
                     local classColor = classToken and _G.CUSTOM_CLASS_COLORS[classToken]
-                    if classColor then
-                        _G["RaidFinderQueueFrameCooldownFrameName" .. cooldowns]:SetFormattedText("|c%s%s|r", classColor.colorStr, _G.UnitName(unit))
+                    local name = _G.UnitName(unit)
+                    if classColor and name and not isSecret(name) then
+                        _G["RaidFinderQueueFrameCooldownFrameName" .. cooldowns]:SetFormattedText("|c%s%s|r", classColor.colorStr, name)
                     end
                 end
             end

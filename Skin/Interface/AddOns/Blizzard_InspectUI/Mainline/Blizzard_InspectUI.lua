@@ -14,7 +14,10 @@ local Color, Util = Aurora.Color, Aurora.Util
 do --[[ AddOns\Blizzard_InspectUI.lua ]]
     do --[[ InspectPaperDollFrame.lua ]]
         function Hook.InspectPaperDollFrame_OnShow()
+            -- Inspected unit's class can be secret in combat (WoW 12); a secret
+            -- string throws on concat. Skip the class background when withheld.
             local _, classToken = _G.UnitClass(_G.InspectFrame.unit)
+            if not classToken or _G.issecretvalue(classToken) then return end
             _G.InspectPaperDollFrame._classBG:SetAtlas("dressingroom-background-"..classToken)
         end
         function Hook.InspectPaperDollItemSlotButton_Update(button)

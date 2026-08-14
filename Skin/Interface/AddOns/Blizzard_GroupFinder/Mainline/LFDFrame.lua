@@ -14,9 +14,16 @@ do --[[ FrameXML\LFDFrame.lua ]]
         for i = 1, _G.GetNumSubgroupMembers() do
             local nameLabel = _G["LFDQueueFrameCooldownFrameName"..i]
 
+            -- Class token and name can be secret in combat (WoW 12): secret keys
+            -- throw on table index, secret strings throw in SetFormattedText.
+            -- When withheld, leave Blizzard's own label untouched.
             local _, classFilename = _G.UnitClass("party"..i)
-            local classColor = classFilename and _G.CUSTOM_CLASS_COLORS[classFilename] or _G.NORMAL_FONT_COLOR
-            nameLabel:SetFormattedText("|cff%.2x%.2x%.2x%s|r", classColor.r * 255, classColor.g * 255, classColor.b * 255, _G.GetUnitName("party"..i, true))
+            if _G.issecretvalue(classFilename) then classFilename = nil end
+            local name = _G.GetUnitName("party"..i, true)
+            if name and not _G.issecretvalue(name) then
+                local classColor = classFilename and _G.CUSTOM_CLASS_COLORS[classFilename] or _G.NORMAL_FONT_COLOR
+                nameLabel:SetFormattedText("|cff%.2x%.2x%.2x%s|r", classColor.r * 255, classColor.g * 255, classColor.b * 255, name)
+            end
         end
     end
 end
