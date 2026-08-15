@@ -88,7 +88,30 @@ function private.SharedXML.SharedTooltipTemplates()
     -- numbers, breaking Round() arithmetic at SharedTooltipTemplates.lua:202.
     -- securecallfunction does NOT help — secret values error on ANY
     -- arithmetic regardless of context.  Use SafeNumber for all tooltips.
-    if _G.GameTooltip_InsertFrame then
+    --
+    -- COST OF OWNING THIS GLOBAL: an addon-written global is tainted for every
+    -- secure reader.  Blizzard_ItemUpgradeUI.lua:867 reads it inside
+    -- PlayUpgradedCelebration(), one line before C_ItemUpgrade.UpgradeItem(),
+    -- so the upgrade is blocked whenever an item's effect text is tall enough
+    -- to hit the truncation branch.
+    --
+    -- The replacement differs from Blizzard's original in TWO ways:
+    --   1. SafeNumber() around the two Round() inputs (the documented reason)
+    --   2. a nil-guard on GetLeftLine(2) — Blizzard indexes it unconditionally
+    --      and errors on any tooltip with fewer than two lines (undocumented,
+    --      and the likelier reason this was ever needed; cf. LootHistory)
+    --
+    -- /aurora insertframe flips devRestoreInsertFrame to run Blizzard's
+    -- original, so the surfaces at risk (LootHistory "all passed", Professions
+    -- reagent/reward, delve widget sets, Garrison mission threats, quest-offer
+    -- map pins, trinket item upgrades) can be exercised to find out which of
+    -- those two differences is actually load-bearing.
+    local restoreOriginal = _G.AuroraConfig and _G.AuroraConfig.devRestoreInsertFrame
+    if restoreOriginal then
+        _G.print("|cffffcc00Aurora:|r GameTooltip_InsertFrame replacement DISABLED (/aurora insertframe).")
+    end
+
+    if _G.GameTooltip_InsertFrame and not restoreOriginal then
         _G.GameTooltip_InsertFrame = function(tooltipFrame, frame, verticalPadding)
             verticalPadding = verticalPadding or 0
 

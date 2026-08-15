@@ -1016,6 +1016,27 @@ _G.SlashCmdList.AURORA = function(msg, editBox)
         _G.print("  |cffffffff/aurora debug|r - Display debug information")
         _G.print("  |cffffffff/aurora status|r - Show system status")
         _G.print("  |cffffffff/aurora reset|r - Reset configuration to defaults and reload UI")
+        _G.print("  |cffffffff/aurora insertframe|r - DEV: toggle the GameTooltip_InsertFrame replacement")
+    elseif msg == "insertframe" then
+        -- DEV A/B: Aurora replaces the global GameTooltip_InsertFrame, which
+        -- taints it for every secure reader and blocks C_ItemUpgrade.UpgradeItem().
+        -- Toggle it off to test whether the replacement is still required.
+        local config = _G.AuroraConfig
+        if not config then
+            _G.print("|cffff0000Aurora:|r Configuration not loaded.")
+            return
+        end
+
+        config.devRestoreInsertFrame = not config.devRestoreInsertFrame
+
+        if config.devRestoreInsertFrame then
+            _G.print("|cff00a0ffAurora:|r GameTooltip_InsertFrame — using |cff00ff00Blizzard's original|r (global untainted).")
+            _G.print("  Exercise: LootHistory \"all passed\", Professions reagent/reward, delve widget")
+            _G.print("  sets, Garrison mission threats, quest-offer map pins, trinket item upgrade.")
+        else
+            _G.print("|cff00a0ffAurora:|r GameTooltip_InsertFrame — using |cffffcc00Aurora's replacement|r (global tainted).")
+        end
+        _G.print("|cffffcc00Please type |r|cffffffff/reload|r|cffffcc00 to apply changes.|r")
     elseif msg == "reset" then
         -- Reset configuration to defaults and reload UI
         _G.print("|cff00a0ffAurora:|r Resetting configuration to defaults...")

@@ -48,6 +48,12 @@ Config.defaults = {
 
     -- Color mode preset: controls neutral palette and class color highlight boost
     colorMode = "Normal",
+
+    -- DEV: run Blizzard's original GameTooltip_InsertFrame instead of Aurora's
+    -- replacement.  Aurora owning that global taints it for every secure
+    -- reader, which blocks C_ItemUpgrade.UpgradeItem().  Toggle with
+    -- /aurora insertframe to A/B whether the replacement is still needed.
+    devRestoreInsertFrame = false,
 }
 
 -- Deprecated settings mapping for migration
