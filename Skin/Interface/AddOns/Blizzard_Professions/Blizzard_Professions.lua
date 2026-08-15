@@ -301,11 +301,25 @@ function private.AddOns.Blizzard_Professions()
         end
     end
 
+    -- Blizzard's ProfessionSpecTabMixin:SetState anchors the lock/state icon to
+    -- Text's RIGHT edge. Aurora's tab skin sets Text to fill the whole tab, so
+    -- that anchor lands on the tab's edge and the lock bleeds into the next tab.
+    -- Re-anchor it inside the tab after every SetState.
+    local function SpecTabSetState(tab)
+        if tab.StateIcon and tab.StateIcon:IsShown() then
+            tab.StateIcon:ClearAllPoints()
+            tab.StateIcon:SetPoint("RIGHT", tab, "RIGHT", -6, 0)
+        end
+    end
     local function SkinSpecTab(tab)
         if tab._auroraSkinned then return end
         tab._auroraSkinned = true
         Skin.TabSystemButtonTemplate(tab)
         if tab.BottomBorderGlow then tab.BottomBorderGlow:SetAlpha(0) end
+        if tab.SetState then
+            _G.hooksecurefunc(tab, "SetState", SpecTabSetState)
+            SpecTabSetState(tab)
+        end
     end
     if SpecPage.ButtonsParent then
         for _, child in ipairs({SpecPage.ButtonsParent:GetChildren()}) do
