@@ -125,7 +125,9 @@ do --[[ AddOns\Blizzard_AchievementUI.lua ]]
             numResults = 6
         end
 
-        _G.AchievementFrame.SearchPreviewContainer:SetPoint("BOTTOM", _G.AchievementFrame.SearchBox, 0, -(numResults * SearchPreviewButtonHieght))
+        -- 12.1: the search box (and its preview container) moved to AchievementFrame.HeaderDetails.Filters
+        local SearchBox = _G.AchievementFrame.HeaderDetails.Filters.SearchBox
+        SearchBox.SearchPreviewContainer:SetPoint("BOTTOM", SearchBox, 0, -(numResults * SearchPreviewButtonHieght))
     end
 end
 
@@ -473,8 +475,7 @@ function private.AddOns.Blizzard_AchievementUI()
         top = 2,
         bottom = 2,
     })
-    AchievementFrame.Background:Hide()
-    AchievementFrame.BackgroundBlackCover:Hide()
+    AchievementFrame.Background:Hide() -- 12.1: now a rock atlas; BackgroundBlackCover was removed
     local bg = AchievementFrame:GetBackdropTexture("bg")
 
     _G.AchievementFrameMetalBorderLeft:Hide()
@@ -511,8 +512,7 @@ function private.AddOns.Blizzard_AchievementUI()
 
     Header.PointBorder:Hide()
     Header.Title:Hide()
-    Header.LeftDDLInset:SetAlpha(0)
-    Header.RightDDLInset:SetAlpha(0)
+    Header.RightDDLInset:SetAlpha(0) -- 12.1: LeftDDLInset was removed
     Header.Points:SetParent(AchievementFrame)
     Header.Points:SetPoint("TOP", bg)
     Header.Points:SetPoint("BOTTOM", bg, "TOP", 0, -private.FRAME_TITLE_HEIGHT)
@@ -631,20 +631,19 @@ function private.AddOns.Blizzard_AchievementUI()
         _G.AchievementFrameTab3,
     })
 
-    local SearchBox = AchievementFrame.SearchBox
+    -- 12.1: search box and filter dropdown moved into a HorizontalLayoutFrame at
+    -- AchievementFrame.HeaderDetails.Filters — leave positioning to the layout
+    -- (comparison mode re-anchors the search box itself).
+    local HeaderDetails = AchievementFrame.HeaderDetails
+    HeaderDetails.TopTileStreaks:Hide()
+    Skin.UIPanelButtonTemplate(HeaderDetails.Back)
+
+    local SearchBox = HeaderDetails.Filters.SearchBox
     Skin.SearchBoxTemplate(SearchBox)
-    SearchBox:ClearAllPoints()
-    SearchBox:SetPoint("TOPRIGHT", bg, -148, 0)
 
-    local AchievementFrameFilterDropdown = _G.AchievementFrameFilterDropdown
-    Skin.DropdownButton(AchievementFrameFilterDropdown)
-    AchievementFrameFilterDropdown.resizeToText = false
-    AchievementFrameFilterDropdown:SetParent(AchievementFrame)
-    AchievementFrameFilterDropdown:SetPoint("TOPLEFT", bg, 25, -4)
-    AchievementFrameFilterDropdown:SetHeight(16)
-    AchievementFrameFilterDropdown:SetWidth(60)
+    Skin.DropdownButton(HeaderDetails.Filters.FilterDropdown)
 
-    local SearchPreview = AchievementFrame.SearchPreviewContainer
+    local SearchPreview = SearchBox.SearchPreviewContainer
     Skin.FrameTypeFrame(SearchPreview)
     SearchPreview.Background:Hide()
     SearchPreview.BorderAnchor:Hide()
