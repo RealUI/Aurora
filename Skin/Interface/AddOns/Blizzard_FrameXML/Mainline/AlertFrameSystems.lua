@@ -553,16 +553,27 @@ do --[[ FrameXML\AlertFrameSystems.xml ]]
     end
 
     -- HousingItemEarned: decorative housing frame with leaves + Icon
+    -- Shared by HousingItemEarned and InitiativeTaskComplete: hide the decorative
+    -- frame art plus the ADD-mode effect layers (Glow/LightRays/Sparkles) that the
+    -- SetUp animations flash over the toast on every acquire.
+    local function HideHousingToastArt(frame)
+        frame.Background:Hide()
+        frame.Border:Hide()
+        frame.LeafTL:Hide()
+        frame.LeafL:Hide()
+        frame.LeafBL:Hide()
+        frame.LeafTR:Hide()
+        frame.LeafBR:Hide()
+        frame.Glow:Hide()
+        frame.LightRays:Hide()
+        frame.LightRays2:Hide()
+        frame.Sparkles:Hide()
+        frame.Divider:Hide()
+    end
     function Skin.HousingItemEarnedAlertFrameTemplate(frame)
         if not frame._auroraTemplate then
             Skin.FrameTypeFrame(frame)
-            frame.Background:Hide()
-            frame.Border:Hide()
-            frame.LeafTL:Hide()
-            frame.LeafL:Hide()
-            frame.LeafBL:Hide()
-            frame.LeafTR:Hide()
-            frame.LeafBR:Hide()
+            HideHousingToastArt(frame)
             Base.CropIcon(frame.Icon, frame)
             frame._auroraTemplate = "HousingItemEarnedAlertFrameTemplate"
         end
@@ -572,13 +583,7 @@ do --[[ FrameXML\AlertFrameSystems.xml ]]
     function Skin.InitiativeTaskCompleteAlertFrameTemplate(frame)
         if not frame._auroraTemplate then
             Skin.FrameTypeFrame(frame)
-            frame.Background:Hide()
-            frame.Border:Hide()
-            frame.LeafTL:Hide()
-            frame.LeafL:Hide()
-            frame.LeafBL:Hide()
-            frame.LeafTR:Hide()
-            frame.LeafBR:Hide()
+            HideHousingToastArt(frame)
             frame._auroraTemplate = "InitiativeTaskCompleteAlertFrameTemplate"
         end
     end
