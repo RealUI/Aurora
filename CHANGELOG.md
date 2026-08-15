@@ -1,4 +1,18 @@
-﻿## [12.1.0.1] ##
+﻿## [12.1.0.2] ##
+### Added ###
+
+  * add: `/aurora insertframe` — dev toggle (`AuroraConfig.devRestoreInsertFrame`, default off) that runs Blizzard's original `GameTooltip_InsertFrame` instead of Aurora's replacement, so the surfaces relying on the replacement can be A/B tested; prints a load-time notice while active [mainline]
+
+### Changed ###
+
+  * chg: README documents the embedded-host caveat — `gui.lua` is only loaded when Aurora runs standalone, so `/aurora` and its subcommands do not exist in hosts that embed just the skin XML (e.g. RealUI_Skins, which mirrors the toggle as `/auroraInsertFrame`)
+
+### Known Issues ###
+
+  * Aurora replaces the global `GameTooltip_InsertFrame`, which taints it for every secure reader. `Blizzard_ItemUpgradeUI` reads it inside `PlayUpgradedCelebration()` one line before `C_ItemUpgrade.UpgradeItem()`, so item upgrades are blocked with `ADDON_ACTION_FORBIDDEN` whenever an item's effect text is long enough to reach the tooltip truncation branch (trinkets in practice). The replacement guards two things Blizzard's original does not — `SafeNumber()` on the `Round()` inputs, and a nil-guard on `GetLeftLine(2)` — and the toggle above exists to determine which, if either, is still required before it can be removed [mainline]
+
+
+## [12.1.0.1] ##
 ### Fixed ###
 
   * fix: CropIcon secret-layer fallback goes to BACKGROUND - ARTWORK painted the border over BORDER-layer aura icons
@@ -703,7 +717,8 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.1...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.2...develop
+[12.1.0.2]: https://github.com/Gethe/Aurora/compare/12.1.0.1...12.1.0.2
 [12.1.0.1]: https://github.com/Gethe/Aurora/compare/12.1.0.0...12.1.0.1
 [12.1.0.0]: https://github.com/Gethe/Aurora/compare/12.0.7.2...12.1.0.0
 [12.0.7.2]: https://github.com/Gethe/Aurora/compare/12.0.7.1...12.0.7.2

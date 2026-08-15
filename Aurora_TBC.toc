@@ -3,7 +3,7 @@
 ## Title: Aurora
 ## Notes: Minimalistic window theme.
 ## Author: Haleth/Lightsword, Gethe, Hanshi/arnvid
-## Version: 12.1.0.1
+## Version: 12.1.0.2
 ## RequiredDeps: Blizzard_Deprecated, Blizzard_DeprecatedCurrencyScript, Blizzard_DeprecatedGuildScript, Blizzard_DeprecatedItemScript, Blizzard_DeprecatedPvpScript, Blizzard_DeprecatedSoundScript, Blizzard_DeprecatedSpellScript
 ## OptionalDeps: Ace3, LibTextDump-1.0, BugSack, WagoAnalytics
 ## SavedVariables: AuroraConfig
