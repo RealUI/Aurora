@@ -1,4 +1,30 @@
-﻿## [12.1.0.2] ##
+﻿## [12.1.0.3] ##
+### Added ###
+
+  * add: **Blizzard_TieredEntranceTraits** module — the scenario/delve trait flyout: container chrome, themed overlay and flyout arrow suppressed, spell buttons cropped and backdropped, tooltip and tier rows restyled [mainline]
+  * add: at-war factions are tinted red in the reputation list again — the pre-ScrollBox skin signalled it with a red row backdrop, and 12.x rows have none, so the faction name carries the indication instead (re-applied on every row `Initialize`, since the ScrollBox recycles rows across factions) [mainline]
+
+### Changed ###
+
+  * chg: skinned-state tracking moved from an `_auroraSkinned` field on the widget to a weak-keyed side table (`private.IsSkinned` / `private.SetSkinned`). Writing to a Blizzard frame's table taints it, and that taint can bleed into secure paths whenever the table is iterated or copied (frame pool reset, `Mixin`, `CopyTable`); weak keys let entries drop with the frame. Applied across the whole skin surface — the same approach `Blizzard_CooldownViewer` and `Blizzard_UIWidgets` already used [shared]
+
+### Fixed ###
+
+  * fix: AchievementFrame skin errored at load on 12.1 (`BackgroundBlackCover` removed), leaving the whole frame unskinned — skin updated for the 12.1 header restructure: search box, filter dropdown, and search preview moved to `AchievementFrame.HeaderDetails.Filters`, `AchievementFrameFilterDropdown` global and `LeftDDLInset` removed; new `HeaderDetails` back button skinned and `TopTileStreaks` hidden; box/dropdown positioning left to Blizzard's layout frame (comparison mode re-anchors it) [mainline]
+  * fix: reputation rows rendered completely unskinned on 12.x — the frame moved to a ScrollBox, so the four `ReputationFrame_*` globals Aurora hooked and the `ReputationBar1..N` loop were both silent no-ops; rows are now skinned through the `ReputationHeader`/`ReputationEntry`/`ReputationSubHeader` template mixins, and the reputation bar's leftover end caps, background fill, and highlight regions are hidden [mainline]
+  * fix: bag and vendor item buttons kept Blizzard's rounded quality border on top of Aurora's square one — `Hook.SetItemButtonQuality` only catches callers of the global, and most 12.x callers use the mixin method; the border is now hidden from `SetItemButtonBorder_Base`, the single choke point every path converges on, and re-hidden per call since Blizzard re-shows it on each quality update [mainline]
+  * fix: masked icons (Giant/Circular item buttons, action bar icons) were never cropped square — the client refuses `SetTexCoord` on a masked texture and `Base.CropIcon`'s `pcall` swallowed the refusal, so icons silently stayed rounded; `CropIcon` now drops the masks first, keeping the `pcall` only for textures that refuse for other reasons [shared]
+  * fix: dropdown menu backgrounds followed Frame Opacity all the way down (0.2 by default), making popups unreadable over world content — menu background alpha is now floored at 0.9 while still tracking the frame colour [mainline]
+  * fix: talent-derived frames (class/spec trees, hero talents, generic trait UIs) had no background — `Base.StripBlizzardTextures` ran *after* `Skin.FrameTypeFrame` and wiped the backdrop regions it had just created; the strip now runs first [mainline]
+  * fix: housing item-earned and endeavor task-complete toasts still showed the ornate gold border — the `housing-item-toast-glow`/lightrays/sparkles ADD-layers that `SetUp` animates on every acquire are now hidden along with the frame art and divider [mainline]
+  * fix: profession specialization tab lock icon overflowed into the neighbouring tab — Blizzard anchors it to the Text's right edge, which Aurora's tab skin stretches to the full tab width; the icon is re-anchored inside the tab on every `SetState` [mainline]
+
+### Known Issues ###
+
+  * The `GameTooltip_InsertFrame` taint described under 12.1.0.2 is unchanged — `/aurora insertframe` remains the A/B toggle for it [mainline]
+
+
+## [12.1.0.2] ##
 ### Added ###
 
   * add: `/aurora insertframe` — dev toggle (`AuroraConfig.devRestoreInsertFrame`, default off) that runs Blizzard's original `GameTooltip_InsertFrame` instead of Aurora's replacement, so the surfaces relying on the replacement can be A/B tested; prints a load-time notice while active [mainline]
@@ -717,7 +743,8 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.2...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.3...develop
+[12.1.0.3]: https://github.com/Gethe/Aurora/compare/12.1.0.2...12.1.0.3
 [12.1.0.2]: https://github.com/Gethe/Aurora/compare/12.1.0.1...12.1.0.2
 [12.1.0.1]: https://github.com/Gethe/Aurora/compare/12.1.0.0...12.1.0.1
 [12.1.0.0]: https://github.com/Gethe/Aurora/compare/12.0.7.2...12.1.0.0
