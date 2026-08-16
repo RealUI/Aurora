@@ -9,6 +9,9 @@ local Aurora = private.Aurora
 local Skin = Aurora.Skin
 local Color = Aurora.Color
 
+-- Minimum background opacity for popup menus, regardless of Frame Opacity.
+local MENU_MIN_ALPHA = 0.9
+
 do --[[ FrameXML\UIDropDownMenu.xml ]]
     do --[[ UIDropDownMenuTemplates.xml ]]
         function Skin.MenuVariants1(Button)
@@ -35,12 +38,20 @@ function private.AddOns.Blizzard_Menu()
     -- Safe alternative: recolor the Blizzard-created background texture via the widget
     -- API (SetColorTexture). This does not write to the frame's Lua table and is safe.
     _G.hooksecurefunc(_G.MenuStyle1Mixin, "Generate", function(self)
+        -- Color.frame carries the user's Frame Opacity setting (0.2 by
+        -- default). That reads fine on a large panel, but a dropdown is a
+        -- transient popup drawn over arbitrary world and UI content — at 0.2
+        -- the entries are unreadable, which is what Blizzard's opaque
+        -- common-dropdown-bg atlas was providing. Floor the alpha so menus
+        -- stay legible while still following the frame colour.
+        local alpha = _G.math.max(Color.frame.a or 1, MENU_MIN_ALPHA)
+
         for _, region in ipairs({ self:GetRegions() }) do
             if region:IsObjectType("Texture") and region:GetAtlas() == "common-dropdown-bg" then
                 -- Replace the atlas with a solid Aurora frame color.
                 -- SetColorTexture on a Blizzard-created texture is widget-API only —
                 -- no Lua table write to the parent frame, no taint.
-                region:SetColorTexture(Color.frame.r, Color.frame.g, Color.frame.b, Color.frame.a)
+                region:SetColorTexture(Color.frame.r, Color.frame.g, Color.frame.b, alpha)
             end
         end
     end)
