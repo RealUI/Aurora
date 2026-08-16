@@ -341,4 +341,26 @@ end
 
 function private.FrameXML.ItemButtonTemplate()
     _G.hooksecurefunc("SetItemButtonQuality", Hook.SetItemButtonQuality)
+
+    -- The hook above only catches callers of the GLOBAL SetItemButtonQuality.
+    -- Most 12.x callers use the mixin method instead — e.g. MerchantFrame.lua
+    -- `self.ItemButton:SetItemButtonQuality(...)` — which reaches
+    -- SetItemButtonQuality_Base directly and never touches that global. The
+    -- IconBorder:Hide() inside Hook.SetItemButtonQuality therefore never ran
+    -- for bag and vendor buttons, leaving Blizzard's rounded WhiteIconFrame
+    -- quality border on top of Aurora's square one.
+    --
+    -- SetItemButtonBorder_Base is the single choke point: it is the only place
+    -- IconBorder:SetShown is called, it is a global, and no mixin overrides
+    -- SetItemButtonBorder, so every path converges here. It also re-shows the
+    -- border on each quality update, so this must re-hide per call rather than
+    -- once at skin time.
+    if _G.SetItemButtonBorder_Base then
+        _G.hooksecurefunc("SetItemButtonBorder_Base", function(button)
+            -- Only buttons Aurora has claimed; leave unskinned ones alone.
+            if button and button._auroraIconBorder and button.IconBorder then
+                button.IconBorder:Hide()
+            end
+        end)
+    end
 end
