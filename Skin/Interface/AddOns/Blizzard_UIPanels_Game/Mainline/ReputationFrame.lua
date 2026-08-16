@@ -38,6 +38,29 @@ do --[[ FrameXML\ReputationFrame.lua ]]
         end
     end
 
+    -- At-war factions used to get a red row backdrop, via the pre-ScrollBox
+    -- Hook.ReputationFrame_InitReputationRow. Rows are flat now with no
+    -- backdrop to colour, and Blizzard gives no list-side indication at all,
+    -- so tint the faction name instead. elementData.atWarWith is what the
+    -- detail pane's AtWarCheckbox reads.
+    function Hook.UpdateReputationEntryState(row)
+        local Content = row.Content
+        local Name = Content and Content.Name
+        if not Name then return end
+
+        local elementData = row.elementData
+        if elementData and elementData.atWarWith then
+            Name:SetTextColor(Color.red:GetRGB())
+        else
+            -- Restore whatever the template's font object specifies rather
+            -- than hardcoding a colour; headers and entries differ.
+            local fontObject = Name:GetFontObject()
+            if fontObject then
+                Name:SetTextColor(fontObject:GetTextColor())
+            end
+        end
+    end
+
     local hasShown = false
     function Hook.ReputationFrame_Update(self)
         if not hasShown then
@@ -231,7 +254,7 @@ function private.FrameXML.ReputationFrame()
     -- data refresh, so skin once per frame and let the guard absorb the rest.
     -- Hooking the mixin tables works because the ScrollBox creates its rows
     -- lazily, after this runs.
-    local function HookRowMixin(mixin, skinFunc)
+    local function HookRowMixin(mixin, skinFunc, stateFunc)
         if not mixin or not mixin.Initialize or not skinFunc then return end
 
         _G.hooksecurefunc(mixin, "Initialize", function(row)
@@ -239,10 +262,17 @@ function private.FrameXML.ReputationFrame()
                 private.SetSkinned(row, true)
                 skinFunc(row)
             end
+
+            -- Structure is skinned once, but per-faction state has to be
+            -- re-applied on every Initialize: the ScrollBox reuses rows, so a
+            -- given frame shows a different faction after each data refresh.
+            if stateFunc then
+                stateFunc(row)
+            end
         end)
     end
 
     HookRowMixin(_G.ReputationHeaderMixin, Skin.ReputationHeaderTemplate)
-    HookRowMixin(_G.ReputationEntryMixin, Skin.ReputationEntryTemplate)
-    HookRowMixin(_G.ReputationSubHeaderMixin, Skin.ReputationSubHeaderTemplate)
+    HookRowMixin(_G.ReputationEntryMixin, Skin.ReputationEntryTemplate, Hook.UpdateReputationEntryState)
+    HookRowMixin(_G.ReputationSubHeaderMixin, Skin.ReputationSubHeaderTemplate, Hook.UpdateReputationEntryState)
 end
