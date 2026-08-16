@@ -86,6 +86,59 @@ do --[[ FrameXML\ReputationFrame.xml ]]
         end
     end
 
+    -- 12.x row templates. The frame moved to a ScrollBox whose rows come from
+    -- ReputationHeaderTemplate / ReputationEntryTemplate / ReputationSubHeader-
+    -- Template, so the legacy ReputationBar1..N buttons below no longer exist.
+    function Skin.ReputationHeaderTemplate(Button)
+        -- Options_ListExpand_* trio, same as the Housing list headers. Guarded
+        -- because the shared helper lives in another module's file.
+        if Skin.ListHeaderThreeSliceTemplate then
+            Skin.ListHeaderThreeSliceTemplate(Button)
+        end
+
+        for _, region in _G.next, (Button.HighlightTextureRegions or {}) do
+            region:SetAlpha(0)
+        end
+
+        Base.SetBackdrop(Button, Color.button)
+    end
+
+    function Skin.ReputationEntryTemplate(Button)
+        local Content = Button.Content
+        if not Content then return end
+
+        local ReputationBar = Content.ReputationBar
+        if ReputationBar then
+            Skin.FrameTypeStatusBar(ReputationBar)
+
+            -- ReputationBarTemplate is a StatusBar now, but it still carries
+            -- the UI-Character-ReputationBar end caps and a Background fill.
+            -- Without hiding these the bar keeps Blizzard's rounded ends and
+            -- gradient — the same regions the pre-ScrollBox skin dealt with.
+            if ReputationBar.LeftTexture then ReputationBar.LeftTexture:Hide() end
+            if ReputationBar.RightTexture then ReputationBar.RightTexture:Hide() end
+            if ReputationBar.Background then ReputationBar.Background:SetAlpha(0) end
+
+            -- Present on the old template; keep the guards in case they return.
+            if ReputationBar.Highlight1 then ReputationBar.Highlight1:SetAlpha(0) end
+            if ReputationBar.Highlight2 then ReputationBar.Highlight2:SetAlpha(0) end
+            if ReputationBar.AtWarHighlight1 then ReputationBar.AtWarHighlight1:SetAlpha(0) end
+            if ReputationBar.AtWarHighlight2 then ReputationBar.AtWarHighlight2:SetAlpha(0) end
+        end
+
+        -- charactercreate-customize-dropdown-linemouseover-* three-slice
+        local BackgroundHighlight = Content.BackgroundHighlight
+        if BackgroundHighlight then
+            for _, region in _G.next, (BackgroundHighlight.TextureRegions or {}) do
+                region:SetAlpha(0)
+            end
+        end
+    end
+
+    -- ReputationSubHeaderTemplate inherits ReputationEntryTemplate, so its
+    -- Content/ReputationBar layout is identical.
+    Skin.ReputationSubHeaderTemplate = Skin.ReputationEntryTemplate
+
     function Skin.ReputationBarTemplate(Button)
         Skin.FrameTypeButton(Button, OnEnter, OnLeave)
         Button:SetBackdropOption("offsets", {
@@ -148,6 +201,10 @@ function private.FrameXML.ReputationFrame()
     Skin.UICheckButtonTemplate(ReputationDetailFrame.WatchFactionCheckbox)
     Skin.UIPanelButtonTemplate(ReputationDetailFrame.ViewRenownButton)
 
+    -- Legacy pre-ScrollBox path. The four ReputationFrame_* globals hooked
+    -- here are gone in 12.x, and NUM_FACTIONS_DISPLAYED with them, so the
+    -- guarded hooks and the ReputationBar1..N loop below were both silent
+    -- no-ops — which is why rows rendered completely unskinned.
     if _G.ReputationFrame_OnShow then
         _G.hooksecurefunc("ReputationFrame_OnShow", Hook.ReputationFrame_OnShow)
     end
@@ -169,4 +226,23 @@ function private.FrameXML.ReputationFrame()
             private.SetSkinned(factionRow, true)
         end
     end
+
+    -- 12.x path: rows are pooled by the ScrollBox and re-Initialize'd on every
+    -- data refresh, so skin once per frame and let the guard absorb the rest.
+    -- Hooking the mixin tables works because the ScrollBox creates its rows
+    -- lazily, after this runs.
+    local function HookRowMixin(mixin, skinFunc)
+        if not mixin or not mixin.Initialize or not skinFunc then return end
+
+        _G.hooksecurefunc(mixin, "Initialize", function(row)
+            if not private.IsSkinned(row) then
+                private.SetSkinned(row, true)
+                skinFunc(row)
+            end
+        end)
+    end
+
+    HookRowMixin(_G.ReputationHeaderMixin, Skin.ReputationHeaderTemplate)
+    HookRowMixin(_G.ReputationEntryMixin, Skin.ReputationEntryTemplate)
+    HookRowMixin(_G.ReputationSubHeaderMixin, Skin.ReputationSubHeaderTemplate)
 end
