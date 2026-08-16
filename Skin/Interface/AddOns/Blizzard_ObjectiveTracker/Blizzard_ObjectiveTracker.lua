@@ -333,4 +333,8 @@ function private.AddOns.Blizzard_ObjectiveTracker()
     if _G.ScenarioObjectiveTracker.MawBuffsBlock then
         Skin.MawBuffsContainer(_G.ScenarioObjectiveTracker.MawBuffsBlock.Container)
     end
+    -- Midnight's equivalent of MawBuffsBlock, shown in scenario/delve content.
+    if _G.ScenarioObjectiveTracker.TieredEntranceTraitsBlock and Skin.TieredEntranceTraitsContainer then
+        Skin.TieredEntranceTraitsContainer(_G.ScenarioObjectiveTracker.TieredEntranceTraitsBlock.Container)
+    end
 end

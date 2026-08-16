@@ -1,4 +1,12 @@
-﻿## [12.1.0.2] ##
+﻿## [Unreleased] ##
+### Fixed ###
+
+  * fix: AchievementFrame skin errored at load on 12.1 (`BackgroundBlackCover` removed), leaving the whole frame unskinned — skin updated for the 12.1 header restructure: search box, filter dropdown, and search preview moved to `AchievementFrame.HeaderDetails.Filters`, `AchievementFrameFilterDropdown` global and `LeftDDLInset` removed; new `HeaderDetails` back button skinned and `TopTileStreaks` hidden; box/dropdown positioning left to Blizzard's layout frame (comparison mode re-anchors it) [mainline]
+  * fix: housing item-earned and endeavor task-complete toasts still showed the ornate gold border — the `housing-item-toast-glow`/lightrays/sparkles ADD-layers that SetUp animates on every acquire are now hidden along with the frame art and divider [mainline]
+  * fix: profession specialization tab lock icon overflowed into the neighboring tab — Blizzard anchors it to the Text's right edge, which Aurora's tab skin stretches to the full tab width; the icon is re-anchored inside the tab on every `SetState` [mainline]
+
+
+## [12.1.0.2] ##
 ### Added ###
 
   * add: `/aurora insertframe` — dev toggle (`AuroraConfig.devRestoreInsertFrame`, default off) that runs Blizzard's original `GameTooltip_InsertFrame` instead of Aurora's replacement, so the surfaces relying on the replacement can be A/B tested; prints a load-time notice while active [mainline]
