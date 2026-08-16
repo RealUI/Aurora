@@ -92,19 +92,47 @@ end
 
 --[[ Skinning Helpers ]]--
 
+-- Skinned-state tracking.
+--
+-- This used to be a `_auroraSkinned` field written directly onto the widget.
+-- Writing to a Blizzard frame's table taints that table, and the taint can
+-- bleed into Blizzard's secure paths when those tables are iterated or copied
+-- (frame pool reset, Mixin, CopyTable). Tracking the state in a weak-keyed
+-- side table keeps Blizzard's tables untouched. Weak keys let the entry go
+-- when the frame does.
+--
+-- Same approach as `skinnedFrames` in Blizzard_CooldownViewer and
+-- `skinnedWidgetFrames` in Blizzard_UIWidgets, which predate this.
+local skinnedFrames = setmetatable({}, { __mode = "k" })
+
+--[[ private.IsSkinned(_frame_)
+Returns whether the widget has already been skinned. Nil-safe.
+--]]
+function private.IsSkinned(frame)
+    if not frame then return nil end
+    return skinnedFrames[frame]
+end
+
+--[[ private.SetSkinned(_frame, value_)
+Marks the widget as skinned (or clears it when `value` is nil). Nil-safe.
+--]]
+function private.SetSkinned(frame, value)
+    if not frame then return end
+    skinnedFrames[frame] = value or nil
+end
+
 --[[ Util.SkinOnce(_frame, skinFunc_)
 Guards a skinning function to run at most once per frame. If `frame`
-is nil or already skinned (`frame._auroraSkinned` is truthy), the call
-is a no-op.
+is nil or already skinned, the call is a no-op.
 
 **Args:**
 * `frame`    - the widget to skin _(Frame|nil)_
 * `skinFunc` - the function to apply _(function)_
 --]]
 function Util.SkinOnce(frame, skinFunc)
-    if not frame or frame._auroraSkinned then return end
+    if not frame or private.IsSkinned(frame) then return end
     skinFunc(frame)
-    frame._auroraSkinned = true
+    private.SetSkinned(frame, true)
 end
 
 function Util.SetHighlightColor(texture, alpha)
@@ -191,10 +219,10 @@ function Util.CheckTemplate(getNext, mixinName, ...)
         --print("CheckTemplate", i, template)
         if Skin[template] then
             for obj in getNext() do
-                if not obj._auroraSkinned then
+                if not private.IsSkinned(obj) then
                     Skin[template](obj)
                 end
-                obj._auroraSkinned = true
+                private.SetSkinned(obj, true)
             end
         elseif private.isDev and not ignoreTemplate[template] then
             private.debug("Missing template for", mixinName, template)
@@ -398,12 +426,12 @@ function Util.WrapPoolAcquire(pool, templateOrSkinFunc)
         end
 
         if isTemplate then
-            if frame._auroraSkinned then
+            if private.IsSkinned(frame) then
                 return
             end
 
             skinFunc(frame)
-            frame._auroraSkinned = true
+            private.SetSkinned(frame, true)
         else
             skinFunc(frame)
         end

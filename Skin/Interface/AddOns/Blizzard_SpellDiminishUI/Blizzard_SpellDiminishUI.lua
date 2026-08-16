@@ -11,7 +11,7 @@ local Util = Aurora.Util
 
 -- Shared helper: skin a single tray item frame
 local function SkinTrayItem(frame)
-    if not frame or frame._auroraSkinned then return end
+    if not frame or private.IsSkinned(frame) then return end
 
     -- Crop the spell icon texture
     if frame.Icon then
@@ -21,7 +21,7 @@ local function SkinTrayItem(frame)
     -- Strip any decorative border textures from the tray item
     Base.StripBlizzardTextures(frame)
 
-    frame._auroraSkinned = true
+    private.SetSkinned(frame, true)
 end
 
 do --[[ AddOns\Blizzard_SpellDiminishUI.lua ]]

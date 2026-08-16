@@ -10,8 +10,8 @@ local Util = Aurora.Util
 --   Icon (texture), BG (atlas background), IconMask, NormalTexture (atlas border),
 --   HighlightTexture, PushedTexture, HotKey, Count, Cooldown
 local function SkinBeltButton(button)
-    if not button or button._auroraSkinned then return end
-    button._auroraSkinned = true
+    if not button or private.IsSkinned(button) then return end
+    private.SetSkinned(button, true)
 
     -- Crop the item icon
     Base.CropIcon(button.Icon, button)

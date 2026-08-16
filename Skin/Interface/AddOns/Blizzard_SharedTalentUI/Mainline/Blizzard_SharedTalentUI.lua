@@ -8,8 +8,8 @@ local Util = Aurora.Util
 do --[[ AddOns\Blizzard_SharedTalentUI.lua ]]
     -- Skin a single talent button node.
     local function SkinTalentButton(button)
-        if not button or button._auroraSkinned then return end
-        button._auroraSkinned = true
+        if not button or private.IsSkinned(button) then return end
+        private.SetSkinned(button, true)
 
         -- Crop the ability icon
         if button.Icon then
@@ -53,8 +53,8 @@ function private.AddOns.Blizzard_SharedTalentUI()
     if _G.TalentFrameBaseMixin then
         -- Skin the frame container when it loads.
         _G.hooksecurefunc(_G.TalentFrameBaseMixin, "OnLoad", function(self)
-            if self._auroraSkinned then return end
-            self._auroraSkinned = true
+            if private.IsSkinned(self) then return end
+            private.SetSkinned(self, true)
 
             Skin.FrameTypeFrame(self)
             Base.StripBlizzardTextures(self)
@@ -64,8 +64,8 @@ function private.AddOns.Blizzard_SharedTalentUI()
         -- AcquireTalentButton calls GetOrCreatePool, so we hook it to
         -- wrap each new sub-pool the first time it appears.
         local skinPoolButton = function(button)
-            if not button or button._auroraSkinned then return end
-            button._auroraSkinned = true
+            if not button or private.IsSkinned(button) then return end
+            private.SetSkinned(button, true)
             if button.Icon then
                 Base.CropIcon(button.Icon, button)
             end

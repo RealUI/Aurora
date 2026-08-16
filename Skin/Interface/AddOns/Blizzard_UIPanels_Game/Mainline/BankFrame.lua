@@ -153,20 +153,20 @@ function private.FrameXML.BankFrame()
         --[[ Pooled frames — must be skinned after the pool generates them ]]--
         local function SkinBankPanelTabButton(tab)
             if tab.Border then tab.Border:Hide() end
-            if not tab._auroraSkinned then
+            if not private.IsSkinned(tab) then
                 Skin.FrameTypeButton(tab)
                 if tab.Icon then Base.CropIcon(tab.Icon, tab) end
-                tab._auroraSkinned = true
+                private.SetSkinned(tab, true)
             end
             if tab.SelectedTexture then tab.SelectedTexture:SetShown(false) end
         end
 
         local function SkinBankItemButton(btn)
             if btn.Background then btn.Background:Hide() end
-            if not btn._auroraSkinned then
+            if not private.IsSkinned(btn) then
                 Skin.FrameTypeItemButton(btn)
                 if btn.IconQuestTexture then Base.CropIcon(btn.IconQuestTexture) end
-                btn._auroraSkinned = true
+                private.SetSkinned(btn, true)
             end
         end
 
@@ -181,7 +181,7 @@ function private.FrameXML.BankFrame()
                     SkinBankItemButton(btn)
                 end
             end
-            if self.PurchaseTab and not self.PurchaseTab._auroraSkinned then
+            if self.PurchaseTab and not private.IsSkinned(self.PurchaseTab) then
                 SkinBankPanelTabButton(self.PurchaseTab)
             end
         end)

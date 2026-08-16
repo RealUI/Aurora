@@ -11,8 +11,8 @@ local Color, Util = Aurora.Color, Aurora.Util
 
 do --[[ AddOns\Blizzard_HousingHouseFinder\Blizzard_HousingHouseFinder.xml ]]
     function Skin.HouseFinderNeighborhoodButtonTemplate(Button)
-        if Button._auroraSkinned then return end
-        Button._auroraSkinned = true
+        if private.IsSkinned(Button) then return end
+        private.SetSkinned(Button, true)
 
         Base.SetBackdrop(Button, Color.button, 0.2)
 

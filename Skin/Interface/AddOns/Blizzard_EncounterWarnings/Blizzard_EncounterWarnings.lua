@@ -11,7 +11,7 @@ local Util = Aurora.Util
 
 -- Shared helper: skin the icon element children (LeftIcon / RightIcon)
 local function SkinIconElement(iconFrame)
-    if not iconFrame or iconFrame._auroraSkinned then return end
+    if not iconFrame or private.IsSkinned(iconFrame) then return end
     if iconFrame.IsForbidden and iconFrame:IsForbidden() then return end
 
     -- Crop the ability icon texture
@@ -34,12 +34,12 @@ local function SkinIconElement(iconFrame)
         end
     end
 
-    iconFrame._auroraSkinned = true
+    private.SetSkinned(iconFrame, true)
 end
 
 -- Shared helper: skin a single EncounterWarningsView (the View child of each severity frame)
 local function SkinView(view)
-    if not view or view._auroraSkinned then return end
+    if not view or private.IsSkinned(view) then return end
     if view.IsForbidden and view:IsForbidden() then return end
 
     -- Strip decorative textures from the view itself
@@ -49,7 +49,7 @@ local function SkinView(view)
     SkinIconElement(view.LeftIcon)
     SkinIconElement(view.RightIcon)
 
-    view._auroraSkinned = true
+    private.SetSkinned(view, true)
 end
 
 do --[[ AddOns\Blizzard_EncounterWarnings.lua ]]

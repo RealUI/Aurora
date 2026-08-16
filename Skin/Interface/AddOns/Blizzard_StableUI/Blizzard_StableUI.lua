@@ -7,8 +7,8 @@ local Base, Hook, Skin = Aurora.Base, Aurora.Hook, Aurora.Skin
 do --[[ AddOns\Blizzard_StableUI.lua ]]
     -- Skin a stabled pet list entry from the ScrollBox element factory.
     local function SkinStabledPetButton(button)
-        if not button or button._auroraSkinned then return end
-        button._auroraSkinned = true
+        if not button or private.IsSkinned(button) then return end
+        private.SetSkinned(button, true)
 
         local portrait = button.Portrait
         if portrait then
@@ -33,8 +33,8 @@ end
 
 do --[[ AddOns\Blizzard_StableUI.xml ]]
     function Skin.StableActivePetButtonTemplate(Button)
-        if Button._auroraSkinned then return end
-        Button._auroraSkinned = true
+        if private.IsSkinned(Button) then return end
+        private.SetSkinned(Button, true)
 
         if Button.Icon then
             Base.CropIcon(Button.Icon, Button)
@@ -48,8 +48,8 @@ do --[[ AddOns\Blizzard_StableUI.xml ]]
     end
 
     function Skin.StableStabledPetButtonTemplate(Button)
-        if Button._auroraSkinned then return end
-        Button._auroraSkinned = true
+        if private.IsSkinned(Button) then return end
+        private.SetSkinned(Button, true)
 
         local portrait = Button.Portrait
         if portrait then

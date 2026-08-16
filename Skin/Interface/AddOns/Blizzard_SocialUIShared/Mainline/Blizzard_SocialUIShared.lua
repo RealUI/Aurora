@@ -75,8 +75,8 @@ do --[[ SocialUISharedTemplates.xml ]]
             -- skin the shared header rows as they appear
             _G.hooksecurefunc(Frame.ScrollBox, "Update", function(self)
                 self:ForEachFrame(function(row)
-                    if not row._auroraSkinned then
-                        row._auroraSkinned = true
+                    if not private.IsSkinned(row) then
+                        private.SetSkinned(row, true)
                         if row.ButtonText and row.CollapseButton then
                             -- SocialUIScrollableHeaderTemplate row
                             Skin.SocialUIScrollableHeaderTemplate(row)

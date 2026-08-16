@@ -66,9 +66,9 @@ function private.AddOns.Blizzard_AddOnList()
         Skin.MinimalScrollBar(AddonList.ScrollBar)
         _G.hooksecurefunc(AddonList.ScrollBox, "Update", function(self)
             self:ForEachFrame(function(frame)
-                if not frame._auroraSkinned then
+                if not private.IsSkinned(frame) then
                     Skin.AddonListEntryTemplate(frame)
-                    frame._auroraSkinned = true
+                    private.SetSkinned(frame, true)
                 end
             end)
         end)

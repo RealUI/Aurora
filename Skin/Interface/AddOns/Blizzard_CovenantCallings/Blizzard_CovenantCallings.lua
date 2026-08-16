@@ -18,20 +18,20 @@ do
     end
 
     function Skin.CovenantCallingQuestTemplate(Frame)
-        if Frame._auroraSkinned then
+        if private.IsSkinned(Frame) then
             return
         end
 
-        Frame._auroraSkinned = true
+        private.SetSkinned(Frame, true)
         Frame._auroraIconBorder = Base.CropIcon(Frame.Icon, Frame)
     end
 
     function Skin.CovenantCallingsTemplate(Frame)
-        if Frame._auroraSkinned then
+        if private.IsSkinned(Frame) then
             return
         end
 
-        Frame._auroraSkinned = true
+        private.SetSkinned(Frame, true)
 
         if Frame.Background then
             Frame.Background:SetAlpha(0)

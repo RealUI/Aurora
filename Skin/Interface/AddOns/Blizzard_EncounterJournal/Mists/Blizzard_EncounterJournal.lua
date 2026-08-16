@@ -61,8 +61,8 @@ do
         local parent = object:GetParent()
         if parent and parent.Bullets then
             for _, bullet in ipairs(parent.Bullets) do
-                if bullet.Text and not bullet._auroraSkinned then
-                    bullet._auroraSkinned = true
+                if bullet.Text and not private.IsSkinned(bullet) then
+                    private.SetSkinned(bullet, true)
                     bullet.Text:SetTextColor("p", Color.grayLight:GetRGB())
                 end
             end
@@ -184,10 +184,10 @@ do
         "cMidDown"
     }
     function Skin.EncounterInfoTemplate(Frame)
-        if Frame._auroraSkinned then
+        if private.IsSkinned(Frame) then
             return
         end
-        Frame._auroraSkinned = true
+        private.SetSkinned(Frame, true)
 
         local button = Frame.button
         if button then
@@ -252,10 +252,10 @@ do
     function Hook.EJInstanceSelectScrollUpdate(frame)
         frame:ForEachFrame(
             function(child)
-                if child._auroraSkinned then
+                if private.IsSkinned(child) then
                     return
                 end
-                child._auroraSkinned = true
+                private.SetSkinned(child, true)
                 local bgImage = child.bgImage
                 if bgImage then
                     bgImage:SetAlpha(0.6)
@@ -270,10 +270,10 @@ do
     function Hook.EJBossesScrollBoxScrollUpdate(frame)
         frame:ForEachFrame(
             function(child)
-                if child._auroraSkinned then
+                if private.IsSkinned(child) then
                     return
                 end
-                child._auroraSkinned = true
+                private.SetSkinned(child, true)
                 Skin.EncounterBossButtonTemplate(child)
             end
         )
@@ -282,10 +282,10 @@ do
     function Hook.EJLootScrollUpdate(frame)
         frame:ForEachFrame(
             function(child)
-                if child._auroraSkinned then
+                if private.IsSkinned(child) then
                     return
                 end
-                child._auroraSkinned = true
+                private.SetSkinned(child, true)
                 if child.icon then
                     Base.CropIcon(child.icon)
                 end

@@ -11,7 +11,7 @@ local Color, Util = Aurora.Color, Aurora.Util
 
 -- Shared helper: skin a single CompanionConfigListButton (curio/role option)
 local function SkinListButton(button)
-    if not button or button._auroraSkinned then return end
+    if not button or private.IsSkinned(button) then return end
 
     if button.Icon then
         Base.CropIcon(button.Icon)
@@ -22,12 +22,12 @@ local function SkinListButton(button)
         button.Border:SetAlpha(0)
     end
 
-    button._auroraSkinned = true
+    private.SetSkinned(button, true)
 end
 
 -- Shared helper: skin a CompanionConfigSlot's OptionsList dropdown panel
 local function SkinOptionsList(optionsList)
-    if not optionsList or optionsList._auroraSkinned then return end
+    if not optionsList or private.IsSkinned(optionsList) then return end
 
     -- Strip the Top/Middle/Bottom background atlas textures
     Base.StripBlizzardTextures(optionsList)
@@ -48,12 +48,12 @@ local function SkinOptionsList(optionsList)
         end)
     end
 
-    optionsList._auroraSkinned = true
+    private.SetSkinned(optionsList, true)
 end
 
 -- Shared helper: skin a CompanionConfigSlot (role/trinket slot button)
 local function SkinConfigSlot(slot)
-    if not slot or slot._auroraSkinned then return end
+    if not slot or private.IsSkinned(slot) then return end
 
     -- Strip the decorative shadow texture behind the slot
     if slot.Shadow then
@@ -63,7 +63,7 @@ local function SkinConfigSlot(slot)
     -- Skin the options list dropdown
     SkinOptionsList(slot.OptionsList)
 
-    slot._auroraSkinned = true
+    private.SetSkinned(slot, true)
 end
 
 do --[[ AddOns\Blizzard_DelvesCompanionConfiguration.lua ]]
@@ -173,11 +173,11 @@ function private.AddOns.Blizzard_DelvesCompanionConfiguration()
             -- Skin any newly created ability buttons
             if self.buttons then
                 for _, button in ipairs(self.buttons) do
-                    if not button._auroraSkinned then
+                    if not private.IsSkinned(button) then
                         if button.Icon then
                             Base.CropIcon(button.Icon)
                         end
-                        button._auroraSkinned = true
+                        private.SetSkinned(button, true)
                     end
                 end
             end

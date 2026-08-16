@@ -164,9 +164,9 @@ function private.FrameXML.ReputationFrame()
     local maxRows = _G.NUM_FACTIONS_DISPLAYED or 0
     for i = 1, maxRows do
         local factionRow = _G["ReputationBar"..i]
-        if factionRow and not factionRow._auroraSkinned then
+        if factionRow and not private.IsSkinned(factionRow) then
             Skin.ReputationBarTemplate(factionRow)
-            factionRow._auroraSkinned = true
+            private.SetSkinned(factionRow, true)
         end
     end
 end

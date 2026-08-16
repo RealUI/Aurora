@@ -7,8 +7,8 @@ local Base, Hook, Skin = Aurora.Base, Aurora.Hook, Aurora.Skin
 do --[[ AddOns\Blizzard_AlliedRacesUI.lua ]]
     -- Skin a racial ability entry from the ability pool.
     local function SkinAbilityButton(button)
-        if not button or button._auroraSkinned then return end
-        button._auroraSkinned = true
+        if not button or private.IsSkinned(button) then return end
+        private.SetSkinned(button, true)
 
         if button.Icon then
             Base.CropIcon(button.Icon, button)

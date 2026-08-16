@@ -24,8 +24,8 @@ function private.AddOns.Blizzard_CovenantToasts()
     -- Banner base: GlowLineTop, GlowLineTopAdditive, IconSwirlModelScene, Icon.Tex
     ------------------------------------------------
     local choiceToast = _G.CovenantChoiceToast
-    if choiceToast and not choiceToast._auroraSkinned then
-        choiceToast._auroraSkinned = true
+    if choiceToast and not private.IsSkinned(choiceToast) then
+        private.SetSkinned(choiceToast, true)
 
         -- Strip decorative atlas textures
         if choiceToast.ToastBG then
@@ -51,8 +51,8 @@ function private.AddOns.Blizzard_CovenantToasts()
     -- Banner base: GlowLineTop, GlowLineTopAdditive, IconSwirlModelScene, Icon.Tex
     ------------------------------------------------
     local renownToast = _G.CovenantRenownToast
-    if renownToast and not renownToast._auroraSkinned then
-        renownToast._auroraSkinned = true
+    if renownToast and not private.IsSkinned(renownToast) then
+        private.SetSkinned(renownToast, true)
 
         -- Strip decorative atlas textures
         if renownToast.ToastBG then

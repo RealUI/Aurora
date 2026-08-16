@@ -11,8 +11,8 @@ function private.AddOns.Blizzard_PlunderstormPrematchUI()
     ------------------------------------
     -- PrematchHeaderFrame
     ------------------------------------
-    if not frame._auroraSkinned then
-        frame._auroraSkinned = true
+    if not private.IsSkinned(frame) then
+        private.SetSkinned(frame, true)
         Skin.FrameTypeFrame(frame)
     end
 
@@ -25,8 +25,8 @@ function private.AddOns.Blizzard_PlunderstormPrematchUI()
     -- QueueFrame (PortraitFrameTemplate)
     ------------------------------------
     if frame.QueueFrame then
-        if not frame.QueueFrame._auroraSkinned then
-            frame.QueueFrame._auroraSkinned = true
+        if not private.IsSkinned(frame.QueueFrame) then
+            private.SetSkinned(frame.QueueFrame, true)
             Skin.FrameTypeFrame(frame.QueueFrame)
         end
 

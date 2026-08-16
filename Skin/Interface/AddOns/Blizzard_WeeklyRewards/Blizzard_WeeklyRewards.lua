@@ -35,12 +35,12 @@ do
 
     -- local IconColor = _G.ITEM_QUALITY_COLORS[_G.Enum.ItemQuality.Epic]
     function Hook.RewardIcon(ItemFrame)
-        if not ItemFrame._auroraSkinned then
+        if not private.IsSkinned(ItemFrame) then
             Skin.FrameTypeFrame(ItemFrame)
             ItemFrame.Icon:SetPoint('LEFT', 6, 0)
             ItemFrame:DisableDrawLayer("BORDER")
             ItemFrame.bg = Base.CropIcon(ItemFrame.Icon, ItemFrame)
-            ItemFrame._auroraSkinned = true
+            private.SetSkinned(ItemFrame, true)
         end
     end
 

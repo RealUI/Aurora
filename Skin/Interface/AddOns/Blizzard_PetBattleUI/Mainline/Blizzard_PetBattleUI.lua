@@ -47,9 +47,9 @@ do --[[ AddOns\Blizzard_PetBattleUI.lua ]]
         end
     end
     function Hook.PetBattleFrame_UpdateActionButtonLevel(self, actionButton)
-        if actionButton.Icon and not actionButton._auroraSkinned then
+        if actionButton.Icon and not private.IsSkinned(actionButton) then
             Skin.PetBattleAbilityButtonTemplate(actionButton)
-            actionButton._auroraSkinned = true
+            private.SetSkinned(actionButton, true)
         end
     end
     function Hook.PetBattleFrame_UpdateActionBarLayout(self)

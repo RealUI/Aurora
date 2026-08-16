@@ -21,12 +21,12 @@ do --[[ AddOns\Blizzard_ObjectiveTracker.lua ]]
     Hook.ObjectiveTrackerBlockMixin = {}
     function Hook.ObjectiveTrackerBlockMixin:AddObjective(objectiveKey, text, template, ...)
         local line = self.usedLines[objectiveKey]
-        if line and not line._auroraSkinned then
+        if line and not private.IsSkinned(line) then
             local tpl = template or self.parentModule.lineTemplate
             if Skin[tpl] then
                 Skin[tpl](line)
             end
-            line._auroraSkinned = true
+            private.SetSkinned(line, true)
         end
     end
     function Hook.ObjectiveTrackerBlockMixin:AddTimerBar(duration, startTime)
@@ -37,11 +37,11 @@ do --[[ AddOns\Blizzard_ObjectiveTracker.lua ]]
     end
     function Hook.ObjectiveTrackerBlockMixin:AddRightEdgeFrame(settings, identifier, ...)
         local frame = self.rightEdgeFrame
-        if frame and not frame._auroraSkinned then
+        if frame and not private.IsSkinned(frame) then
             if Skin[settings.template] then
                 Skin[settings.template](frame)
             end
-            frame._auroraSkinned = true
+            private.SetSkinned(frame, true)
         end
     end
     Hook.ObjectiveTrackerContainerHeaderMixin = {}

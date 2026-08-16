@@ -141,7 +141,7 @@ do --[[ AddOns\Blizzard_AchievementUI.xml ]]
         -- Re-apply TitleBar colour. On pool re-use Saturate/Desaturate already runs via our
         -- hooksecurefunc, but guard anyway so we only touch frames that are fully skinned
         -- (NineSlice backdrop set up). First-creation case is handled in Hook.AchievementFrameAchievements.
-        if self._auroraSkinned then
+        if private.IsSkinned(self) then
             if self.completed then
                 Hook.AchievementButton_Saturate(self)
             else
@@ -165,9 +165,9 @@ do --[[ AddOns\Blizzard_AchievementUI.xml ]]
         function Hook.AchievementsObjectivesMixin:GetMeta(index)
             local meta = self.metas[index]
             if meta then
-                if not meta._auroraSkinned then
+                if not private.IsSkinned(meta) then
                     Skin.MetaCriteriaTemplate(meta)
-                    meta._auroraSkinned = true
+                    private.SetSkinned(meta, true)
                 else
                     -- GetMeta resets Border texture on every call; re-hide it
                     meta.Border:Hide()
@@ -304,9 +304,9 @@ do --[[ AddOns\Blizzard_AchievementUI.xml ]]
     end
     function Hook.AchievementFrameAchievements(Frame)
         for _, child in next, { Frame.ScrollTarget:GetChildren() } do
-            if not child._auroraSkinned then
+            if not private.IsSkinned(child) then
                 Skin.AchievementFrameAchievements(child)
-                child._auroraSkinned = true
+                private.SetSkinned(child, true)
                 -- Saturate/Desaturate ran before Skin.AchievementTemplate added the hooksecurefunc.
                 -- Re-apply Aurora colour now that the NineSlice backdrop is set up.
                 if child.completed then

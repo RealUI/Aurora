@@ -60,12 +60,12 @@ do
                 button._auroraHighlight = highlight
             end
 
-            button._auroraSkinned = true
+            private.SetSkinned(button, true)
         end
         function Hook.GameMenuInitButtons(menu)
             if not menu.buttonPool then return end
             for button in menu.buttonPool:EnumerateActive() do
-                if not button._auroraSkinned then
+                if not private.IsSkinned(button) then
                     Hook.GameMenuSkinButton(button)
                 end
             end

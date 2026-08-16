@@ -22,10 +22,10 @@ do --[[ Blizzard_Menu\DropdownButton.lua ]]
                 end
                 return
             end
-            if Frame._auroraSkinned then
+            if private.IsSkinned(Frame) then
                 return
             else
-                Frame._auroraSkinned = true
+                private.SetSkinned(Frame, true)
             end
             -- if not Width then
             --     Width = 155

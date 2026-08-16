@@ -90,9 +90,9 @@ function private.FrameXML.QuestInfo()
     if _G.QuestInfo_GetRewardButton then
         _G.hooksecurefunc("QuestInfo_GetRewardButton", function(rewardsFrame, index)
             local button = rewardsFrame.RewardButtons and rewardsFrame.RewardButtons[index]
-            if button and button.Icon and not button._auroraSkinned then
+            if button and button.Icon and not private.IsSkinned(button) then
                 Skin.LargeItemButtonTemplate(button)
-                button._auroraSkinned = true
+                private.SetSkinned(button, true)
             end
         end)
     end

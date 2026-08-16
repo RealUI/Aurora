@@ -16,8 +16,8 @@ function private.AddOns.Blizzard_ExpansionLandingPage()
 
     _G.ExpansionLandingPage:HookScript("OnShow", function(self)
         local overlay = self.Overlay and self.Overlay.MidnightLandingOverlay
-        if not overlay or overlay._auroraSkinned then return end
-        overlay._auroraSkinned = true
+        if not overlay or private.IsSkinned(overlay) then return end
+        private.SetSkinned(overlay, true)
 
         if overlay.CloseButton then
             Skin.UIPanelCloseButton(overlay.CloseButton)

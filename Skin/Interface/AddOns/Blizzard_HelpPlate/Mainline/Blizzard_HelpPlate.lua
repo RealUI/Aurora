@@ -11,7 +11,7 @@ local Color = Aurora.Color
 
 -- Shared helper: skin a single HelpPlate tile frame
 local function SkinTile(tile)
-    if not tile or tile._auroraSkinned then return end
+    if not tile or private.IsSkinned(tile) then return end
 
     -- Strip decorative border/glow/shadow textures from the Box frame
     local box = tile.Box
@@ -19,7 +19,7 @@ local function SkinTile(tile)
         Base.StripBlizzardTextures(box)
     end
 
-    tile._auroraSkinned = true
+    private.SetSkinned(tile, true)
 end
 
 --[[ AddOns\Blizzard_HelpPlate.lua ]]

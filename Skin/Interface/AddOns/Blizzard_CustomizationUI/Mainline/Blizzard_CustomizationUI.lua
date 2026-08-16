@@ -7,8 +7,8 @@ local Util = Aurora.Util
 
 -- Skin a dynamically acquired option frame (dropdown, slider, or checkbox).
 local function SkinOptionFrame(frame)
-    if not frame or frame._auroraSkinned then return end
-    frame._auroraSkinned = true
+    if not frame or private.IsSkinned(frame) then return end
+    private.SetSkinned(frame, true)
 
     -- Checkbox option: skin the inner CheckButton
     if frame.Button and frame.Button.GetObjectType and frame.Button:GetObjectType() == "CheckButton" then
@@ -53,8 +53,8 @@ function private.AddOns.Blizzard_CustomizationUI()
 
         -- Skin the customization frame container when it loads.
         _G.hooksecurefunc(_G.CustomizationFrameBaseMixin, "CustomizationFrameBase_OnLoad", function(self)
-            if self._auroraSkinned then return end
-            self._auroraSkinned = true
+            if private.IsSkinned(self) then return end
+            private.SetSkinned(self, true)
 
             -- Main frame backdrop
             Skin.FrameTypeFrame(self)

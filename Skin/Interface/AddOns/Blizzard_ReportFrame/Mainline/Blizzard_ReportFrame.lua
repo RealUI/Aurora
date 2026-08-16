@@ -7,8 +7,8 @@ local Base, Hook, Skin = Aurora.Base, Aurora.Hook, Aurora.Skin
 do --[[ AddOns\Blizzard_ReportFrame.lua ]]
     -- Skin minor category checkbuttons acquired from the pool.
     local function SkinMinorCategoryButton(button)
-        if not button or button._auroraSkinned then return end
-        button._auroraSkinned = true
+        if not button or private.IsSkinned(button) then return end
+        private.SetSkinned(button, true)
 
         Skin.FrameTypeCheckButton(button)
 

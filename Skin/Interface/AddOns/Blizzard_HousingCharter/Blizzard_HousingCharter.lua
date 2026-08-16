@@ -43,8 +43,8 @@ function private.AddOns.Blizzard_HousingCharter()
 
     -- Wrap signature pool (created in OnLoad, which fires before ADDON_LOADED)
     Util.WrapPoolAcquire(HousingCharterFrame.signaturePool, function(frame)
-        if frame._auroraSkinned then return end
-        frame._auroraSkinned = true
+        if private.IsSkinned(frame) then return end
+        private.SetSkinned(frame, true)
     end)
 
     ----

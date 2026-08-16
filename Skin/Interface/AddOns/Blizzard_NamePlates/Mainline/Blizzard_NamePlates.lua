@@ -22,12 +22,12 @@ local SkinBar = private.nop  --luacheck: ignore 231
 local function SkinAuraIcon(auraFrame)
     if not auraFrame then return end
     if auraFrame.IsForbidden and auraFrame:IsForbidden() then return end
-    if auraFrame._auroraSkinned then return end
+    if private.IsSkinned(auraFrame) then return end
 
     if auraFrame.Icon then
         Base.CropIcon(auraFrame.Icon)
     end
-    auraFrame._auroraSkinned = true
+    private.SetSkinned(auraFrame, true)
 end
 
 -- Walk all visible children of an aura list frame and crop their icons
@@ -62,8 +62,8 @@ end
 local function SkinUnitFrame(unitFrame)
     if not unitFrame then return end
     if unitFrame.IsForbidden and unitFrame:IsForbidden() then return end
-    if unitFrame._auroraSkinned then return end
-    unitFrame._auroraSkinned = true
+    if private.IsSkinned(unitFrame) then return end
+    private.SetSkinned(unitFrame, true)
 
     -- Health bar
     local healthContainer = unitFrame.HealthBarsContainer

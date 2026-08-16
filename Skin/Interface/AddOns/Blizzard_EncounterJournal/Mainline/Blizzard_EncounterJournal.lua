@@ -306,7 +306,7 @@ do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
         end
         function Hook.EJInstanceSelectScrollUpdate(frame)
             frame:ForEachFrame(function(child)
-                    if not child._auroraSkinned then
+                    if not private.IsSkinned(child) then
                     local bgImage = child.bgImage
                     if bgImage then
                         bgImage:SetAlpha(0.6)
@@ -315,7 +315,7 @@ do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
                         bgImage:SetPoint("BOTTOMRIGHT", -1, 1)
                     end
                     Skin.EncounterBossButtonTemplate(child)
-                    child._auroraSkinned = true
+                    private.SetSkinned(child, true)
                 end
             end)
         end
@@ -325,11 +325,11 @@ do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
             end)
         end
         function Skin.JourneyOverviewHighlightTemplate(Frame)
-            if Frame._auroraSkinned then
+            if private.IsSkinned(Frame) then
                 return
             end
 
-            Frame._auroraSkinned = true
+            private.SetSkinned(Frame, true)
 
             if Frame.Background then
                 Frame.Background:SetAlpha(0)
@@ -341,11 +341,11 @@ do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
             Frame.HighlightDescription:SetTextColor(Color.grayLight:GetRGB())
         end
         function Skin.JourneyProgressRewardCardTemplate(Frame)
-            if Frame._auroraSkinned then
+            if private.IsSkinned(Frame) then
                 return
             end
 
-            Frame._auroraSkinned = true
+            private.SetSkinned(Frame, true)
 
             if Frame.RewardCardBG then
                 Frame.RewardCardBG:SetAlpha(0)

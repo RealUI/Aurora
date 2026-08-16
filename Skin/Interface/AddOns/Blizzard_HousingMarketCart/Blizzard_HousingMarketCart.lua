@@ -11,8 +11,8 @@ local Color, Util = Aurora.Color, Aurora.Util
 
 -- Helper to skin a single cart item entry (HousingMarketCartItemTemplate)
 local function SkinCartItemEntry(entry)
-    if not entry or entry._auroraSkinned then return end
-    entry._auroraSkinned = true
+    if not entry or private.IsSkinned(entry) then return end
+    private.SetSkinned(entry, true)
 
     -- Crop the item icon
     if entry.Icon then
@@ -27,8 +27,8 @@ end
 
 -- Helper to skin a bundle item entry (HousingMarketCartBundleItemTemplate)
 local function SkinBundleItemEntry(entry)
-    if not entry or entry._auroraSkinned then return end
-    entry._auroraSkinned = true
+    if not entry or private.IsSkinned(entry) then return end
+    private.SetSkinned(entry, true)
 
     local vc = entry.VisualContainer
     if vc then

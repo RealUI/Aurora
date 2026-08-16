@@ -11,8 +11,8 @@ local Util = Aurora.Util
 
 -- Shared helper: skin a single loot object list entry
 local function SkinListEntry(frame)
-    if not frame or frame._auroraSkinned then return end
-    frame._auroraSkinned = true
+    if not frame or private.IsSkinned(frame) then return end
+    private.SetSkinned(frame, true)
 end
 
 do --[[ AddOns\Blizzard_WorldLootObjectList.lua ]]

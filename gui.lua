@@ -961,13 +961,13 @@ function private.SetupGUI()
     -- fill 'old' table
     copyTable(_G.AuroraConfig, old)
 
-    if not splash._auroraSkinned then
+    if not private.IsSkinned(splash) then
         Base.SetBackdrop(splash)
         local r, g, b = Aurora.Color.frame:GetRGB()
         splash:SetBackdropColor(r, g, b, 0.9)
         Skin.UIPanelButtonTemplate(splash.okayButton)
         Skin.UIPanelCloseButton(splash.closeButton)
-        splash._auroraSkinned = true
+        private.SetSkinned(splash, true)
     end
 
     Skin.OptionsSliderTemplate(alphaSlider)

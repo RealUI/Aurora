@@ -51,9 +51,9 @@ do --[[ AddOns\Blizzard_PVPUI.lua ]]
     function Hook.PVPUIScrollBoxUpdate(Frame)
         for _, child in next, { Frame.ScrollTarget:GetChildren() } do
             local Button = child.Button
-            if Button and not Button._auroraSkinned then
+            if Button and not private.IsSkinned(Button) then
                     Skin.PVPUIScrollBoxUpdateTemplate(Button)
-                    Button._auroraSkinned = true
+                    private.SetSkinned(Button, true)
             end
         end
     end

@@ -45,16 +45,16 @@ do --[[ SocialUI.lua ]]
         }
         for _, key in ipairs(contentKeys) do
             local frame = socialUIFrame[key]
-            if frame and not frame._auroraSkinned then
-                frame._auroraSkinned = true
+            if frame and not private.IsSkinned(frame) then
+                private.SetSkinned(frame, true)
                 Skin.SocialUIContactsFrameTemplate(frame)
             end
         end
 
         -- RaidFrame tab is not a contacts frame
         local raidFrame = socialUIFrame.RaidFrame
-        if raidFrame and not raidFrame._auroraSkinned then
-            raidFrame._auroraSkinned = true
+        if raidFrame and not private.IsSkinned(raidFrame) then
+            private.SetSkinned(raidFrame, true)
             if raidFrame.AllAssistCheckButton then
                 Skin.UICheckButtonTemplate(raidFrame.AllAssistCheckButton)
             end

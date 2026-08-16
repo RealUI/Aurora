@@ -12,8 +12,8 @@ function private.AddOns.Blizzard_ExpansionTrial()
     -- BaseExpandableDialog provides: Top, Middle, Bottom, CloseButtonBG textures + CloseButton
     ------------------------------------------------
     local dialog = _G.ExpansionTrialCheckPointDialog
-    if dialog and not dialog._auroraSkinned then
-        dialog._auroraSkinned = true
+    if dialog and not private.IsSkinned(dialog) then
+        private.SetSkinned(dialog, true)
 
         -- Strip BaseExpandableDialog textureKit regions (Top, Middle, Bottom, CloseButtonBG)
         if dialog.Top then
@@ -49,8 +49,8 @@ function private.AddOns.Blizzard_ExpansionTrial()
     -- Inherits BaseExpandableDialog
     ------------------------------------------------
     local legacy = _G.ExpansionTrialThanksForPlayingDialog
-    if legacy and not legacy._auroraSkinned then
-        legacy._auroraSkinned = true
+    if legacy and not private.IsSkinned(legacy) then
+        private.SetSkinned(legacy, true)
 
         -- Strip BaseExpandableDialog textureKit regions
         if legacy.Top then

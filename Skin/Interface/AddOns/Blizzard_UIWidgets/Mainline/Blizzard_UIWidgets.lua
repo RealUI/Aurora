@@ -341,7 +341,7 @@ do --[[ AddOns\Blizzard_UIWidgets.xml ]]
     end
     do --[[ Blizzard_UIWidgetTemplateButtonHeader ]]
         function Skin.ButtonHeaderButton(Button)
-            if Button._auroraSkinned then
+            if private.IsSkinned(Button) then
                 return
             end
             -- _isMinimal prevents Skin.FrameTypeButton from adding its own backdrop,
@@ -353,7 +353,7 @@ do --[[ AddOns\Blizzard_UIWidgets.xml ]]
             SafeSetAlpha(Button.HighlightTexture, 0)
             SafeSetAlpha(Button.PushedTexture, 0)
             Base.CropIcon(Button.Icon, Button)
-            Button._auroraSkinned = true
+            private.SetSkinned(Button, true)
         end
 
         local function ApplyButtonHeaderBackdrop(Frame)

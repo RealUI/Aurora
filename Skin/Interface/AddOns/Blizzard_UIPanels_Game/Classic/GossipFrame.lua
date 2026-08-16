@@ -49,8 +49,8 @@ do --[[ Classic\GossipFrame.xml ]]
 end
 
 local function GossipScrollBoxCallback(owner, frame)
-    if frame._auroraSkinned then return end
-    frame._auroraSkinned = true
+    if private.IsSkinned(frame) then return end
+    private.SetSkinned(frame, true)
 
     if frame:IsObjectType("Button") then
         Skin.GossipTitleButtonTemplate(frame)

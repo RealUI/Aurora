@@ -38,11 +38,11 @@ do --[[ AddOns\Blizzard_PVPMatch.xml ]]
             Frame.backgroundCenter:SetAlpha(0.5)
         end
         function Skin.PVPMatchResultsLoot(Button)
-            if Button._auroraSkinned then
+            if private.IsSkinned(Button) then
                 return
             end
 
-            Button._auroraSkinned = true
+            private.SetSkinned(Button, true)
             Skin.LargeItemButtonTemplate(Button)
 
             if Button.IconBorder then

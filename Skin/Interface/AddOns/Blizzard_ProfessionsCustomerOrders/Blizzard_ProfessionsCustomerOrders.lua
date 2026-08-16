@@ -42,8 +42,8 @@ do --[[ AddOns\Blizzard_ProfessionsCustomerOrders.lua ]]
 
     -- Skin a recipe list row acquired from the ScrollBox element factory.
     local function SkinRecipeListRow(button)
-        if not button or button._auroraSkinned then return end
-        button._auroraSkinned = true
+        if not button or private.IsSkinned(button) then return end
+        private.SetSkinned(button, true)
 
         if button.Icon then
             Base.CropIcon(button.Icon, button)
@@ -55,8 +55,8 @@ do --[[ AddOns\Blizzard_ProfessionsCustomerOrders.lua ]]
 
     -- Skin an order list row (MyOrders tab) acquired from the ScrollBox element factory.
     local function SkinOrderListRow(button)
-        if not button or button._auroraSkinned then return end
-        button._auroraSkinned = true
+        if not button or private.IsSkinned(button) then return end
+        private.SetSkinned(button, true)
 
         if button.Icon then
             Base.CropIcon(button.Icon, button)
@@ -269,8 +269,8 @@ function private.AddOns.Blizzard_ProfessionsCustomerOrders()
         -- Reagent slot pool — wrap Acquire to skin reagent icons dynamically
         if Form.reagentSlotPool then
             Util.WrapPoolAcquire(Form.reagentSlotPool, function(slot)
-                if slot._auroraSkinned then return end
-                slot._auroraSkinned = true
+                if private.IsSkinned(slot) then return end
+                private.SetSkinned(slot, true)
 
                 if slot.Button then
                     Base.CropIcon(slot.Button)

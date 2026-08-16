@@ -22,9 +22,9 @@ local Hook, Skin = Aurora.Hook, Aurora.Skin
 function Hook.GameMenuInitButtons(menu)
     if not menu.buttonPool then return end
     for button in menu.buttonPool:EnumerateActive() do
-        if not button._auroraSkinned then
+        if not private.IsSkinned(button) then
             Skin.UIPanelButtonTemplate(button)
-            button._auroraSkinned = true
+            private.SetSkinned(button, true)
         end
     end
 end

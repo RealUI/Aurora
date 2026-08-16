@@ -35,11 +35,11 @@ do --[[ AddOns\Blizzard_Professions ]]
 
     Hook.ProfessionsRecipeListCategoryMixin = {}
     function Hook.ProfessionsRecipeListCategoryMixin:Init(node)
-        if not self._auroraSkinned then
+        if not private.IsSkinned(self) then
             if self.LeftPiece then self.LeftPiece:SetAlpha(0) end
             if self.RightPiece then self.RightPiece:SetAlpha(0) end
             if self.CenterPiece then self.CenterPiece:SetAlpha(0) end
-            self._auroraSkinned = true
+            private.SetSkinned(self, true)
         end
     end
 
@@ -312,8 +312,8 @@ function private.AddOns.Blizzard_Professions()
         end
     end
     local function SkinSpecTab(tab)
-        if tab._auroraSkinned then return end
-        tab._auroraSkinned = true
+        if private.IsSkinned(tab) then return end
+        private.SetSkinned(tab, true)
         Skin.TabSystemButtonTemplate(tab)
         if tab.BottomBorderGlow then tab.BottomBorderGlow:SetAlpha(0) end
         if tab.SetState then
@@ -421,8 +421,8 @@ function private.AddOns.Blizzard_Professions()
         end
 
         local function SkinOrderTypeTab(tab)
-            if not tab._auroraSkinned then
-                tab._auroraSkinned = true
+            if not private.IsSkinned(tab) then
+                private.SetSkinned(tab, true)
                 Skin.TabSystemButtonTemplate(tab)
 
                 -- Store Aurora's intended size for CraftSim resilience

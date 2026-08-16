@@ -78,8 +78,8 @@ local function HookScrollBoxRows(box, skinFunc)
     local function SkinRows()
         box:ForEachFrame(
             function(row)
-                if not row._auroraSkinned then
-                    row._auroraSkinned = true
+                if not private.IsSkinned(row) then
+                    private.SetSkinned(row, true)
                     skinFunc(row)
                 end
             end
@@ -609,8 +609,8 @@ function private.AddOns.Blizzard_Collections()
                     Heirlooms,
                     "UpdateButton",
                     function(self, button)
-                        if not button._auroraSkinned then
-                            button._auroraSkinned = true
+                        if not private.IsSkinned(button) then
+                            private.SetSkinned(button, true)
                             Skin.CollectionsSpellButtonTemplate(button)
                             if button.levelBackground then
                                 button.levelBackground:SetColorTexture(0, 0, 0, 0.5) -- static: not a theme color

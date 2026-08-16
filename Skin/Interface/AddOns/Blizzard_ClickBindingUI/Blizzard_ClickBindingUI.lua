@@ -8,7 +8,7 @@ local Color = Aurora.Color
 do --[[ AddOns\Blizzard_ClickBindingUI.lua ]]
     -- Skin a ClickBindingLineTemplate entry (binding row with icon, name, binding text)
     local function SkinBindingLine(frame)
-        if not frame or frame._auroraSkinned then return end
+        if not frame or private.IsSkinned(frame) then return end
 
         -- Crop the spell/macro icon
         if frame.Icon then
@@ -25,7 +25,7 @@ do --[[ AddOns\Blizzard_ClickBindingUI.lua ]]
             frame.NewOutline:SetAlpha(0)
         end
 
-        frame._auroraSkinned = true
+        private.SetSkinned(frame, true)
     end
 
     -- Callback for ScrollUtil.AddAcquiredFrameCallback
@@ -92,7 +92,7 @@ function private.AddOns.Blizzard_ClickBindingUI()
         -- Skin any already-existing frames
         scrollBox:ForEachFrame(function(child)
             if child.Icon then
-                if not child._auroraSkinned then
+                if not private.IsSkinned(child) then
                     if child.Icon then
                         Base.CropIcon(child.Icon)
                     end
@@ -102,7 +102,7 @@ function private.AddOns.Blizzard_ClickBindingUI()
                     if child.NewOutline then
                         child.NewOutline:SetAlpha(0)
                     end
-                    child._auroraSkinned = true
+                    private.SetSkinned(child, true)
                 end
             end
         end)

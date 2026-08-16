@@ -66,8 +66,8 @@ function private.AddOns.Blizzard_GenericTraitUI()
     ------------------------------------
     local frame = _G.GenericTraitFrame
     if frame then
-        if not frame._auroraSkinned then
-            frame._auroraSkinned = true
+        if not private.IsSkinned(frame) then
+            private.SetSkinned(frame, true)
             Skin.FrameTypeFrame(frame)
         end
 

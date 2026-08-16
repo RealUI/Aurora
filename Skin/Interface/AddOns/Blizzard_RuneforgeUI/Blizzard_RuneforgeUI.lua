@@ -8,8 +8,8 @@ local Color = Aurora.Color
 do --[[ AddOns\Blizzard_RuneforgeUI.lua ]]
     -- Skin a power list element (RuneforgePowerTemplate button).
     local function SkinPowerButton(button)
-        if not button or button._auroraSkinned then return end
-        button._auroraSkinned = true
+        if not button or private.IsSkinned(button) then return end
+        private.SetSkinned(button, true)
 
         if button.Icon then
             Base.CropIcon(button.Icon, button)

@@ -45,8 +45,8 @@ do --[[ Blizzard_HousingBlueprintFrameTemplates.xml ]]
         Skin.WowScrollBoxList(ScrollBox)
         _G.hooksecurefunc(ScrollBox, "Update", function(self)
             self:ForEachFrame(function(row)
-                if not row._auroraSkinned then
-                    row._auroraSkinned = true
+                if not private.IsSkinned(row) then
+                    private.SetSkinned(row, true)
                     if row.Header then -- HousingBlueprint*GroupTemplate
                         Skin.ListHeaderThreeSliceTemplate(row.Header)
                     end

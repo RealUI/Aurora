@@ -485,9 +485,9 @@ do --[[ FrameXML\AlertFrameSystems.xml ]]
         -- RewardFrames are created/shown dynamically; skin each unskinned one
         if frame.RewardFrames then
             for _, button in next, frame.RewardFrames do
-                if button:IsShown() and not button._auroraSkinned then
+                if button:IsShown() and not private.IsSkinned(button) then
                     Skin.WorldQuestFrameRewardTemplate(button)
-                    button._auroraSkinned = true
+                    private.SetSkinned(button, true)
                 end
             end
         end

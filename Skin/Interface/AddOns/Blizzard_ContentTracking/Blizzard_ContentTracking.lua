@@ -11,8 +11,8 @@ do --[[ AddOns\Blizzard_ContentTracking.lua ]]
     Hook.ContentTrackingElementMixin = {}
     function Hook.ContentTrackingElementMixin:SetTrackingCheckmarkShown(shouldShow)
         local checkmark = self.ContentTrackingCheckmark
-        if checkmark and not checkmark._auroraSkinned then
-            checkmark._auroraSkinned = true
+        if checkmark and not private.IsSkinned(checkmark) then
+            private.SetSkinned(checkmark, true)
             -- The checkmark is a small atlas texture ("checkmark-minimal").
             -- Strip any Blizzard decorative sub-regions on the parent element
             -- frame if they haven't been handled yet.

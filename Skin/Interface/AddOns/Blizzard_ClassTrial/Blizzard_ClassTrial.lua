@@ -14,8 +14,8 @@ function private.AddOns.Blizzard_ClassTrial()
     -- ClassTrialThanksForPlayingDialog
     ------------------------------------
     local dialog = _G.ClassTrialThanksForPlayingDialog
-    if dialog and not dialog._auroraSkinned then
-        dialog._auroraSkinned = true
+    if dialog and not private.IsSkinned(dialog) then
+        private.SetSkinned(dialog, true)
 
         -- Strip the DialogFrame atlas texture (ClassTrial-End-Frame)
         if dialog.DialogFrame then
@@ -41,8 +41,8 @@ function private.AddOns.Blizzard_ClassTrial()
     -- ClassTrialTimerDisplay
     ------------------------------------
     local timer = _G.ClassTrialTimerDisplay
-    if timer and not timer._auroraSkinned then
-        timer._auroraSkinned = true
+    if timer and not private.IsSkinned(timer) then
+        private.SetSkinned(timer, true)
 
         -- Strip background atlas textures
         if timer.BackgroundLeft then

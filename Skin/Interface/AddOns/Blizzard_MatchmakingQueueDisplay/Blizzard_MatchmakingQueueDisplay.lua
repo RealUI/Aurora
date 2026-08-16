@@ -18,15 +18,15 @@ do --[[ AddOns\Blizzard_MatchmakingQueueDisplay.lua ]]
 
         local buttons = { container.Training, container.Solo, container.Duo, container.Trio }
         for _, btn in next, buttons do
-            if btn and not btn._auroraSkinned then
+            if btn and not private.IsSkinned(btn) then
                 Skin.FrameTypeButton(btn)
-                btn._auroraSkinned = true
+                private.SetSkinned(btn, true)
             end
         end
 
-        if self.GameReadyButton and not self.GameReadyButton._auroraSkinned then
+        if self.GameReadyButton and not private.IsSkinned(self.GameReadyButton) then
             Skin.FrameTypeButton(self.GameReadyButton)
-            self.GameReadyButton._auroraSkinned = true
+            private.SetSkinned(self.GameReadyButton, true)
         end
     end
 end
@@ -57,17 +57,17 @@ function private.AddOns.Blizzard_MatchmakingQueueDisplay()
             -- Skin queue type selection buttons
             local buttons = { container.Training, container.Solo, container.Duo, container.Trio }
             for _, btn in next, buttons do
-                if btn and not btn._auroraSkinned then
+                if btn and not private.IsSkinned(btn) then
                     Skin.FrameTypeButton(btn)
-                    btn._auroraSkinned = true
+                    private.SetSkinned(btn, true)
                 end
             end
         end
 
         -- Skin the GameReadyButton
-        if settingsFrame.GameReadyButton and not settingsFrame.GameReadyButton._auroraSkinned then
+        if settingsFrame.GameReadyButton and not private.IsSkinned(settingsFrame.GameReadyButton) then
             Skin.FrameTypeButton(settingsFrame.GameReadyButton)
-            settingsFrame.GameReadyButton._auroraSkinned = true
+            private.SetSkinned(settingsFrame.GameReadyButton, true)
         end
     end
 
@@ -80,9 +80,9 @@ function private.AddOns.Blizzard_MatchmakingQueueDisplay()
         Base.StripBlizzardTextures(queueFrame)
 
         -- Skin the LeaveQueueButton if present
-        if queueFrame.LeaveQueueButton and not queueFrame.LeaveQueueButton._auroraSkinned then
+        if queueFrame.LeaveQueueButton and not private.IsSkinned(queueFrame.LeaveQueueButton) then
             Skin.FrameTypeButton(queueFrame.LeaveQueueButton)
-            queueFrame.LeaveQueueButton._auroraSkinned = true
+            private.SetSkinned(queueFrame.LeaveQueueButton, true)
         end
     end
 end

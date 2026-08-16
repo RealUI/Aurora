@@ -33,11 +33,11 @@ do
     end
 
     function Skin.TransmogAppearanceSlotTemplate(Button)
-        if Button._auroraSkinned then
+        if private.IsSkinned(Button) then
             return
         end
 
-        Button._auroraSkinned = true
+        private.SetSkinned(Button, true)
 
         Base.SetBackdrop(Button, Color.button)
         Button:SetBackdropOption(
@@ -54,11 +54,11 @@ do
     end
 
     function Skin.TransmogIllusionSlotTemplate(Button)
-        if Button._auroraSkinned then
+        if private.IsSkinned(Button) then
             return
         end
 
-        Button._auroraSkinned = true
+        private.SetSkinned(Button, true)
 
         Base.SetBackdrop(Button, Color.button)
         Button:SetBackdropOption(
@@ -234,8 +234,8 @@ function private.AddOns.Blizzard_Transmog()
             -- Skin the tab buttons (Items / Sets / Custom Sets / Situations)
             if WardrobeCollection.TabHeaders then
                 local function SkinWardrobeTab(tab)
-                    if tab and not tab._auroraSkinned then
-                        tab._auroraSkinned = true
+                    if tab and not private.IsSkinned(tab) then
+                        private.SetSkinned(tab, true)
                         Skin.TransmogWardrobeCollectionTabTemplate(tab)
                     end
                 end
@@ -353,8 +353,8 @@ function private.AddOns.Blizzard_Transmog()
                             "Acquire",
                             function(pool)
                                 for frame in pool:EnumerateActive() do
-                                    if not frame._auroraSkinned then
-                                        frame._auroraSkinned = true
+                                    if not private.IsSkinned(frame) then
+                                        private.SetSkinned(frame, true)
                                         if frame.Dropdown then
                                             Skin.DropdownButton(frame.Dropdown)
                                         end

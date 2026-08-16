@@ -8,7 +8,7 @@ local Color = Aurora.Color
 do --[[ AddOns\Blizzard_AutoCompletePopupList.lua ]]
     -- Skin an AutoCompletePopupListResultTemplate entry
     local function SkinResultEntry(frame)
-        if not frame or frame._auroraSkinned then return end
+        if not frame or private.IsSkinned(frame) then return end
 
         -- Crop the ability/item icon
         if frame.Icon then
@@ -20,7 +20,7 @@ do --[[ AddOns\Blizzard_AutoCompletePopupList.lua ]]
             frame.IconFrame:SetAlpha(0)
         end
 
-        frame._auroraSkinned = true
+        private.SetSkinned(frame, true)
     end
 
     -- Callback for ScrollUtil.AddAcquiredFrameCallback
@@ -36,7 +36,7 @@ function private.AddOns.Blizzard_AutoCompletePopupList()
     -- We hook the mixin's OnLoad to catch any instance.
     ------------------------------------
     _G.hooksecurefunc(_G.AutoCompletePopupListMixin, "OnLoad", function(self)
-        if self._auroraSkinned then return end
+        if private.IsSkinned(self) then return end
 
         ------------------------------------
         -- Apply Aurora backdrop
@@ -62,18 +62,18 @@ function private.AddOns.Blizzard_AutoCompletePopupList()
 
             -- Skin any already-existing frames
             scrollBox:ForEachFrame(function(child)
-                if not child._auroraSkinned then
+                if not private.IsSkinned(child) then
                     if child.Icon then
                         Base.CropIcon(child.Icon)
                     end
                     if child.IconFrame then
                         child.IconFrame:SetAlpha(0)
                     end
-                    child._auroraSkinned = true
+                    private.SetSkinned(child, true)
                 end
             end)
         end
 
-        self._auroraSkinned = true
+        private.SetSkinned(self, true)
     end)
 end

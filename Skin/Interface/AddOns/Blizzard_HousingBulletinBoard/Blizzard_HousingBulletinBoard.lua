@@ -13,14 +13,14 @@ local Color, Util = Aurora.Color, Aurora.Util
 do --[[ AddOns\Blizzard_HousingBulletinBoard\Blizzard_HousingBulletinBoard.lua ]]
     Hook.NeighborhoodRosterEntryMixin = {}
     function Hook.NeighborhoodRosterEntryMixin:Init()
-        if self._auroraSkinned then
+        if private.IsSkinned(self) then
             -- Update alternating backdrop alpha on re-init
             local index = self:GetOrderIndex()
             local alpha = (index % 2 == 0) and 0.15 or 0.25
             Base.SetBackdrop(self, Color.button, alpha)
             return
         end
-        self._auroraSkinned = true
+        private.SetSkinned(self, true)
 
         -- Hide the Blizzard normal texture (alternating atlas bg)
         if self.NormalTexture then
@@ -37,8 +37,8 @@ do --[[ AddOns\Blizzard_HousingBulletinBoard\Blizzard_HousingBulletinBoard.lua ]
     function Hook.BulletinBoardColumnDisplayMixin:OnLoad()
         -- Wrap the columnHeaders pool so newly created header buttons are skinned
         Util.WrapPoolAcquire(self.columnHeaders, function(button)
-            if button._auroraSkinned then return end
-            button._auroraSkinned = true
+            if private.IsSkinned(button) then return end
+            private.SetSkinned(button, true)
             Skin.UIPanelButtonTemplate(button)
         end)
     end
@@ -46,8 +46,8 @@ end
 
 do --[[ AddOns\Blizzard_HousingBulletinBoard\Blizzard_HousingBulletinBoard.xml ]]
     function Skin.PendingInviteTemplate(Frame)
-        if Frame._auroraSkinned then return end
-        Frame._auroraSkinned = true
+        if private.IsSkinned(Frame) then return end
+        private.SetSkinned(Frame, true)
 
         -- Hide the background atlas
         if Frame.Background then

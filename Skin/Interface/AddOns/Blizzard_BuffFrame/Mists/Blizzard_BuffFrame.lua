@@ -15,7 +15,7 @@ local Base = Aurora.Base
 
 -- Shared helper: skin a single aura button (buff, debuff, or temp enchant)
 local function SkinAuraButton(button)
-    if not button or button._auroraSkinned then return end
+    if not button or private.IsSkinned(button) then return end
     if button.IsForbidden and button:IsForbidden() then return end
     if button.isAuraAnchor then return end
 
@@ -32,7 +32,7 @@ local function SkinAuraButton(button)
         button.TempEnchantBorder:SetTexture("")
     end
 
-    button._auroraSkinned = true
+    private.SetSkinned(button, true)
 end
 
 --[[ AddOns\Blizzard_BuffFrame.lua ]]

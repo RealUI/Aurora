@@ -47,8 +47,8 @@ function private.AddOns.Blizzard_HousingCornerstone()
     if TabSystem then
         local function SkinTabSystemTabs()
             for _, tab in ipairs({TabSystem:GetChildren()}) do
-                if tab.Left and tab.LeftActive and not tab._auroraSkinned then
-                    tab._auroraSkinned = true
+                if tab.Left and tab.LeftActive and not private.IsSkinned(tab) then
+                    private.SetSkinned(tab, true)
                     Skin.TabSystemButtonTemplate(tab)
                 end
             end

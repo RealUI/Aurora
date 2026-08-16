@@ -25,8 +25,8 @@ end
 
 do --[[ AddOns\Blizzard_HouseList.xml ]]
     function Skin.HouseEntryTemplate(Button)
-        if Button._auroraSkinned then return end
-        Button._auroraSkinned = true
+        if private.IsSkinned(Button) then return end
+        private.SetSkinned(Button, true)
 
         Base.SetBackdrop(Button, Color.button, 0.2)
 

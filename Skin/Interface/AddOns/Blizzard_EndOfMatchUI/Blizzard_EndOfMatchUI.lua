@@ -17,9 +17,9 @@ do --[[ AddOns\Blizzard_EndOfMatchUI.lua ]]
         -- strip the DetailsBackgroundContainer decorative atlas textures
         -- each time results are refreshed.
         local bgContainer = self.DetailsBackgroundContainer
-        if bgContainer and not bgContainer._auroraSkinned then
+        if bgContainer and not private.IsSkinned(bgContainer) then
             Base.StripBlizzardTextures(bgContainer)
-            bgContainer._auroraSkinned = true
+            private.SetSkinned(bgContainer, true)
         end
     end
 end
@@ -56,7 +56,7 @@ function private.AddOns.Blizzard_EndOfMatchUI()
     local bgContainer = frame.DetailsBackgroundContainer
     if bgContainer then
         Base.StripBlizzardTextures(bgContainer)
-        bgContainer._auroraSkinned = true
+        private.SetSkinned(bgContainer, true)
     end
 
     ------------------------------------------------
@@ -65,7 +65,7 @@ function private.AddOns.Blizzard_EndOfMatchUI()
     -- Detail pool: skin each MatchDetailFrameTemplate frame
     if frame.detailPool then
         Util.WrapPoolAcquire(frame.detailPool, function(detailFrame)
-            if not detailFrame or detailFrame._auroraSkinned then return end
+            if not detailFrame or private.IsSkinned(detailFrame) then return end
             -- Crop the detail icon
             if detailFrame.Icon then
                 Base.CropIcon(detailFrame.Icon)
@@ -74,25 +74,25 @@ function private.AddOns.Blizzard_EndOfMatchUI()
             if detailFrame.Background then
                 detailFrame.Background:SetTexture("")
             end
-            detailFrame._auroraSkinned = true
+            private.SetSkinned(detailFrame, true)
         end)
     end
 
     -- Action button pool: skin EndOfMatchButtonBaseTemplate buttons
     if frame.actionsButtonPool then
         Util.WrapPoolAcquire(frame.actionsButtonPool, function(button)
-            if not button or button._auroraSkinned then return end
+            if not button or private.IsSkinned(button) then return end
             Skin.FrameTypeButton(button)
-            button._auroraSkinned = true
+            private.SetSkinned(button, true)
         end)
     end
 
     -- Gold action button pool: skin EndOfMatchButtonGoldButtonBaseTemplate buttons
     if frame.goldActionsButtonPool then
         Util.WrapPoolAcquire(frame.goldActionsButtonPool, function(button)
-            if not button or button._auroraSkinned then return end
+            if not button or private.IsSkinned(button) then return end
             Skin.FrameTypeButton(button)
-            button._auroraSkinned = true
+            private.SetSkinned(button, true)
         end)
     end
 end

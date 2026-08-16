@@ -32,10 +32,10 @@ end
 
 -- shared row treatment for achievement plates (list, summary, comparison)
 local function SkinAchievementPlate(button, name)
-    if button._auroraSkinned then
+    if private.IsSkinned(button) then
         return
     end
-    button._auroraSkinned = true
+    private.SetSkinned(button, true)
 
     button:DisableDrawLayer("BORDER")
     if button.background then
@@ -118,8 +118,8 @@ do
     end
     function Hook.AchievementButton_GetProgressBar(index)
         local bar = _G["AchievementFrameProgressBar" .. index]
-        if bar and not bar._auroraSkinned then
-            bar._auroraSkinned = true
+        if bar and not private.IsSkinned(bar) then
+            private.SetSkinned(bar, true)
             Skin.FrameTypeStatusBar(bar)
             local name = "AchievementFrameProgressBar" .. index
             if _G[name .. "BG"] then
@@ -156,10 +156,10 @@ end
 
 -- gaudy gold status bars (summary categories, comparison summaries)
 local function SkinAchievementStatusBar(bar)
-    if not bar or bar._auroraSkinned then
+    if not bar or private.IsSkinned(bar) then
         return
     end
-    bar._auroraSkinned = true
+    private.SetSkinned(bar, true)
 
     local name = bar:GetName()
     Skin.FrameTypeStatusBar(bar)
@@ -380,8 +380,8 @@ function private.AddOns.Blizzard_AchievementUI()
         local index = 1
         local row = _G["AchievementFrameCategoriesContainerButton" .. index]
         while row do
-            if not row._auroraSkinned then
-                row._auroraSkinned = true
+            if not private.IsSkinned(row) then
+                private.SetSkinned(row, true)
                 if row.background then
                     row.background:Hide()
                 end

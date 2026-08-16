@@ -34,16 +34,16 @@ do --[[ AddOns\Blizzard_GuildControlUI.lua ]]
         -- 12.1: DiscordLinkFrame/DiscordUnlinkFrame are created lazily on
         -- first update of the Discord pane
         local linked = _G.DiscordLinkFrame
-        if linked and not linked._auroraSkinned then
-            linked._auroraSkinned = true
+        if linked and not private.IsSkinned(linked) then
+            private.SetSkinned(linked, true)
             Skin.UIPanelButtonTemplate(linked.button)
             if linked.SeparateStream and linked.SeparateStream.Button then
                 Skin.UICheckButtonTemplate(linked.SeparateStream.Button)
             end
         end
         local unlinked = _G.DiscordUnlinkFrame
-        if unlinked and not unlinked._auroraSkinned then
-            unlinked._auroraSkinned = true
+        if unlinked and not private.IsSkinned(unlinked) then
+            private.SetSkinned(unlinked, true)
             Skin.UIPanelButtonTemplate(unlinked.button)
         end
     end

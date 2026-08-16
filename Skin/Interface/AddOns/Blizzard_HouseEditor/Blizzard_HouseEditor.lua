@@ -59,8 +59,8 @@ end
 -- Skin a PlacedDecorList or FixtureOptionList panel (housing-basic-container pattern)
 local function SkinListPanel(panel)
     if not SafeFrame(panel) then return end
-    if panel._auroraSkinned then return end
-    panel._auroraSkinned = true
+    if private.IsSkinned(panel) then return end
+    private.SetSkinned(panel, true)
 
     if panel.Background then panel.Background:SetAlpha(0) end
     if panel.Header then panel.Header:SetAlpha(0) end
@@ -75,8 +75,8 @@ end
 -- Skin a dye/customization pane (housing-basic-container pattern)
 local function SkinCustomizationPane(pane)
     if not SafeFrame(pane) then return end
-    if pane._auroraSkinned then return end
-    pane._auroraSkinned = true
+    if private.IsSkinned(pane) then return end
+    private.SetSkinned(pane, true)
 
     if pane.Background then pane.Background:SetAlpha(0) end
     if pane.WoodHeader then pane.WoodHeader:SetAlpha(0) end
@@ -122,8 +122,8 @@ end
 -- clone of StoragePanel but with plain templates
 local function SkinPetCustomizationsPane(petPane)
     if not SafeFrame(petPane) then return end
-    if petPane._auroraSkinned then return end
-    petPane._auroraSkinned = true
+    if private.IsSkinned(petPane) then return end
+    private.SetSkinned(petPane, true)
 
     if petPane.Background then petPane.Background:SetAlpha(0) end
     if petPane.HeaderBackground then petPane.HeaderBackground:SetAlpha(0) end
@@ -149,8 +149,8 @@ end
 -- Skin the RoomComponentPane (housing-basic-container pattern)
 local function SkinRoomComponentPane(pane)
     if not SafeFrame(pane) then return end
-    if pane._auroraSkinned then return end
-    pane._auroraSkinned = true
+    if private.IsSkinned(pane) then return end
+    private.SetSkinned(pane, true)
 
     if pane.Background then pane.Background:SetAlpha(0) end
     if pane.Header then pane.Header:SetAlpha(0) end
@@ -203,7 +203,7 @@ local function SkinModeFrameChildren(modeFrame)
         -- DyeSelectionPopout is a named child, not parentKey — try global
         dyePopout = _G.DyeSelectionPopout
     end
-    if SafeFrame(dyePopout) and not dyePopout._auroraSkinned then
+    if SafeFrame(dyePopout) and not private.IsSkinned(dyePopout) then
         SkinCustomizationPane(dyePopout)
     end
 
@@ -220,8 +220,8 @@ local function SkinModeFrameChildren(modeFrame)
     -- FloorSelect (LayoutMode)
     if modeFrame.FloorSelect then
         local floorSelect = modeFrame.FloorSelect
-        if SafeFrame(floorSelect) and not floorSelect._auroraSkinned then
-            floorSelect._auroraSkinned = true
+        if SafeFrame(floorSelect) and not private.IsSkinned(floorSelect) then
+            private.SetSkinned(floorSelect, true)
             if floorSelect.Background then floorSelect.Background:SetAlpha(0) end
             if floorSelect.ScrollBox then Skin.WowScrollBoxList(floorSelect.ScrollBox) end
         end
@@ -241,8 +241,8 @@ local function SkinModeFrameChildren(modeFrame)
         }
         for _, key in ipairs(dropdownKeys) do
             local option = panel[key]
-            if option and option.Dropdown and not option._auroraSkinned then
-                option._auroraSkinned = true
+            if option and option.Dropdown and not private.IsSkinned(option) then
+                private.SetSkinned(option, true)
                 Skin.WowStyle2DropdownTemplate(option.Dropdown)
             end
         end
@@ -305,8 +305,8 @@ function private.AddOns.Blizzard_HouseEditor()
         if StoragePanel.TabSystem then
             local function SkinStorageTabs()
                 for _, tab in ipairs({StoragePanel.TabSystem:GetChildren()}) do
-                    if tab.Left and tab.LeftActive and not tab._auroraSkinned then
-                        tab._auroraSkinned = true
+                    if tab.Left and tab.LeftActive and not private.IsSkinned(tab) then
+                        private.SetSkinned(tab, true)
                         Skin.TabSystemButtonTemplate(tab)
                     end
                 end

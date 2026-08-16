@@ -40,8 +40,8 @@ do  -- PlayerSpellsFrame.SpecFrame
         local button = frame.Button
 
         -- Mark as skinned first to prevent re-entry
-        if button._auroraSkinned then return end
-        button._auroraSkinned = true
+        if private.IsSkinned(button) then return end
+        private.SetSkinned(button, true)
 
         -- Hide the Backplate that creates the dark bar behind text
         if frame.Backplate then
@@ -204,7 +204,7 @@ do  -- PlayerSpellsFrame.SpecFrame
             frame._auroraTextColorHooked = true
         end
 
-        frame._auroraSkinned = true
+        private.SetSkinned(frame, true)
     end
 
     -- Create a mixin to hook into SpellBookFrame's methods
@@ -216,8 +216,8 @@ do  -- PlayerSpellsFrame.SpecFrame
         _G.C_Timer.After(0.5, function()
             for _, frame in self.PagedSpellsFrame:EnumerateFrames() do
                 if frame.Button then
-                    frame._auroraSkinned = nil
-                    frame.Button._auroraSkinned = nil
+                    private.SetSkinned(frame, nil)
+                    private.SetSkinned(frame.Button, nil)
                     Hook.SkinSpellBookItem(frame)
                 end
             end
@@ -230,22 +230,22 @@ do  -- PlayerSpellsFrame.SpecFrame
         _G.C_Timer.After(0.1, function()
             for _, frame in self.PagedSpellsFrame:EnumerateFrames() do
                 if frame.Button then
-                    frame._auroraSkinned = nil
-                    frame.Button._auroraSkinned = nil
+                    private.SetSkinned(frame, nil)
+                    private.SetSkinned(frame.Button, nil)
                     Hook.SkinSpellBookItem(frame)
                 end
             end
         end)
         _G.C_Timer.After(0.5, function()
             for _, frame in self.PagedSpellsFrame:EnumerateFrames() do
-                if frame.Button and not frame._auroraSkinned then
+                if frame.Button and not private.IsSkinned(frame) then
                     Hook.SkinSpellBookItem(frame)
                 end
             end
         end)
         _G.C_Timer.After(1.0, function()
             for _, frame in self.PagedSpellsFrame:EnumerateFrames() do
-                if frame.Button and not frame._auroraSkinned then
+                if frame.Button and not private.IsSkinned(frame) then
                     Hook.SkinSpellBookItem(frame)
                 end
             end
@@ -256,7 +256,7 @@ do  -- PlayerSpellsFrame.SpecFrame
         -- Skin all spell items after Blizzard updates them
         _G.C_Timer.After(0.1, function()
             for _, frame in self.PagedSpellsFrame:EnumerateFrames() do
-                if frame.Button and not frame._auroraSkinned then
+                if frame.Button and not private.IsSkinned(frame) then
                     Hook.SkinSpellBookItem(frame)
                 end
             end
@@ -267,7 +267,7 @@ do  -- PlayerSpellsFrame.SpecFrame
         -- Skin all spell items when page updates
         _G.C_Timer.After(0.1, function()
             for _, frame in self.PagedSpellsFrame:EnumerateFrames() do
-                if frame.Button and not frame._auroraSkinned then
+                if frame.Button and not private.IsSkinned(frame) then
                     Hook.SkinSpellBookItem(frame)
                 end
             end
@@ -280,15 +280,15 @@ do  -- PlayerSpellsFrame.SpecFrame
             for _, frame in self.PagedSpellsFrame:EnumerateFrames() do
                 if frame.Button then
                     -- Force re-skin on initial load
-                    frame._auroraSkinned = nil
-                    frame.Button._auroraSkinned = nil
+                    private.SetSkinned(frame, nil)
+                    private.SetSkinned(frame.Button, nil)
                     Hook.SkinSpellBookItem(frame)
                 end
             end
         end)
         _G.C_Timer.After(0.5, function()
             for _, frame in self.PagedSpellsFrame:EnumerateFrames() do
-                if frame.Button and not frame._auroraSkinned then
+                if frame.Button and not private.IsSkinned(frame) then
                     Hook.SkinSpellBookItem(frame)
                 end
             end
@@ -297,7 +297,7 @@ do  -- PlayerSpellsFrame.SpecFrame
 
     function Hook.UpdatePlayeerSpecFrame(self)
         for SpecContentFrame in self.SpecContentFramePool:EnumerateActive() do
-            if not SpecContentFrame._auroraSkinned then
+            if not private.IsSkinned(SpecContentFrame) then
                 Skin.UIPanelButtonTemplate(SpecContentFrame.ActivateButton)
                 local role = _G.GetSpecializationRole(SpecContentFrame.specIndex)
                 if role then
@@ -315,7 +315,7 @@ do  -- PlayerSpellsFrame.SpecFrame
                         end
                     end
                 end
-                SpecContentFrame._auroraSkinned = true
+                private.SetSkinned(SpecContentFrame, true)
             end
         end
     end
@@ -499,15 +499,15 @@ function private.AddOns.Blizzard_PlayerSpells()
         _G.C_Timer.After(0.5, function()
             for _, frame in SpellBookFrame.PagedSpellsFrame:EnumerateFrames() do
                 if frame.Button then
-                    frame._auroraSkinned = nil
-                    frame.Button._auroraSkinned = nil
+                    private.SetSkinned(frame, nil)
+                    private.SetSkinned(frame.Button, nil)
                     Hook.SkinSpellBookItem(frame)
                 end
             end
         end)
         _G.C_Timer.After(1.0, function()
             for _, frame in SpellBookFrame.PagedSpellsFrame:EnumerateFrames() do
-                if frame.Button and not frame._auroraSkinned then
+                if frame.Button and not private.IsSkinned(frame) then
                     Hook.SkinSpellBookItem(frame)
                 end
             end
@@ -587,10 +587,10 @@ function private.AddOns.Blizzard_PlayerSpells()
             if frame.Button then
                 -- Always check and re-skin if needed, as buttons can be recycled from pools
                 local button = frame.Button
-                if not button._auroraSkinned or not button:GetBackdrop() then
+                if not private.IsSkinned(button) or not button:GetBackdrop() then
                     -- Clear the flag to force re-skinning
-                    button._auroraSkinned = nil
-                    frame._auroraSkinned = nil
+                    private.SetSkinned(button, nil)
+                    private.SetSkinned(frame, nil)
                     Hook.SkinSpellBookItem(frame)
                 end
             elseif frame.Backplate and frame.Text and not frame._auroraHeaderSkinned then
@@ -701,7 +701,7 @@ function private.AddOns.Blizzard_PlayerSpells()
                 if frame.Button then
                     local button = frame.Button
                     -- Re-skin if not yet skinned
-                    if not button._auroraSkinned then
+                    if not private.IsSkinned(button) then
                         Hook.SkinSpellBookItem(frame)
                     end
 

@@ -97,11 +97,11 @@ end
 
 do --[[ AddOns\Blizzard_HousingTemplates\Blizzard_HousingCatalogTemplates.xml ]]
     function Skin.ScrollingHousingCatalogTemplate(Frame)
-        if Frame._auroraSkinned then
+        if private.IsSkinned(Frame) then
             return
         end
 
-        Frame._auroraSkinned = true
+        private.SetSkinned(Frame, true)
 
         Skin.WowScrollBoxList(Frame.ScrollBox)
         Skin.MinimalScrollBar(Frame.ScrollBar)
@@ -110,11 +110,11 @@ end
 
 do --[[ AddOns\Blizzard_HousingTemplates\Blizzard_HousingCatalogEntry.xml ]]
     function Skin.BaseHousingCatalogEntryTemplate(Button)
-        if Button._auroraSkinned then
+        if private.IsSkinned(Button) then
             return
         end
 
-        Button._auroraSkinned = true
+        private.SetSkinned(Button, true)
         Button._auroraHousingCatalogEntry = true
 
         Base.SetBackdrop(Button, Color.button, 0.2)
@@ -149,11 +149,11 @@ end
 
 do --[[ AddOns\Blizzard_HousingTemplates\Blizzard_HousingCatalogCategories.xml ]]
     function Skin.HousingCatalogCategoryTemplate(Button)
-        if Button._auroraSkinned then
+        if private.IsSkinned(Button) then
             return
         end
 
-        Button._auroraSkinned = true
+        private.SetSkinned(Button, true)
         Button._auroraHousingActionButton = true
 
         Base.SetBackdrop(Button, Color.button, 0.2)
@@ -193,11 +193,11 @@ do --[[ AddOns\Blizzard_HousingTemplates\Blizzard_HousingCatalogCategories.xml ]
     end
 
     function Skin.HousingCatalogCategoriesTemplate(Frame)
-        if Frame._auroraSkinned then
+        if private.IsSkinned(Frame) then
             return
         end
 
-        Frame._auroraSkinned = true
+        private.SetSkinned(Frame, true)
 
         Base.SetBackdrop(Frame, Color.frame)
 
@@ -218,21 +218,21 @@ end
 
 do --[[ AddOns\Blizzard_HousingTemplates\Blizzard_HousingCatalogFilters.xml ]]
     function Skin.HousingCatalogFiltersTemplate(Frame)
-        if Frame._auroraSkinned then
+        if private.IsSkinned(Frame) then
             return
         end
 
-        Frame._auroraSkinned = true
+        private.SetSkinned(Frame, true)
 
         Skin.FilterButton(Frame.FilterDropdown)
     end
 
     function Skin.HousingCatalogSearchBoxTemplate(EditBox)
-        if EditBox._auroraSkinned then
+        if private.IsSkinned(EditBox) then
             return
         end
 
-        EditBox._auroraSkinned = true
+        private.SetSkinned(EditBox, true)
 
         Skin.SearchBoxTemplate(EditBox)
     end

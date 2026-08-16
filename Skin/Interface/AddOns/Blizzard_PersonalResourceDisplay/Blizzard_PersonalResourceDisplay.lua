@@ -12,10 +12,10 @@ local Util = Aurora.Util
 -- Shared helper: skin a StatusBar and strip its parent border frame
 local function SkinBar(bar)
     if not bar or (bar.IsForbidden and bar:IsForbidden()) then return end
-    if bar._auroraSkinned then return end
+    if private.IsSkinned(bar) then return end
 
     Skin.FrameTypeStatusBar(bar)
-    bar._auroraSkinned = true
+    private.SetSkinned(bar, true)
 end
 
 do --[[ AddOns\Blizzard_PersonalResourceDisplay.lua ]]

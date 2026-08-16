@@ -13,11 +13,11 @@ local Color = Aurora.Color
 
 do --[[ AddOns\Blizzard_HousingControls\Blizzard_HousingControlButton.xml ]]
     function Skin.BaseHousingControlButtonTemplate(Button)
-        if Button._auroraSkinned then
+        if private.IsSkinned(Button) then
             return
         end
 
-        Button._auroraSkinned = true
+        private.SetSkinned(Button, true)
         Button._auroraHousingActionButton = true
 
         Base.SetBackdrop(Button, Color.button, 0.2)

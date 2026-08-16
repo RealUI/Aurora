@@ -11,7 +11,7 @@ local Util = Aurora.Util
 
 -- Shared helper: skin a single event frame (track or timer)
 local function SkinEventFrame(eventFrame)
-    if not eventFrame or eventFrame._auroraSkinned then return end
+    if not eventFrame or private.IsSkinned(eventFrame) then return end
     if eventFrame.IsForbidden and eventFrame:IsForbidden() then return end
 
     -- Crop the ability icon inside the IconContainer
@@ -45,7 +45,7 @@ local function SkinEventFrame(eventFrame)
         end
     end
 
-    eventFrame._auroraSkinned = true
+    private.SetSkinned(eventFrame, true)
 end
 
 --[[ AddOns\Blizzard_EncounterTimeline.lua ]]

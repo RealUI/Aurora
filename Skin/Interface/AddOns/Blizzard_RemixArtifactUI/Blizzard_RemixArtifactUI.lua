@@ -78,8 +78,8 @@ function private.AddOns.Blizzard_RemixArtifactUI()
     local frame = _G.RemixArtifactFrame
     if not frame then return end
 
-    if not frame._auroraSkinned then
-        frame._auroraSkinned = true
+    if not private.IsSkinned(frame) then
+        private.SetSkinned(frame, true)
         Skin.FrameTypeFrame(frame)
     end
 

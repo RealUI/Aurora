@@ -82,11 +82,11 @@ end
 
 do --[[ AddOns\Blizzard_HousingDashboard\Blizzard_HousingDashboard.xml ]]
     function Skin.HouseUpgradeRewardFrameTemplate(Frame)
-        if Frame._auroraSkinned then
+        if private.IsSkinned(Frame) then
             return
         end
 
-        Frame._auroraSkinned = true
+        private.SetSkinned(Frame, true)
 
         if Frame.Background then
             Frame.Background:SetAlpha(0)
@@ -197,8 +197,8 @@ function private.AddOns.Blizzard_HousingDashboard()
         local function SkinTabSystemTabs()
             if ContentFrame.TabSystem then
                 for _, tab in ipairs({ContentFrame.TabSystem:GetChildren()}) do
-                    if tab.Left and tab.LeftActive and not tab._auroraSkinned then
-                        tab._auroraSkinned = true
+                    if tab.Left and tab.LeftActive and not private.IsSkinned(tab) then
+                        private.SetSkinned(tab, true)
                         Skin.TabSystemButtonTemplate(tab)
                     end
                 end

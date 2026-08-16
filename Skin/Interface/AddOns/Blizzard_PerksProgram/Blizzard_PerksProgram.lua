@@ -8,8 +8,8 @@ local Color, Util = Aurora.Color, Aurora.Util
 do --[[ AddOns\Blizzard_PerksProgram.lua ]]
     -- Skin a product button acquired from the ScrollBox element factory.
     local function SkinProductButton(button)
-        if not button or button._auroraSkinned then return end
-        button._auroraSkinned = true
+        if not button or private.IsSkinned(button) then return end
+        private.SetSkinned(button, true)
 
         local contents = button.ContentsContainer
         if contents then
@@ -29,8 +29,8 @@ end
 
 do --[[ AddOns\Blizzard_PerksProgram.xml ]]
     function Skin.PerksProgramProductButtonTemplate(Button)
-        if Button._auroraSkinned then return end
-        Button._auroraSkinned = true
+        if private.IsSkinned(Button) then return end
+        private.SetSkinned(Button, true)
 
         local contents = Button.ContentsContainer
         if contents then

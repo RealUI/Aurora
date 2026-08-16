@@ -33,9 +33,9 @@ function private.AddOns.Blizzard_CombatLog()
     -- Helper: skin a single quick-filter button
     ------------------------------------------------
     local function SkinQuickButton(button)
-        if not button or button._auroraSkinned then return end
+        if not button or private.IsSkinned(button) then return end
         Skin.FrameTypeButton(button)
-        button._auroraSkinned = true
+        private.SetSkinned(button, true)
     end
 
     ------------------------------------------------

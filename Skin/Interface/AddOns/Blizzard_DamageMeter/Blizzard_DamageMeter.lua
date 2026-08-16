@@ -11,7 +11,7 @@ local Util = Aurora.Util
 
 -- Shared helper: skin a single DamageMeter entry frame (source or spell)
 local function SkinEntry(frame)
-    if not frame or frame._auroraSkinned then return end
+    if not frame or private.IsSkinned(frame) then return end
     if frame.IsForbidden and frame:IsForbidden() then return end
 
     local statusBar = frame:GetStatusBar()
@@ -24,7 +24,7 @@ local function SkinEntry(frame)
         Base.CropIcon(icon)
     end
 
-    frame._auroraSkinned = true
+    private.SetSkinned(frame, true)
 end
 
 do --[[ AddOns\Blizzard_DamageMeter.lua ]]
@@ -66,7 +66,7 @@ function private.AddOns.Blizzard_DamageMeter()
     -- Only skin child visual elements on session windows.
 
     local function SkinSessionWindow(sessionWindow)
-        if not sessionWindow or sessionWindow._auroraSkinned then return end
+        if not sessionWindow or private.IsSkinned(sessionWindow) then return end
         if sessionWindow.IsForbidden and sessionWindow:IsForbidden() then return end
 
         -- Strip decorative textures from the session window background
@@ -114,7 +114,7 @@ function private.AddOns.Blizzard_DamageMeter()
             end)
         end
 
-        sessionWindow._auroraSkinned = true
+        private.SetSkinned(sessionWindow, true)
     end
 
     -- Iterate over existing session windows

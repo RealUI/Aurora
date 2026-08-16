@@ -38,8 +38,8 @@ do --[[ AddOns\Blizzard_TokenUI\Blizzard_TokenUI.xml ]]
         plus:SetColorTexture(1, 1, 1) -- static: not a theme color
         plus:Hide()
         Button._auroraPlus = plus
-        if not Button._auroraSkinned then
-            Button._auroraSkinned = true
+        if not private.IsSkinned(Button) then
+            private.SetSkinned(Button, true)
         end
     end
     function Skin.BackpackTokenTemplate(Button)
@@ -58,7 +58,7 @@ do --[[ AddOns\Blizzard_TokenUI\Blizzard_TokenUI.xml ]]
         end
     end
     local function SecureUpdateCurrencyScrollBoxEntries(entry)
-        if not entry._auroraSkinned then
+        if not private.IsSkinned(entry) then
             if entry.Right then
                 Base.SetBackdrop(entry, Color.button)
                 SecureUpdateCollapse(entry.Right)
@@ -70,7 +70,7 @@ do --[[ AddOns\Blizzard_TokenUI\Blizzard_TokenUI.xml ]]
             if icon then
                 Base.CropIcon(icon)
             end
-            entry._auroraSkinned = true
+            private.SetSkinned(entry, true)
         end
     end
     function Hook.UpdateCurrencyScrollBox(frame)
