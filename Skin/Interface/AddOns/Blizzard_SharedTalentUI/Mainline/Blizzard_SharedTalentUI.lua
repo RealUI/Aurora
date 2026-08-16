@@ -56,8 +56,13 @@ function private.AddOns.Blizzard_SharedTalentUI()
             if private.IsSkinned(self) then return end
             private.SetSkinned(self, true)
 
-            Skin.FrameTypeFrame(self)
+            -- Strip BEFORE skinning. StripBlizzardTextures clears every
+            -- texture region on the frame, and the backdrop pieces created by
+            -- FrameTypeFrame are regions of the frame too — so the old order
+            -- wiped the backdrop it had just created, leaving derived frames
+            -- with no background at all.
             Base.StripBlizzardTextures(self)
+            Skin.FrameTypeFrame(self)
         end)
 
         -- Wrap talent node pools as they are lazily created.
