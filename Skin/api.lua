@@ -81,9 +81,25 @@ created at a black background for the icon.
 --]]
 function Base.CropIcon(texture, parent)
     if not texture then return end
-    -- Some textures may have a mask; calling SetTexCoord on a masked
-    -- texture errors in the client (see: "Cannot set tex coords when texture has mask").
-    -- Use a protected call to avoid throwing an error for those textures.
+
+    -- Blizzard masks a lot of icons into rounded shapes (ItemButton's IconMask,
+    -- the action bar's IconFrame mask). The client refuses SetTexCoord on a
+    -- masked texture ("Cannot set tex coords when texture has mask"), so the
+    -- pcall below swallowed the refusal and the icon silently stayed rounded —
+    -- which is what item buttons in bags and at vendors were showing.
+    -- This function's contract is a SQUARE cropped icon, so drop the masks
+    -- first. Iterate downwards: removing a mask reindexes the rest.
+    if texture.GetNumMaskTextures and texture.RemoveMaskTexture then
+        for i = texture:GetNumMaskTextures(), 1, -1 do
+            local mask = texture:GetMaskTexture(i)
+            if mask then
+                texture:RemoveMaskTexture(mask)
+            end
+        end
+    end
+
+    -- Kept as belt-and-braces: a texture can still refuse the call for other
+    -- reasons (forbidden/secure-environment textures).
     pcall(texture.SetTexCoord, texture, .08, .92, .08, .92)
     if parent then
         -- 12.1: textures on AuraContainer secure-environment frames return
