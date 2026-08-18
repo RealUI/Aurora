@@ -131,12 +131,17 @@ do --[[ FrameXML\ReputationFrame.xml ]]
         if not Content then return end
 
         -- Sub-header rows (e.g. Silvermoon Court under The Singularity) carry
-        -- the expand/collapse "+" as Content.ToggleCollapseButton. The old
-        -- pre-ScrollBox key was ExpandOrCollapseButton, which no longer exists
-        -- in 12.x — so the button was left with Blizzard's plus/minus artwork.
-        if Content.ToggleCollapseButton and not private.IsSkinned(Content.ToggleCollapseButton) then
-            private.SetSkinned(Content.ToggleCollapseButton, true)
-            Skin.ExpandOrCollapse(Content.ToggleCollapseButton)
+        -- the expand/collapse "+" as ToggleCollapseButton, a direct child of
+        -- the row — NOT of Content, and not the pre-ScrollBox
+        -- ExpandOrCollapseButton key, which no longer exists in 12.x. Absent on
+        -- plain entry rows, hence the guard.
+        local toggle = Button.ToggleCollapseButton
+        if toggle and not private.IsSkinned(toggle) then
+            private.SetSkinned(toggle, true)
+            Skin.ExpandOrCollapse(toggle)
+            -- Blizzard's 20x20 is sized for its atlas artwork and reads oversized
+            -- next to the row's other elements once flattened to a plain square.
+            toggle:SetSize(14, 14)
         end
 
         local ReputationBar = Content.ReputationBar
@@ -288,6 +293,26 @@ function private.FrameXML.ReputationFrame()
             -- given frame shows a different faction after each data refresh.
             if stateFunc then
                 stateFunc(row)
+            end
+        end)
+    end
+
+    -- Collapse-state glyph. Skin.ExpandOrCollapse toggles its plus overlay from
+    -- hooks on Button:SetNormalTexture/SetNormalAtlas, but this button's
+    -- RefreshIcon calls self:GetNormalTexture():SetAtlas(...) — setting the
+    -- atlas on the texture object, which those hooks never see. Without this
+    -- the button stayed a "+" even while expanded.
+    if _G.ReputationSubHeaderToggleCollapseButtonMixin then
+        _G.hooksecurefunc(_G.ReputationSubHeaderToggleCollapseButtonMixin, "RefreshIcon", function(self)
+            local normal = self:GetNormalTexture()
+            if normal then normal:SetAlpha(0) end
+
+            local pushed = self:GetPushedTexture()
+            if pushed then pushed:SetAlpha(0) end
+
+            if self._plus then
+                local header = self.GetHeader and self:GetHeader()
+                self._plus:SetShown(not header or header:IsCollapsed())
             end
         end)
     end
