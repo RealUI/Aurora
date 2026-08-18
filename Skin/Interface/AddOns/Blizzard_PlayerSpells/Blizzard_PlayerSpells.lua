@@ -114,6 +114,18 @@ do  -- PlayerSpellsFrame.SpecFrame
             button.IconHighlight:ClearAllPoints()
             button.IconHighlight:SetPoint("TOPLEFT", button.Icon)
             button.IconHighlight:SetPoint("BOTTOMRIGHT", button.Icon)
+            -- B07: the hover/press state uses the rounded iconframe atlas;
+            -- replace it with the flat square highlight action bar buttons get.
+            -- The mixin drives the hover/press alphas, so only the texture is
+            -- swapped here (re-applied in the UpdateVisuals hook below because
+            -- Blizzard re-sets the atlas there).
+            Util.SetHighlightColor(button.IconHighlight)
+        end
+
+        -- B07: the flyout border shadow is more rounded Blizzard art; alpha 0
+        -- survives the Show/Hide toggling the flyout mixin does.
+        if button.BorderShadow then
+            button.BorderShadow:SetAlpha(0)
         end
 
         -- Handle AutoCast overlay
@@ -485,6 +497,13 @@ function private.AddOns.Blizzard_PlayerSpells()
         end
         -- Hide the per-item amber banner backplate immediately
         if self.Backplate then self.Backplate:SetAlpha(0) end
+
+        -- B07: UpdateVisuals re-applies the rounded iconframe hover atlas via
+        -- self.artSet.iconHighlight — replace it with the flat square highlight
+        -- again so the buttons keep the action bar treatment.
+        if self.Button and self.Button.IconHighlight then
+            Util.SetHighlightColor(self.Button.IconHighlight)
+        end
     end)
 
     _G.hooksecurefunc(_G.SpellBookHeaderMixin, "Init", function(self)
