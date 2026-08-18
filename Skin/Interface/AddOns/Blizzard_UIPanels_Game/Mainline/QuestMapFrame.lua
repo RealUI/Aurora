@@ -171,7 +171,13 @@ end
 
 do --[[ FrameXML\QuestMapFrame.xml ]]
     function Skin.QuestLogHeaderTemplate(Button)
-        Skin.ExpandOrCollapse(Button)
+        -- B38: these headers are full-width rows carrying a dedicated
+        -- right-side CollapseButton with its own plus/minus icon. The legacy
+        -- Skin.ExpandOrCollapse treatment drew Aurora's own "+" glyph at the
+        -- row's top-left — on top of the header text — doubling the indicator.
+        -- Skin the row itself and leave the CollapseButton's clean plus/minus
+        -- atlas as the single expand indicator.
+        Skin.FrameTypeButton(Button)
         Button:SetBackdropOption("offsets", {
             left = 3,
             right = 3,

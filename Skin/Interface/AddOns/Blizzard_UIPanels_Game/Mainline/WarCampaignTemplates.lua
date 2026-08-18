@@ -6,22 +6,8 @@ if private.shouldSkip() then return end
 
 --[[ Core ]]
 local Aurora = private.Aurora
-local Hook, Skin = Aurora.Hook, Aurora.Skin
+local Skin = Aurora.Skin
 local Color = Aurora.Color
-local Util = Aurora.Util
-
-do --[[ FrameXML\WarCampaignTemplates.lua ]]
-    Hook.CampaignCollapseButtonMixin = {}
-    function Hook.CampaignCollapseButtonMixin:UpdateCollapsedState(isCollapsed)
-        if isCollapsed then
-            self:SetNormalTexture("Plus")
-        else
-            self:SetNormalTexture("Minus")
-        end
-
-        self:ClearPushedTexture()
-    end
-end
 
 do --[[ FrameXML\WarCampaignTemplates.xml ]]
     function Skin.CampaignTooltipTemplate(Frame)
@@ -51,36 +37,20 @@ do --[[ FrameXML\WarCampaignTemplates.xml ]]
         --Frame.Text:SetPoint("BOTTOMLEFT", Frame.Background, "LEFT", 43, 0)
         Frame.HighlightTexture:SetAllPoints(clipFrame)
     end
+    -- B38: the CollapseButtonTemplate mixin drives its own bare plus/minus
+    -- Icon atlas — the legacy Skin.ExpandOrCollapse treatment stacked Aurora's
+    -- glyph on top of it, doubling the indicator. Leave the stock icon as the
+    -- single expand indicator, matching Skin.QuestLogHeaderTemplate.
     function Skin.CampaignHeaderTemplate(Frame)
         Skin.CampaignHeaderDisplayTemplate(Frame)
-        Skin.ExpandOrCollapse(Frame.CollapseButton)
-        Frame.CollapseButton:SetBackdropOption("offsets", {
-            left = 3,
-            right = 3,
-            top = 3,
-            bottom = 3,
-        })
-        Util.Mixin(Frame.CollapseButton, Hook.CampaignCollapseButtonMixin)
-        Frame.CollapseButton:UpdateCollapsedState(Frame:IsCollapsed())
     end
     function Skin.CampaignHeaderMinimalTemplate(Button)
-        Skin.ExpandOrCollapse(Button.CollapseButton)
-        Button.CollapseButton:SetBackdropOption("offsets", {
-            left = 3,
-            right = 3,
-            top = 3,
-            bottom = 3,
-        })
-
         if Button.Background then
             Button.Background:SetAlpha(0)
         end
         if Button.Highlight then
             Button.Highlight:SetColorTexture(1, 1, 1, Color.frame.a) -- static: not a theme color
         end
-
-        Util.Mixin(Button.CollapseButton, Hook.CampaignCollapseButtonMixin)
-        Button.CollapseButton:UpdateCollapsedState(Button:IsCollapsed())
     end
 end
 
