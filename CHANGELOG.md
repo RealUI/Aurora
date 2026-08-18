@@ -1,4 +1,28 @@
-﻿## [12.1.0.3] ##
+﻿## [12.1.0.4] ##
+### Added ###
+
+  * add: **UI widget templates** — the icon-bearing widget types are skinned for the first time (`ItemDisplay` and the shared item/currency bases, `IconTextAndBackground`, `DoubleIconAndText`). Aurora only ever defined skins for a handful of the ~35 widget templates, so every other type rendered with Blizzard's rounded icon art wherever widgets appear [mainline]
+  * add: **delves scenario header widget** (`UIWidgetTemplateScenarioHeaderDelves`) — the objective tracker's delve block drew its own artwork and fonts because no skin existed for its widget type [mainline]
+
+### Fixed ###
+
+  * fix: **the delve objective-tracker error is resolved.** Aurora wrote four shared font globals (`STANDARD_TEXT_FONT`, `UNIT_NAME_FONT`, `NAMEPLATE_FONT`, `DAMAGE_TEXT_FONT`); writing a global from an addon taints it permanently and every later reader inherits that taint — it was caught spreading to unrelated third-party addons. Separately, the objective tracker skin stored `_auroraBG`/`_auroraOverlay` directly on `ScenarioStageBlock`, tainting the very frame whose `LayoutContents` calls `GetAuraDataByIndex`. Together those produced "Auras cannot be accessed when secret while tainted by 'RealUI_Skins'" in delves, aborting tracker layout. Both writes are gone; verified across a full delve with `taintLog 2` [shared]
+  * fix: **delve entry screen** — the Map Properties icon kept Blizzard's circular border (its widget container is declared in the addon's own XML, so it never reached the widget skins), and the reward rows were never skinned at all: Aurora wrapped a reward pool that Blizzard creates but never acquires from, while the rows actually come from the ScrollBox element factory. Reward icons also stayed square now that the list stretches each row [mainline]
+  * fix: **objective tracker** — scenario/delve blocks, their criteria progress bars, and any block acquired through `GetBlock` are skinned. Progress bars are acquired by the module's own pool rather than the block, so `AddProgressBar` never reached them; block templates with a skin function but no call site (the "Quest Discovered!" popup) were never skinned at all [mainline]
+  * fix: **dropdown arrows** — skinned dropdowns and filter buttons lost their arrow with no replacement (Currency character filter, Calendar filters). `UIDropDownMenu`-style dropdowns — which AceGUI uses, so every RealUI config dropdown — expose their parts by global name rather than parentKeys, so they now get their own button's artwork replaced instead of a second arrow stacked on top [mainline]
+  * fix: **reputation** — the filter dropdown was never skinned, and the sub-header expand button kept Blizzard's plus/minus artwork: 12.x renamed it from `ExpandOrCollapseButton` to `ToggleCollapseButton` and drives its state through `RefreshIcon`, which sets the atlas on the texture object where Aurora's hooks never saw it [mainline]
+  * fix: **spellbook** buttons kept the rounded `IconHighlight` atlas, re-applied by `UpdateVisuals`, instead of the flat action-bar highlight [mainline]
+  * fix: **professions** — reagent and item icons render on the ItemButton intrinsic's lowercase `icon`, which was never cropped; the rounded quickslot ring is re-cleared after `SetModifyingRequired` re-applies it; the reagent flyout was entirely unskinned; recipe list gold hover/selection atlases replaced with flat bars [mainline]
+  * fix: **quest log** headers drew Aurora's legacy expand glyph on top of Blizzard's collapse button — two "+" per collapsed header. Campaign headers had the same stacking [mainline]
+  * fix: **chat** — the return-to-bottom button kept Blizzard's atlas while the scroll bar's own arrows were skinned, so one chat frame showed three arrow styles [mainline]
+  * fix: **expand/collapse glyphs** were anchored from `TOPLEFT` with offsets tuned for a 13px button, sitting off-centre on anything larger [shared]
+  * fix: **world map** maximize/minimize buttons rendered as missing-glyph boxes — the icons are drawn as text (the map is under a widget-API-only taint regime) and the font has no arrow or geometric-shape characters [mainline]
+
+### Changed ###
+
+  * chg: the **chat skin follows the "Skin Chat" setting** again. It still causes tainted reads of `CURRENT_CHAT_FRAME_ID` at zone-in — Blizzard's own `ChatConfigFrame` writes that global — but with the tracker-side frame writes gone that taint no longer reaches the objective tracker. Do not reintroduce addon fields on tracker frames [mainline]
+
+## [12.1.0.3] ##
 ### Added ###
 
   * add: **Blizzard_TieredEntranceTraits** module — the scenario/delve trait flyout: container chrome, themed overlay and flyout arrow suppressed, spell buttons cropped and backdropped, tooltip and tier rows restyled [mainline]
@@ -743,7 +767,8 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.3...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.4...develop
+[12.1.0.4]: https://github.com/Gethe/Aurora/compare/12.1.0.3...12.1.0.4
 [12.1.0.3]: https://github.com/Gethe/Aurora/compare/12.1.0.2...12.1.0.3
 [12.1.0.2]: https://github.com/Gethe/Aurora/compare/12.1.0.1...12.1.0.2
 [12.1.0.1]: https://github.com/Gethe/Aurora/compare/12.1.0.0...12.1.0.1
