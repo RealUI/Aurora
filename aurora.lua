@@ -274,27 +274,12 @@ function private.OnLoad()
     -- Disable skins as per user settings
     private.disabled.bags = not AuroraConfig.bags
     private.disabled.banks = not AuroraConfig.banks
-    -- RESOLVED 2026-08-19: the chat skin was force-disabled from 2026-08-17
-    -- while the delve objective-tracker taint was being chased. It is back
-    -- under the user's "Skin Chat" setting: with the tracker skin and the full
-    -- chat skin both enabled, two delve-length taint.log captures (15.5k and
-    -- 12k lines) through a completed delve showed no error and — the signal
-    -- that had fingerprinted the chat skin — no delve-entry
-    -- CURRENT_CHAT_FRAME_ID burst. The actual vector was removed by the
-    -- 2026-08-18 taint fixes: no longer writing the shared font globals, and
-    -- dropping the _auroraBG/_auroraOverlay frame-table writes onto
-    -- ScenarioStageBlock. History in docs/RealUI-Tracker-Ownership-Options.md.
-    --
-    -- DIAGNOSTIC (2026-08-18): the chatBisect harness stays until the
-    -- investigation is formally closed. Setting AuroraConfig.chatBisect to a
-    -- "lo-hi" string restricts the chat skin to the components numbered lo..hi
-    -- (numbering map in Skin/Interface/AddOns/Blizzard_ChatFrameBase/Mainline/
-    -- FloatingChatFrame.lua); chatBisect = false (the default) means the whole
-    -- skin, per the user's setting. Set from in-game via
-    --   /run RealUI.SetAuroraConfigValue("chatBisect", "1-10") ReloadUI()
-    -- and clear with
-    --   /run RealUI.SetAuroraConfigValue("chatBisect", nil) ReloadUI()
-    -- Remove the harness (and this note) once B46 is closed.
+    -- The chat skin still causes tainted reads of CURRENT_CHAT_FRAME_ID at
+    -- zone-in (Blizzard's own ChatConfigFrame writes the global). That taint no
+    -- longer reaches the objective tracker — see
+    -- docs/RealUI-Tracker-Ownership-Options.md — but do not reintroduce
+    -- frame-table writes on tracker frames, which is what turned it into a
+    -- thrown error in delves.
     private.disabled.chat = not AuroraConfig.chat
     private.disabled.fonts = not AuroraConfig.fonts
     private.disabled.tooltips = not AuroraConfig.tooltips
