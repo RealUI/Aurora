@@ -33,7 +33,15 @@ do --[[ AddOns\Blizzard_ObjectiveTracker.lua ]]
         Util.SkinOnce(self.lastRegion, Skin.ObjectiveTrackerTimerBarTemplate)
     end
     function Hook.ObjectiveTrackerBlockMixin:AddProgressBar(id, lineSpacing)
-        Util.SkinOnce(self.lastRegion, Skin.ObjectiveTrackerProgressBarTemplate)
+        -- Use the owning module's progressBarTemplate rather than assuming the
+        -- quest one: the scenario/delve modules declare
+        -- progressBarTemplate = "ScenarioProgressBarTemplate", whose bar has
+        -- BarFrame/BarFrame2/BarFrame3 instead of BorderLeft/Mid/Right, so the
+        -- generic skin left delve criteria bars with Blizzard's art.
+        local module = self.parentModule
+        local template = module and module.progressBarTemplate
+        local skinFunc = template and Skin[template] or Skin.ObjectiveTrackerProgressBarTemplate
+        Util.SkinOnce(self.lastRegion, skinFunc)
     end
     function Hook.ObjectiveTrackerBlockMixin:AddRightEdgeFrame(settings, identifier, ...)
         local frame = self.rightEdgeFrame
@@ -259,6 +267,20 @@ do --[[ AddOns\Blizzard_ObjectiveTracker.xml ]]
         bar.BarFrame3:SetAlpha(0)
         bar.IconBG:SetAlpha(0)
         bar.BarBG:SetAlpha(0)
+        -- Fill-flare artwork (gold glow bursts played as the bar fills). Named
+        -- individually because they are parentKeys on the bar frame, not a
+        -- pooled array; guarded because the set differs per template.
+        for _, key in next, {
+            "Starburst", "BarGlow",
+            "Flare1", "Flare2",
+            "SmallFlare1", "SmallFlare2",
+            "FullBarFlare1", "FullBarFlare2",
+        } do
+            local flare = Frame[key] or bar[key]
+            if flare then
+                flare:SetAlpha(0)
+            end
+        end
         bar.Icon:SetSize(26, 26)
         bar.Icon:SetPoint("RIGHT", 33, 0)
         Base.CropCircularIcon(bar.Icon)
@@ -283,6 +305,46 @@ function private.AddOns.Blizzard_ObjectiveTracker()
         if module.Header then
             Skin.ObjectiveTrackerModuleHeaderTemplate(module.Header)
         end
+
+        -- GetBlock is the only generic point where a block and its template are
+        -- both known, so hook it to skin any block template that has a Skin
+        -- function. Without this, templates with no explicit call site were
+        -- never skinned at all — AutoQuestPopUpBlockTemplate ("Quest
+        -- Discovered!") being the case that surfaced it.
+        --
+        -- Hooked on the module FRAME, not ObjectiveTrackerModuleMixin: the
+        -- concrete mixins are built with CreateFromMixins(ObjectiveTrackerModuleMixin, …)
+        -- at file load and copied onto the frames at creation, so a late hook on
+        -- the base mixin table would never reach them.
+        --
+        -- The block is read back out of the module's own usedBlocks table rather
+        -- than tracked on the frame, keeping Blizzard's tracker tables free of
+        -- addon fields (see docs/RealUI-Tracker-Ownership-Options.md).
+        if module.GetBlock then
+            _G.hooksecurefunc(module, "GetBlock", function(self, id, optTemplate)
+                local template = optTemplate or self.blockTemplate
+                local skinFunc = template and Skin[template]
+                if not skinFunc then return end
+
+                local blocks = self.usedBlocks and self.usedBlocks[template]
+                Util.SkinOnce(blocks and blocks[id], skinFunc)
+            end)
+        end
+
+        -- Same treatment for progress bars. The block-level AddProgressBar hook
+        -- is not enough on its own: bars are acquired by the MODULE via
+        -- GetProgressBar using the module's own progressBarTemplate, and the
+        -- scenario/delve criteria bars were reaching neither the right skin nor
+        -- any skin at all — their BarFrame/BarFrame2/BarFrame3 stayed visible.
+        if module.GetProgressBar then
+            _G.hooksecurefunc(module, "GetProgressBar", function(self, key)
+                local skinFunc = self.progressBarTemplate and Skin[self.progressBarTemplate]
+                if not skinFunc then return end
+
+                local bars = self.usedProgressBars
+                Util.SkinOnce(bars and bars[key], skinFunc)
+            end)
+        end
     end
 
     for _, moduleName in next, {
@@ -301,6 +363,20 @@ function private.AddOns.Blizzard_ObjectiveTracker()
     end
 
     SkinModule(_G.ScenarioObjectiveTracker)
+
+    -- The scenario tracker's widget containers are declared inside its own XML
+    -- (parentKey only, so no global name), which means Blizzard_UIWidgets never
+    -- mixes its container hook into them the way it does for the named global
+    -- containers. Their widgets therefore never reached the widget skins, and
+    -- delve/scenario blocks kept Blizzard's art and widget fonts. Mixing the
+    -- hook in here routes them through the same path; widgets are created on
+    -- RegisterForWidgetSet, which happens after this runs.
+    for _, blockName in next, { "StageBlock", "TopWidgetContainerBlock", "BottomWidgetContainerBlock" } do
+        local block = _G.ScenarioObjectiveTracker[blockName]
+        if block and block.WidgetContainer then
+            Util.Mixin(block.WidgetContainer, Hook.UIWidgetContainerMixin)
+        end
+    end
 
     local ScenarioStageBlock = _G.ScenarioObjectiveTracker.StageBlock
     if ScenarioStageBlock then
