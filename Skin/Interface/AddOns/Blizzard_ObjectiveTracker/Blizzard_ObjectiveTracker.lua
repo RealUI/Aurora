@@ -313,14 +313,19 @@ function private.AddOns.Blizzard_ObjectiveTracker()
         ssbBD:SetPoint("TOPLEFT", ScenarioStageBlock.NormalBG, 3, -3)
         ssbBD:SetPoint("BOTTOMRIGHT", ScenarioStageBlock.NormalBG, -3, 3)
         Base.SetBackdrop(ssbBD, Color.button, 0.75)
-        ScenarioStageBlock._auroraBG = ssbBD
 
         local overlay = ssbBD:CreateTexture(nil, "OVERLAY")
         overlay:SetSize(120, 120)
         overlay:SetPoint("TOPRIGHT", 23, 20)
         overlay:SetAlpha(0.2)
         overlay:SetDesaturated(true)
-        ScenarioStageBlock._auroraOverlay = overlay
+
+        -- The backdrop frame and overlay used to also be stored as
+        -- ScenarioStageBlock._auroraBG / ._auroraOverlay. Nothing ever read
+        -- them, and they were direct table writes onto the very Blizzard frame
+        -- whose LayoutContents throws on tainted GetAuraDataByIndex — so the
+        -- references are dropped rather than kept as dead taint surface. Both
+        -- objects stay alive as children of ScenarioStageBlock.
     end
     local ScenarioChallengeModeBlock = _G.ScenarioObjectiveTracker.ChallengeModeBlock
     if ScenarioChallengeModeBlock then
