@@ -30,6 +30,12 @@ Config.defaults = {
     -- false = inactive; a "lo-hi" string keeps only that range of font
     -- replacements. In defaults so removeInvalidSettings doesn't strip it.
     fontBisect = false,
+    -- Diagnostic (delve tracker taint bisect, chat-skin round; see
+    -- Skin/Interface/AddOns/Blizzard_ChatFrameBase/Mainline/FloatingChatFrame.lua).
+    -- false = inactive (chat skin stays force-disabled); a "lo-hi" string lifts
+    -- the force-disable and applies only the chat-skin components numbered
+    -- lo..hi. In defaults so removeInvalidSettings doesn't strip it.
+    chatBisect = false,
     heroTalentsCustomAnchor = false,
     heroTalentsAnchorPreset = "default",
 

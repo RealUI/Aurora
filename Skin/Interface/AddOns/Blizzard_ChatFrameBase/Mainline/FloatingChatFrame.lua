@@ -195,23 +195,81 @@ do --[[ SharedXML\FloatingChatFrame.xml ]]
     end
 end
 
+-- DIAGNOSTIC (2026-08-18, delve tracker taint): chat-skin bisect harness.
+-- The chat skin is force-disabled in aurora.lua (KNOWN ISSUE 2026-08-17: it
+-- taints the EditMode-managed chat frames and breaks the objective tracker in
+-- delves). Setting AuroraConfig.chatBisect to a "lo-hi" string lifts that
+-- disable for the session and applies only the components numbered lo..hi
+-- below, so the tainting write can be pinned by bisection. Set from in-game via
+--   /run RealUI.SetAuroraConfigValue("chatBisect", "1-10") ReloadUI()
+-- and clear with
+--   /run RealUI.SetAuroraConfigValue("chatBisect", nil) ReloadUI()
+-- Component numbers are FIXED (do not renumber; keep in sync with
+-- Mainline/ChatFrame.lua, which owns component 10):
+--    1 = hook FloatingChatFrame_UpdateBackgroundAnchors (region re-anchoring
+--        on every background update of an EditMode-managed chat frame)
+--    2 = hook FCF_SetWindowColor — PRIME SUSPECT: skins late/temporary
+--        windows via Skin.FloatingChatFrameTemplate → Base.CreateBackdrop
+--        (frame-table writes on EditMode-managed chat frames)
+--    3 = hook FCF_SetButtonSide (buttonFrame re-anchoring)
+--    4 = hook FCF_CreateMinimizedFrame (minimized-frame skin)
+--    5 = creation-time Skin.ChatTabTemplate on ChatFrame1..N tabs
+--    6 = creation-time Skin.FloatingChatFrameTemplate on ChatFrame1..N
+--        (Base.CreateBackdrop frame-table writes at login)
+--    7 = Skin.ChatFrameButton on ChatFrameMenuButton
+--    8 = Skin.VoiceToggleButtonTemplate on ChatFrameChannelButton
+--    9 = retail voice buttons (ChatFrameChannelButton anchor + deafen/mute)
+--   10 = editBox UpdateHeader hooks (Mainline/ChatFrame.lua)
+-- NOT numbered: Blizzard_QuickJoin/QuickJoinToast.lua is also gated on
+-- private.disabled.chat and re-enables whole whenever chatBisect is active —
+-- if even "0-0" still errors, that file is the remaining suspect.
+-- Local copy of the fontBisect range parser (Skin/api.lua FontBisectSkips),
+-- inverted: returns true when the numbered component should be applied.
+-- Remove the harness once the tainting write is identified.
+local function ChatBisectEnables(index)
+    local range = _G.AuroraConfig and _G.AuroraConfig.chatBisect
+    if _G.type(range) ~= "string" then return true end
+
+    local lo, hi = range:match("^(%d+)%-(%d+)$")
+    if not lo then return true end
+
+    return index >= _G.tonumber(lo) and index <= _G.tonumber(hi)
+end
+private.ChatBisectEnables = ChatBisectEnables
+
 function private.SharedXML.FloatingChatFrame()
     if private.disabled.chat then return end
 
-    _G.hooksecurefunc("FloatingChatFrame_UpdateBackgroundAnchors", Hook.FloatingChatFrame_UpdateBackgroundAnchors)
-    _G.hooksecurefunc("FCF_SetWindowColor", Hook.FCF_SetWindowColor)
-    _G.hooksecurefunc("FCF_SetButtonSide", Hook.FCF_SetButtonSide)
-    _G.hooksecurefunc("FCF_CreateMinimizedFrame", Hook.FCF_CreateMinimizedFrame)
+    if ChatBisectEnables(1) then
+        _G.hooksecurefunc("FloatingChatFrame_UpdateBackgroundAnchors", Hook.FloatingChatFrame_UpdateBackgroundAnchors)
+    end
+    if ChatBisectEnables(2) then
+        _G.hooksecurefunc("FCF_SetWindowColor", Hook.FCF_SetWindowColor)
+    end
+    if ChatBisectEnables(3) then
+        _G.hooksecurefunc("FCF_SetButtonSide", Hook.FCF_SetButtonSide)
+    end
+    if ChatBisectEnables(4) then
+        _G.hooksecurefunc("FCF_CreateMinimizedFrame", Hook.FCF_CreateMinimizedFrame)
+    end
 
     for i = 1, _G.Constants.ChatFrameConstants.MaxChatWindows do
         local name = "ChatFrame"..i
-        Skin.ChatTabTemplate(_G[name.."Tab"])
-        Skin.FloatingChatFrameTemplate(_G[name])
+        if ChatBisectEnables(5) then
+            Skin.ChatTabTemplate(_G[name.."Tab"])
+        end
+        if ChatBisectEnables(6) then
+            Skin.FloatingChatFrameTemplate(_G[name])
+        end
     end
 
-    Skin.ChatFrameButton(_G.ChatFrameMenuButton, [[Interface\GossipFrame\ChatBubbleGossipIcon]])
-    Skin.VoiceToggleButtonTemplate(_G.ChatFrameChannelButton)
-    if private.isRetail then
+    if ChatBisectEnables(7) then
+        Skin.ChatFrameButton(_G.ChatFrameMenuButton, [[Interface\GossipFrame\ChatBubbleGossipIcon]])
+    end
+    if ChatBisectEnables(8) then
+        Skin.VoiceToggleButtonTemplate(_G.ChatFrameChannelButton)
+    end
+    if private.isRetail and ChatBisectEnables(9) then
         _G.ChatFrameChannelButton:SetPoint("TOP", _G.ChatFrame1ButtonFrame, 0, -3)
         Skin.ToggleVoiceDeafenButtonTemplate(_G.ChatFrameToggleVoiceDeafenButton)
         Skin.ToggleVoiceMuteButtonTemplate(_G.ChatFrameToggleVoiceMuteButton)

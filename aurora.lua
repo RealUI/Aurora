@@ -283,7 +283,21 @@ function private.OnLoad()
     -- paired taint.log + toggle evidence; full chain and fix direction in
     -- docs/RealUI-Tracker-Ownership-Options.md. Restore the config read once
     -- the offending write is made widget-API-only.
-    private.disabled.chat = true -- not AuroraConfig.chat
+    --
+    -- DIAGNOSTIC (2026-08-18): chatBisect harness. Setting
+    -- AuroraConfig.chatBisect to a "lo-hi" string lifts this force-disable FOR
+    -- THAT SESSION and re-enables only the chat-skin components numbered
+    -- lo..hi (numbering map in Skin/Interface/AddOns/Blizzard_ChatFrameBase/
+    -- Mainline/FloatingChatFrame.lua). Normal users (chatBisect = false) keep
+    -- the skin fully disabled. Set from in-game via
+    --   /run RealUI.SetAuroraConfigValue("chatBisect", "1-10") ReloadUI()
+    -- and clear with
+    --   /run RealUI.SetAuroraConfigValue("chatBisect", nil) ReloadUI()
+    -- Remove the harness once the tainting write is identified.
+    local chatBisect = AuroraConfig.chatBisect
+    local chatBisectActive = type(chatBisect) == "string"
+        and chatBisect:match("^%d+%-%d+$") ~= nil
+    private.disabled.chat = not chatBisectActive -- not AuroraConfig.chat
     private.disabled.fonts = not AuroraConfig.fonts
     private.disabled.tooltips = not AuroraConfig.tooltips
     private.disabled.mainmenubar = not AuroraConfig.mainmenubar
