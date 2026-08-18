@@ -39,11 +39,37 @@ function private.AddOns.Blizzard_DelvesDifficultyPicker()
         -- plate and uncropped icon. Skin them as the ScrollBox acquires them.
         local scrollBox = rewardsFrame.ScrollBox
         if scrollBox then
+            -- Skin.LargeItemButtonTemplate's "right = 108" offset yields a
+            -- square icon only at the template's own 147px width. This list is
+            -- a vertical ScrollBox view, which anchors elements TOPLEFT *and*
+            -- TOPRIGHT to the scroll target (ScrollBoxViewUtil.SetPoint,
+            -- elementStretchDisabled off), so the button is stretched to the
+            -- ScrollBox width and the icon comes out rectangular. Re-derive the
+            -- offset from the live size to keep the icon square, and redo it
+            -- whenever the row is re-stretched.
+            local function SquareIcon(frame)
+                local w, h = frame:GetWidth(), frame:GetHeight()
+                if not w or not h or w <= 0 or h <= 2 then return end
+
+                local side = h - 2
+                if w <= side then return end
+
+                frame:SetBackdropOption("offsets", {
+                    left = 0,
+                    right = w - side,
+                    top = 0,
+                    bottom = 2,
+                })
+            end
+
             local function SkinReward(frame)
-                if frame and not private.IsSkinned(frame) then
+                if not frame then return end
+                if not private.IsSkinned(frame) then
                     Skin.LargeItemButtonTemplate(frame)
                     private.SetSkinned(frame, true)
+                    frame:HookScript("OnSizeChanged", SquareIcon)
                 end
+                SquareIcon(frame)
             end
 
             _G.ScrollUtil.AddAcquiredFrameCallback(scrollBox, function(o, frame)
