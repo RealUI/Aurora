@@ -130,6 +130,15 @@ do --[[ FrameXML\ReputationFrame.xml ]]
         local Content = Button.Content
         if not Content then return end
 
+        -- Sub-header rows (e.g. Silvermoon Court under The Singularity) carry
+        -- the expand/collapse "+" as Content.ToggleCollapseButton. The old
+        -- pre-ScrollBox key was ExpandOrCollapseButton, which no longer exists
+        -- in 12.x — so the button was left with Blizzard's plus/minus artwork.
+        if Content.ToggleCollapseButton and not private.IsSkinned(Content.ToggleCollapseButton) then
+            private.SetSkinned(Content.ToggleCollapseButton, true)
+            Skin.ExpandOrCollapse(Content.ToggleCollapseButton)
+        end
+
         local ReputationBar = Content.ReputationBar
         if ReputationBar then
             Skin.FrameTypeStatusBar(ReputationBar)
@@ -174,7 +183,12 @@ do --[[ FrameXML\ReputationFrame.xml ]]
         local Container = Button.Container
         Container.Background:SetAlpha(0)
 
-        Skin.ExpandOrCollapse(Container.ExpandOrCollapseButton)
+        -- Legacy key, absent in 12.x (see ToggleCollapseButton in
+        -- ReputationEntryTemplate). Guarded so this dead pre-ScrollBox path
+        -- cannot nil-error if it is ever reached again.
+        if Container.ExpandOrCollapseButton then
+            Skin.ExpandOrCollapse(Container.ExpandOrCollapseButton)
+        end
 
         local ReputationBar = Container.ReputationBar
         Skin.FrameTypeStatusBar(ReputationBar)
@@ -198,6 +212,12 @@ function private.FrameXML.ReputationFrame()
     ---------------------
     -- ReputationFrame --
     ---------------------
+
+    -- WowStyle1DropdownTemplate; never skinned before, so it kept Blizzard's
+    -- gold arrow and border while the panel around it was skinned.
+    if ReputationFrame.filterDropdown then
+        Skin.DropdownButton(ReputationFrame.filterDropdown)
+    end
 
     Skin.WowScrollBoxList(ReputationFrame.ScrollBox)
     ReputationFrame.ScrollBox:SetPoint("TOPLEFT", _G.CharacterFrame.Inset, 4, -26)
