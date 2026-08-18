@@ -51,17 +51,21 @@ do -- BlizzWTF: These are not templates, but they should be
             end
             Skin.FrameTypeButton(Button)
 
+            -- Centred rather than offset from TOPLEFT: the old offsets were
+            -- tuned for a ~13px button and put the glyph up and to the left on
+            -- anything larger (the reputation sub-header toggle is 20x20).
+            -- Centring is equivalent at 13px and correct at every other size.
             local bg = Button:GetBackdropTexture("bg")
             local minus = Button:CreateTexture(nil, "OVERLAY")
             minus:SetColorTexture(1, 1, 1) -- static: not a theme color
             minus:SetSize(9, 1)
-            minus:SetPoint("TOPLEFT", bg, 2, -6)
+            minus:SetPoint("CENTER", bg)
             Button._minus = minus
 
             local plus = Button:CreateTexture(nil, "OVERLAY")
             plus:SetColorTexture(1, 1, 1) -- static: not a theme color
             plus:SetSize(1, 9)
-            plus:SetPoint("TOPLEFT", bg, 6, -2)
+            plus:SetPoint("CENTER", bg)
             Button._plus = plus
 
             Button._auroraTextures = {
