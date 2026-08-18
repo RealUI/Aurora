@@ -55,12 +55,6 @@ end
 function private.SharedXML.ChatFrame()
     if private.disabled.chat then return end
 
-    -- DIAGNOSTIC (2026-08-18, delve tracker taint): chat-bisect component 10.
-    -- Numbering map and harness comment live in Mainline/FloatingChatFrame.lua,
-    -- which also provides private.ChatBisectEnables. Resolved at call time
-    -- (fileOrder invocation), so load order between the two files is moot.
-    if private.ChatBisectEnables and not private.ChatBisectEnables(10) then return end
-
     -- Blizzard calls editBox:UpdateHeader() (mixin method); the surviving
     -- ChatEdit_UpdateHeader global is a deprecation alias that never fires.
     -- Mixin methods are copied onto frames at creation, so hook both:
