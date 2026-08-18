@@ -402,6 +402,23 @@ do --[[ AddOns\Blizzard_UIWidgets.xml ]]
         function Skin.UIWidgetTemplateScenarioHeaderCurrenciesAndBackground(Frame)
             Skin.UIWidgetBaseScenarioHeaderTemplate(Frame)
         end
+
+        -- Delve headers (widget type 29) draw the whole "Atal'Aman" block: the
+        -- base header art plus a tier flag, currency/spell rows and a reward
+        -- frame. Without a skin for this template the objective tracker's delve
+        -- block kept Blizzard's gold artwork and widget fonts, since the
+        -- container hook only dispatches to templates Skin actually defines.
+        function Skin.UIWidgetTemplateScenarioHeaderDelves(Frame)
+            Skin.UIWidgetBaseScenarioHeaderTemplate(Frame)
+            SafeSetAlpha(Frame.ThemeOverlay, 0)
+            SafeSetAlpha(Frame.DecorationBottomLeft, 0)
+            SafeSetAlpha(Frame.DecorationBottomRight, 0)
+
+            local tierFrame = Frame.TierFrame
+            if tierFrame then
+                SafeSetAlpha(tierFrame.Flag, 0)
+            end
+        end
     end
     do --[[ Blizzard_UIWidgetTemplateSpellDisplay ]]
         function Skin.UIWidgetTemplateSpellDisplay(Frame)
