@@ -19,13 +19,32 @@ do --[[ Blizzard_Menu\DropdownButton.lua ]]
         -- every state change (so it is alpha-zeroed), and the filter-style
         -- dropdowns bake the arrow into the Background atlas that gets hidden.
         -- Attach Aurora's own arrow so every skinned dropdown keeps one.
-        local function AddArrow(Frame)
+        local function AddArrow(Frame, point, x, y)
             if Frame._auroraArrow then return end
             local arrow = Frame:CreateTexture(nil, "ARTWORK")
             arrow:SetTexture([[Interface\AddOns\Aurora\media\arrow-down-active]])
             arrow:SetSize(8, 8)
-            arrow:SetPoint("RIGHT", -8, 0)
+            arrow:SetPoint(point or "RIGHT", x or -8, y or 0)
             Frame._auroraArrow = arrow
+        end
+
+        -- UIDropDownMenuTemplate keeps its arrow on a separate button reachable
+        -- only by global name (<name>Button), not a parentKey, so none of the
+        -- checks below see it. Strip that button's gold artwork and give it
+        -- Aurora's arrow so these match every other skinned dropdown.
+        local function SkinDropDownMenuButton(Frame)
+            local name = Frame.GetName and Frame:GetName()
+            local button = Frame.Button or (name and _G[name .. "Button"])
+            if not button or button._auroraArrow then return end
+
+            for _, getter in next, { "GetNormalTexture", "GetPushedTexture", "GetDisabledTexture", "GetHighlightTexture" } do
+                local tex = button[getter] and button[getter](button)
+                if tex then
+                    tex:SetAlpha(0)
+                end
+            end
+
+            AddArrow(button, "CENTER", 0, 0)
         end
         function Skin.DropdownButton(Frame, Width)
             -- local rightOfs = -105
@@ -113,17 +132,15 @@ do --[[ Blizzard_Menu\DropdownButton.lua ]]
                     _G.hooksecurefunc(Frame, "OnButtonStateChanged", setArrow)
                 end
             elseif Frame.Arrow or Frame.Background then
-                -- Only replace an arrow we actually removed: the Arrow-carrying
+                -- Replace an arrow we actually removed: the Arrow-carrying
                 -- templates (alpha-zeroed above) and the filter-style templates
                 -- whose arrow was baked into the Background atlas hidden above.
-                --
-                -- Deliberately NOT unconditional. UIDropDownMenuTemplate — what
-                -- AceGUI's Dropdown widget uses, so every RealUI config
-                -- dropdown — exposes its parts by global name
-                -- (<name>Left/Middle/Right/Button) rather than parentKeys, so
-                -- every check here misses and its own button arrow survives
-                -- untouched. Adding one regardless gave those dropdowns two.
                 AddArrow(Frame)
+            else
+                -- Otherwise this is a UIDropDownMenuTemplate-style frame, whose
+                -- arrow lives on its own globally-named button. Adding an arrow
+                -- to the frame here would leave it with two.
+                SkinDropDownMenuButton(Frame)
             end
         end
         function Skin.FilterButton(Frame, Width)
