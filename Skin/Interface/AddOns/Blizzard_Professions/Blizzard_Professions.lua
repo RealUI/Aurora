@@ -31,6 +31,13 @@ do --[[ AddOns\Blizzard_Professions ]]
         Base.SetBackdrop(Button, Color.black, Color.frame.a)
         Button._auroraIconBorder = Button
         if Button.Icon then Base.CropIcon(Button.Icon) end
+        -- The ItemButton intrinsic draws item textures on the lowercase `icon`
+        -- child (SetItem path); the template's `Icon` is only assigned
+        -- manually (currencies). Crop both (B40).
+        if Button.icon then Base.CropIcon(Button.icon) end
+        -- B40: match the action bar treatment on the state textures
+        Base.CropIcon(Button:GetPushedTexture())
+        Base.CropIcon(Button:GetHighlightTexture())
     end
 
     Hook.ProfessionsRecipeListCategoryMixin = {}
@@ -43,8 +50,53 @@ do --[[ AddOns\Blizzard_Professions ]]
         end
     end
 
+    Hook.ProfessionsRecipeListRecipeMixin = {}
+    function Hook.ProfessionsRecipeListRecipeMixin:Init(node)
+        if not private.IsSkinned(self) then
+            -- B40: replace the ornate gold selection/hover atlases with the
+            -- simple flat row highlights used elsewhere in Aurora.
+            local selected = self.SelectedOverlay
+            if selected then
+                selected:ClearAllPoints()
+                selected:SetPoint("TOPLEFT")
+                selected:SetPoint("BOTTOMRIGHT")
+                Util.SetHighlightColor(selected, 0.3)
+            end
+            local highlight = self.HighlightOverlay
+            if highlight then
+                highlight:ClearAllPoints()
+                highlight:SetPoint("TOPLEFT")
+                highlight:SetPoint("BOTTOMRIGHT")
+                Util.SetHighlightColor(highlight, 0.4)
+            end
+            private.SetSkinned(self, true)
+        end
+    end
+
     Hook.ProfessionsReagentSlotButtonMixin = {}
     function Hook.ProfessionsReagentSlotButtonMixin:Init()
+        Util.SkinOnce(self, Skin.ProfessionsButtonTemplate)
+        -- B40: the decorative circular ring around choice reagents fights the
+        -- square Aurora slot; alpha 0 survives the SetShown toggling.
+        if self.CropFrame then
+            self.CropFrame:SetAlpha(0)
+        end
+    end
+    function Hook.ProfessionsReagentSlotButtonMixin:SetModifyingRequired(isModifyingRequired)
+        -- B40: Blizzard re-applies the rounded UI-Quickslot2 ring as the
+        -- normal/pushed texture on every update, undoing the skin's
+        -- ClearNormalTexture. The green "add" plus for optional reagents
+        -- (isModifyingRequired) is functional and stays.
+        if not isModifyingRequired then
+            self:ClearNormalTexture()
+            self:ClearPushedTexture()
+        end
+    end
+
+    Hook.ProfessionsFlyoutButtonMixin = {}
+    function Hook.ProfessionsFlyoutButtonMixin:Init(elementData, behavior)
+        -- B40: the reagent-picker flyout items never got the standard icon
+        -- treatment.
         Util.SkinOnce(self, Skin.ProfessionsButtonTemplate)
     end
 
@@ -90,6 +142,11 @@ function private.AddOns.Blizzard_Professions()
 
     if CraftingPage.TutorialButton then
         CraftingPage.TutorialButton:Hide()
+    end
+
+    -- Concentration currency display on the rank-bar header row (B08/B40)
+    if CraftingPage.ConcentrationDisplay and CraftingPage.ConcentrationDisplay.Icon then
+        Base.CropIcon(CraftingPage.ConcentrationDisplay.Icon)
     end
 
     local RecipeList = CraftingPage.RecipeList
@@ -182,6 +239,15 @@ function private.AddOns.Blizzard_Professions()
 
     Util.Mixin(_G.ProfessionsReagentSlotButtonMixin, Hook.ProfessionsReagentSlotButtonMixin)
     Util.Mixin(_G.ProfessionsButtonMixin, Hook.ProfessionsButtonMixin)
+    if _G.ProfessionsRecipeListRecipeMixin then
+        Util.Mixin(_G.ProfessionsRecipeListRecipeMixin, Hook.ProfessionsRecipeListRecipeMixin)
+    end
+    if _G.ProfessionsFlyoutItemButtonMixin then
+        Util.Mixin(_G.ProfessionsFlyoutItemButtonMixin, Hook.ProfessionsFlyoutButtonMixin)
+    end
+    if _G.ProfessionsFlyoutCurrencyButtonMixin then
+        Util.Mixin(_G.ProfessionsFlyoutCurrencyButtonMixin, Hook.ProfessionsFlyoutButtonMixin)
+    end
 
     Skin.UIPanelButtonTemplate(CraftingPage.CreateButton)
     Skin.UIPanelButtonTemplate(CraftingPage.CreateAllButton)
@@ -208,15 +274,17 @@ function private.AddOns.Blizzard_Professions()
         Base.SetBackdrop(btn, Color.button)
         btn:ClearAllPoints()
         btn:SetPoint("LEFT", CraftingPage.RankBar, "RIGHT", 0, -3)
+        -- B40: at 8px with a 30% center crop the chain glyph read as an empty
+        -- slot next to the rank bar; a wider crop at 13px is legible.
         local icon = btn:CreateTexture(nil, "ARTWORK")
         icon:SetTexture([[Interface\Buttons\UI-LinkProfession-Up]])
-        icon:SetTexCoord(.35, .65, .35, .65)
-        icon:SetSize(8, 8)
+        icon:SetTexCoord(.25, .75, .25, .75)
+        icon:SetSize(13, 13)
         icon:SetPoint("CENTER")
         local pushedIcon = btn:CreateTexture(nil, "ARTWORK")
         pushedIcon:SetTexture([[Interface\Buttons\UI-LinkProfession-Down]])
-        pushedIcon:SetTexCoord(.35, .65, .35, .65)
-        pushedIcon:SetSize(8, 8)
+        pushedIcon:SetTexCoord(.25, .75, .25, .75)
+        pushedIcon:SetSize(13, 13)
         pushedIcon:SetPoint("CENTER")
         pushedIcon:Hide()
         btn:HookScript("OnMouseDown", function() icon:Hide(); pushedIcon:Show() end)
@@ -476,6 +544,9 @@ function private.AddOns.Blizzard_Professions()
 
     local OrderView = OrdersPage.OrderView
     if OrderView then
+        if OrderView.ConcentrationDisplay and OrderView.ConcentrationDisplay.Icon then
+            Base.CropIcon(OrderView.ConcentrationDisplay.Icon)
+        end
         local OrderInfo = OrderView.OrderInfo
         if OrderInfo then
             if OrderInfo.Background then OrderInfo.Background:SetAlpha(0) end
