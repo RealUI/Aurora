@@ -124,21 +124,29 @@ do --[[ SharedXML\FloatingChatFrame.xml ]]
         line:SetPoint("BOTTOMRIGHT", bg, -3, 3)
         line:SetColorTexture(1, 1, 1) -- static: not a theme color
 
-        --[[
+        -- B35: the scroll bar's own arrows go through Skin.FrameTypeScrollBar
+        -- (Aurora's arrowUp/arrowDown), but ScrollToBottomButton keeps
+        -- Blizzard's "minimal-scrollbar-arrow-returntobottom" atlas on all four
+        -- states — three different arrow styles in one chat frame. Swap its
+        -- textures for the same arrowDown so they read as one set.
         local bottomButton = ScrollingMessageFrame.ScrollToBottomButton
-        bottomButton:SetPoint("BOTTOMRIGHT", ScrollingMessageFrame.ResizeButton, "TOPRIGHT", -5, 0)
-        Skin.ChatFrameButton(bottomButton)
-        bg = bottomButton:GetBackdropTexture("bg")
-        local arrow = bottomButton:CreateTexture(nil, "ARTWORK")
-        arrow:SetPoint("TOPLEFT", bg, 3, -3)
-        arrow:SetPoint("BOTTOMRIGHT", bg, -3, 5)
-        Base.SetTexture(arrow, "arrowDown")
+        if bottomButton then
+            for _, getter in next, {
+                "GetNormalTexture", "GetPushedTexture",
+                "GetHighlightTexture", "GetDisabledTexture",
+            } do
+                local tex = bottomButton[getter] and bottomButton[getter](bottomButton)
+                if tex then
+                    Base.SetTexture(tex, "arrowDown")
+                end
+            end
 
-        local bottom = bottomButton:CreateTexture(nil, "ARTWORK")
-        bottom:SetPoint("TOPLEFT", bg, "BOTTOMLEFT", 3, 5)
-        bottom:SetPoint("BOTTOMRIGHT", bg, -3, 3)
-        bottom:SetColorTexture(1, 1, 1)
-        ]]
+            -- Flash is the same atlas played as an alert; leave it hidden
+            -- rather than restyled so it cannot flash Blizzard art back in.
+            if bottomButton.Flash then
+                bottomButton.Flash:SetAlpha(0)
+            end
+        end
 
         Hook.FCF_SetButtonSide(ScrollingMessageFrame, _G.FCF_GetButtonSide(ScrollingMessageFrame))
         _G.FloatingChatFrame_UpdateBackgroundAnchors(ScrollingMessageFrame)
