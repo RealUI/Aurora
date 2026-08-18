@@ -32,6 +32,25 @@ function private.AddOns.Blizzard_DelvesDifficultyPicker()
             Skin.MinimalScrollBar(rewardsFrame.ScrollBar)
         end
 
-        Util.WrapPoolAcquire(rewardsFrame.rewardPool, Skin.LargeItemButtonTemplate)
+        -- Reward buttons come from the ScrollBox's element factory, NOT from
+        -- rewardsFrame.rewardPool: Blizzard creates that pool in OnLoad and
+        -- only ever calls ReleaseAll() on it, so wrapping its Acquire skinned
+        -- nothing and the buttons kept Blizzard's rounded UI-QuestItemNameFrame
+        -- plate and uncropped icon. Skin them as the ScrollBox acquires them.
+        local scrollBox = rewardsFrame.ScrollBox
+        if scrollBox then
+            local function SkinReward(frame)
+                if frame and not private.IsSkinned(frame) then
+                    Skin.LargeItemButtonTemplate(frame)
+                    private.SetSkinned(frame, true)
+                end
+            end
+
+            _G.ScrollUtil.AddAcquiredFrameCallback(scrollBox, function(o, frame)
+                SkinReward(frame)
+            end, rewardsFrame)
+
+            scrollBox:ForEachFrame(SkinReward)
+        end
     end
 end
