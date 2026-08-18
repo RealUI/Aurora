@@ -101,11 +101,19 @@ function private.SharedXML.SharedTooltipTemplates()
     --      and errors on any tooltip with fewer than two lines (undocumented,
     --      and the likelier reason this was ever needed; cf. LootHistory)
     --
+    -- ANSWERED 2026-08-19: difference (1) is load-bearing. Running Blizzard's
+    -- original in a raid threw at SharedTooltipTemplates.lua:213 — "attempt to
+    -- compare local 'frameWidth' (a secret number value, while execution
+    -- tainted by 'RealUI')" — from LootHistory's SetTooltip, x12. That is the
+    -- SafeNumber guard's job, not the GetLeftLine(2) nil-guard, so the
+    -- replacement cannot simply be dropped; removing the taint means finding a
+    -- way to guard those two Round() inputs WITHOUT owning the global.
+    --
     -- /aurora insertframe flips devRestoreInsertFrame to run Blizzard's
     -- original, so the surfaces at risk (LootHistory "all passed", Professions
     -- reagent/reward, delve widget sets, Garrison mission threats, quest-offer
-    -- map pins, trinket item upgrades) can be exercised to find out which of
-    -- those two differences is actually load-bearing.
+    -- map pins, trinket item upgrades) can still be exercised. Remember to flip
+    -- it back: a stale `true` reproduces the error above and looks like a bug.
     local restoreOriginal = _G.AuroraConfig and _G.AuroraConfig.devRestoreInsertFrame
     if restoreOriginal then
         _G.print("|cffffcc00Aurora:|r GameTooltip_InsertFrame replacement DISABLED (/aurora insertframe).")
