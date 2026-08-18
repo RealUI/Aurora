@@ -192,12 +192,38 @@ function Base.StripAllTextures(frame, kill)
     end
 end
 
+-- DIAGNOSTIC (2026-08-17, delve tracker taint): bisect harness over the
+-- ~127 font-object replacements. Controlled by AuroraConfig.fontBisect —
+-- "lo-hi" applies only replacement calls numbered lo..hi this session
+-- ("0-0" skips all), absent/nil = normal behavior. Set from in-game via
+--   /run RealUI.SetAuroraConfigValue("fontBisect", "1-64") ReloadUI()
+-- and clear with
+--   /run RealUI.SetAuroraConfigValue("fontBisect", nil) ReloadUI()
+-- Call order is deterministic per build (file load order), so ranges are
+-- stable across reloads. Remove once the tainting call is identified.
+local fontCallIndex = 0
+local function FontBisectSkips(index)
+    local range = _G.AuroraConfig and _G.AuroraConfig.fontBisect
+    if _G.type(range) ~= "string" then return false end
+
+    local lo, hi = range:match("^(%d+)%-(%d+)$")
+    if not lo then return false end
+
+    return index < _G.tonumber(lo) or index > _G.tonumber(hi)
+end
+function Base.GetFontReplacementCount()
+    return fontCallIndex
+end
+
 function Base.SetFont(fontObj, fontPath, fontSize, fontStyle, fontColor, shadowColor, shadowX, shadowY)
     if _G.type(fontObj) == "string" then fontObj = _G[fontObj] end
     if not fontObj then return end
 
     if fontPath and not private.disabled.fonts then
-        fontObj:SetFont(fontPath, fontSize, fontStyle or "")
+        fontCallIndex = fontCallIndex + 1
+        if not FontBisectSkips(fontCallIndex) then
+            fontObj:SetFont(fontPath, fontSize, fontStyle or "")
+        end
     end
 
     if fontColor then
