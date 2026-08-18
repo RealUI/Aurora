@@ -112,10 +112,17 @@ do --[[ Blizzard_Menu\DropdownButton.lua ]]
                 if Frame.OnButtonStateChanged then
                     _G.hooksecurefunc(Frame, "OnButtonStateChanged", setArrow)
                 end
-            else
-                -- Covers both the Arrow-carrying templates (arrow hidden above)
-                -- and the filter-style templates whose arrow was baked into the
-                -- hidden Background atlas.
+            elseif Frame.Arrow or Frame.Background then
+                -- Only replace an arrow we actually removed: the Arrow-carrying
+                -- templates (alpha-zeroed above) and the filter-style templates
+                -- whose arrow was baked into the Background atlas hidden above.
+                --
+                -- Deliberately NOT unconditional. UIDropDownMenuTemplate — what
+                -- AceGUI's Dropdown widget uses, so every RealUI config
+                -- dropdown — exposes its parts by global name
+                -- (<name>Left/Middle/Right/Button) rather than parentKeys, so
+                -- every check here misses and its own button arrow survives
+                -- untouched. Adding one regardless gave those dropdowns two.
                 AddArrow(Frame)
             end
         end
