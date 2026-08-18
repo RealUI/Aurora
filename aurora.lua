@@ -274,30 +274,28 @@ function private.OnLoad()
     -- Disable skins as per user settings
     private.disabled.bags = not AuroraConfig.bags
     private.disabled.banks = not AuroraConfig.banks
-    -- KNOWN ISSUE (2026-08-17): chat skin force-disabled regardless of the
-    -- user's "Skin Chat" setting. It taints the EditMode-managed chat frames,
-    -- and Blizzard's shared managed-frame layout carries that taint into the
-    -- objective tracker — in delves/scenarios, LayoutContents then throws
-    -- "GetAuraDataByIndex(): Auras cannot be accessed when secret while
-    -- tainted by 'RealUI_Skins'" and aborts tracker layout. Confirmed by
-    -- paired taint.log + toggle evidence; full chain and fix direction in
-    -- docs/RealUI-Tracker-Ownership-Options.md. Restore the config read once
-    -- the offending write is made widget-API-only.
+    -- RESOLVED 2026-08-19: the chat skin was force-disabled from 2026-08-17
+    -- while the delve objective-tracker taint was being chased. It is back
+    -- under the user's "Skin Chat" setting: with the tracker skin and the full
+    -- chat skin both enabled, two delve-length taint.log captures (15.5k and
+    -- 12k lines) through a completed delve showed no error and — the signal
+    -- that had fingerprinted the chat skin — no delve-entry
+    -- CURRENT_CHAT_FRAME_ID burst. The actual vector was removed by the
+    -- 2026-08-18 taint fixes: no longer writing the shared font globals, and
+    -- dropping the _auroraBG/_auroraOverlay frame-table writes onto
+    -- ScenarioStageBlock. History in docs/RealUI-Tracker-Ownership-Options.md.
     --
-    -- DIAGNOSTIC (2026-08-18): chatBisect harness. Setting
-    -- AuroraConfig.chatBisect to a "lo-hi" string lifts this force-disable FOR
-    -- THAT SESSION and re-enables only the chat-skin components numbered
-    -- lo..hi (numbering map in Skin/Interface/AddOns/Blizzard_ChatFrameBase/
-    -- Mainline/FloatingChatFrame.lua). Normal users (chatBisect = false) keep
-    -- the skin fully disabled. Set from in-game via
+    -- DIAGNOSTIC (2026-08-18): the chatBisect harness stays until the
+    -- investigation is formally closed. Setting AuroraConfig.chatBisect to a
+    -- "lo-hi" string restricts the chat skin to the components numbered lo..hi
+    -- (numbering map in Skin/Interface/AddOns/Blizzard_ChatFrameBase/Mainline/
+    -- FloatingChatFrame.lua); chatBisect = false (the default) means the whole
+    -- skin, per the user's setting. Set from in-game via
     --   /run RealUI.SetAuroraConfigValue("chatBisect", "1-10") ReloadUI()
     -- and clear with
     --   /run RealUI.SetAuroraConfigValue("chatBisect", nil) ReloadUI()
-    -- Remove the harness once the tainting write is identified.
-    local chatBisect = AuroraConfig.chatBisect
-    local chatBisectActive = type(chatBisect) == "string"
-        and chatBisect:match("^%d+%-%d+$") ~= nil
-    private.disabled.chat = not chatBisectActive -- not AuroraConfig.chat
+    -- Remove the harness (and this note) once B46 is closed.
+    private.disabled.chat = not AuroraConfig.chat
     private.disabled.fonts = not AuroraConfig.fonts
     private.disabled.tooltips = not AuroraConfig.tooltips
     private.disabled.mainmenubar = not AuroraConfig.mainmenubar
