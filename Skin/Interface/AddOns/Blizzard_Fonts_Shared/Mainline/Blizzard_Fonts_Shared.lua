@@ -25,12 +25,28 @@ function private.FrameXML.Fonts()
     local HEADER = font.header
 
 
-    if not private.disabled.fonts then
-        _G.STANDARD_TEXT_FONT = NORMAL
-        _G.UNIT_NAME_FONT = NORMAL
-        _G.NAMEPLATE_FONT = NORMAL
-        _G.DAMAGE_TEXT_FONT = NORMAL
-    end
+    -- DO NOT reintroduce writes to STANDARD_TEXT_FONT / UNIT_NAME_FONT /
+    -- NAMEPLATE_FONT / DAMAGE_TEXT_FONT.
+    --
+    -- Writing a global from an addon taints it permanently, and every later
+    -- reader inherits RealUI_Skins taint. That broke Blizzard's objective
+    -- tracker in delves: the tainted path reached ShouldShowMawBuffs, whose
+    -- C_UnitAuras.GetAuraDataByIndex call then threw "Auras cannot be accessed
+    -- when secret while tainted by 'RealUI_Skins'", aborting LayoutContents and
+    -- with it every tracker module after the scenario block. A taint log also
+    -- caught unrelated third-party addons being tainted purely by reading
+    -- STANDARD_TEXT_FONT.
+    --
+    -- Cost of removal is small: Blizzard only DEFINES these in
+    -- Blizzard_Fonts_Shared/Shared/GameFonts.xml as per-locale defaults and
+    -- never reads them from Lua at runtime, and neither Aurora nor RealUI reads
+    -- them. The only consumers are third-party addons that opt into them for
+    -- their own font strings — those now keep Blizzard's default font instead
+    -- of inheriting Aurora's, which is a cosmetic difference confined to other
+    -- addons.
+    --
+    -- Font replacement itself is unaffected: it works through the Base.SetFont
+    -- calls on font OBJECTS below, which do not taint anything.
 
 
     local white = Color.white
@@ -129,6 +145,10 @@ function private.FrameXML.Fonts()
     Base.SetFont("Game13FontShadow", NORMAL, 13, nil, nil, black, 1, -1)
     Base.SetFont("Game15Font", NORMAL, 15)
     Base.SetFont("Game16Font", NORMAL, 16)
+    -- NOTE 2026-08-17: tested excluding this line for the delve MawBuffs taint
+    -- (the tracker's StageBlock.Stage inherits Game18Font with
+    -- AutoScalingFontStringMixin) — the error persisted, so no single-font
+    -- exclusion fixes that path and the line stays.
     Base.SetFont("Game18Font", NORMAL, 18)
     Base.SetFont("Game20Font", NORMAL, 20)
     Base.SetFont("Game24Font", NORMAL, 24)
