@@ -408,6 +408,44 @@ do --[[ AddOns\Blizzard_UIWidgets.xml ]]
         -- frame. Without a skin for this template the objective tracker's delve
         -- block kept Blizzard's gold artwork and widget fonts, since the
         -- container hook only dispatches to templates Skin actually defines.
+        -- Icon-bearing widget templates. Aurora only ever defined skins for a
+        -- handful of the ~35 widget templates, so every other type rendered with
+        -- Blizzard's rounded icon art wherever widgets appear (delve/scenario
+        -- headers, world events, PvP, event toasts). These cover the ones that
+        -- actually draw icons; the bar/text-only types are a separate pass.
+        function Skin.UIWidgetBaseItemTemplate(Frame)
+            if Frame and Frame.Icon then
+                Base.CropIcon(Frame.Icon, Frame)
+            end
+        end
+        function Skin.UIWidgetTemplateItemDisplay(Frame)
+            Skin.UIWidgetBaseItemTemplate(Frame and Frame.Item)
+        end
+
+        function Skin.UIWidgetBaseCurrencyTemplate(Frame)
+            if Frame and Frame.Icon then
+                Base.CropIcon(Frame.Icon, Frame)
+            end
+        end
+
+        function Skin.UIWidgetTemplateIconTextAndBackground(Frame)
+            if not Frame then return end
+            if Frame.Icon then
+                Base.CropIcon(Frame.Icon, Frame)
+            end
+            SafeSetAlpha(Frame.Glow, 0)
+        end
+
+        function Skin.UIWidgetTemplateDoubleIconAndText(Frame)
+            if not Frame then return end
+            for _, key in next, { "Left", "Right" } do
+                local side = Frame[key]
+                if side and side.Icon then
+                    Base.CropIcon(side.Icon, side)
+                end
+            end
+        end
+
         function Skin.UIWidgetTemplateScenarioHeaderDelves(Frame)
             Skin.UIWidgetBaseScenarioHeaderTemplate(Frame)
             SafeSetAlpha(Frame.ThemeOverlay, 0)
