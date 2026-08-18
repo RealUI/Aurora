@@ -20,6 +20,23 @@ do --[[ FrameXML\UIDropDownMenu.xml ]]
 end
 
 
+-- B41: menu checkboxes/radios (e.g. the Calendar "Filters" popup) use gold
+-- Blizzard atlases that clash with the Aurora look. The selection textures are
+-- created fresh every time a menu is generated, so restyle them from a
+-- hooksecurefunc post-hook on MenuVariants — widget-API calls only
+-- (SetDesaturated/SetVertexColor), no writes to the pooled menu frames.
+local function SkinSelectionTextures(_, frame)
+    local box = frame.leftTexture1
+    if box then
+        box:SetDesaturated(true)
+    end
+    local tick = frame.leftTexture2
+    if tick then
+        tick:SetDesaturated(true)
+        tick:SetVertexColor(Color.highlight:GetRGB())
+    end
+end
+
 -- Registered under the real addon name: the previous key ("MenuVariants")
 -- never matched a loadable addon, so this hook never fired.
 function private.AddOns.Blizzard_Menu()
@@ -55,5 +72,14 @@ function private.AddOns.Blizzard_Menu()
             end
         end
     end)
+
+    if _G.MenuVariants then
+        if _G.MenuVariants.CreateCheckbox then
+            _G.hooksecurefunc(_G.MenuVariants, "CreateCheckbox", SkinSelectionTextures)
+        end
+        if _G.MenuVariants.CreateRadio then
+            _G.hooksecurefunc(_G.MenuVariants, "CreateRadio", SkinSelectionTextures)
+        end
+    end
 end
 

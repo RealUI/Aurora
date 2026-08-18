@@ -54,11 +54,16 @@ do --[[ FrameXML\UIDropDownMenu.xml ]]
                 Button:SetFrameLevel(Button:GetFrameLevel() + 2)
                 Button.Arrow:SetAlpha(0)
             end
-            -- if Button.TabHighlight then Button.TabHighlight:SetAlpha(0) end
-            -- local tex = Button:CreateTexture(nil, "ARTWORK")
-            -- tex:SetPoint("RIGHT", Button, -3, 0)
-            -- tex:SetTexture([[Interface\AddOns\Aurora\media\arrow-down-active]])
-            -- tex:SetSize(13,13)
+            -- B09: the Blizzard arrow is re-atlased on every state change (so
+            -- it is alpha-zeroed above); attach Aurora's own arrow so this
+            -- arrow-only dropdown keeps its affordance.
+            if not Button._auroraArrow then
+                local arrow = Button:CreateTexture(nil, "ARTWORK")
+                arrow:SetTexture([[Interface\AddOns\Aurora\media\arrow-down-active]])
+                arrow:SetSize(10, 10)
+                arrow:SetPoint("CENTER")
+                Button._auroraArrow = arrow
+            end
         end
     end
 end

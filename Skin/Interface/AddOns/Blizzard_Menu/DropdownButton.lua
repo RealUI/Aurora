@@ -14,6 +14,19 @@ local Color = Aurora.Color
 
 do --[[ Blizzard_Menu\DropdownButton.lua ]]
     do --[[ DropdownButton.lua ]]
+        -- B09/B41: dropdowns lose their arrow affordance when Aurora hides the
+        -- Blizzard art — WowStyle1DropdownTemplate's Arrow is re-atlased on
+        -- every state change (so it is alpha-zeroed), and the filter-style
+        -- dropdowns bake the arrow into the Background atlas that gets hidden.
+        -- Attach Aurora's own arrow so every skinned dropdown keeps one.
+        local function AddArrow(Frame)
+            if Frame._auroraArrow then return end
+            local arrow = Frame:CreateTexture(nil, "ARTWORK")
+            arrow:SetTexture([[Interface\AddOns\Aurora\media\arrow-down-active]])
+            arrow:SetSize(8, 8)
+            arrow:SetPoint("RIGHT", -8, 0)
+            Frame._auroraArrow = arrow
+        end
         function Skin.DropdownButton(Frame, Width)
             -- local rightOfs = -105
             if not Frame then
@@ -99,6 +112,11 @@ do --[[ Blizzard_Menu\DropdownButton.lua ]]
                 if Frame.OnButtonStateChanged then
                     _G.hooksecurefunc(Frame, "OnButtonStateChanged", setArrow)
                 end
+            else
+                -- Covers both the Arrow-carrying templates (arrow hidden above)
+                -- and the filter-style templates whose arrow was baked into the
+                -- hidden Background atlas.
+                AddArrow(Frame)
             end
         end
         function Skin.FilterButton(Frame, Width)
@@ -106,9 +124,8 @@ do --[[ Blizzard_Menu\DropdownButton.lua ]]
             if not Frame then
                 if private.isDev then
                     _G.print("Skin.FilterButton - Frame is nil. This is likely a bug. You should not see this message.")
-                else
-                    return
                 end
+                return
             end
             if not Frame._auroraTextures then
                 Frame._auroraTextures = {}
@@ -149,11 +166,10 @@ do --[[ Blizzard_Menu\DropdownButton.lua ]]
                 Frame:SetFrameLevel(Frame:GetFrameLevel() + 2)
                 Frame.Arrow:SetAlpha(0)
             end
-            -- if Frame.TabHighlight then Frame.TabHighlight:SetAlpha(0) end
-            -- local tex = Frame:CreateTexture(nil, "ARTWORK")
-            -- tex:SetPoint("RIGHT", Frame, -3, 0)
-            -- tex:SetTexture([[Interface\AddOns\Aurora\media\arrow-down-active]])
-            -- tex:SetSize(8,8)
+            -- The filter templates carry their arrow inside the hidden
+            -- Background atlas, so every skinned filter button needs
+            -- Aurora's replacement arrow (B09/B41).
+            AddArrow(Frame)
         end
     end
 end
