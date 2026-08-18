@@ -198,11 +198,17 @@ function private.AddOns.Blizzard_WorldMap()
     -- diagonal + corner bars; we approximate with Unicode arrows.
     local maxMin = BorderFrame.MaximizeMinimizeFrame
     if maxMin then
+        -- ASCII only. These icons are drawn as TEXT (see StyleTitleButton), so
+        -- they are limited to what RealUI's font actually contains: arrows
+        -- (U+2197/2199) and geometric shapes (U+25B2/25BC) both rendered as the
+        -- missing-glyph box. The close button's × works only because U+00D7 is
+        -- in Latin-1. Do not "improve" these to nicer symbols without checking
+        -- the font covers them.
         if maxMin.MaximizeButton then
-            StyleTitleButton(maxMin.MaximizeButton, "\226\134\151")  -- ↗ (U+2197)
+            StyleTitleButton(maxMin.MaximizeButton, "+")
         end
         if maxMin.MinimizeButton then
-            StyleTitleButton(maxMin.MinimizeButton, "\226\134\153")  -- ↙ (U+2199)
+            StyleTitleButton(maxMin.MinimizeButton, "-")
         end
     end
 
