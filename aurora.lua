@@ -274,7 +274,16 @@ function private.OnLoad()
     -- Disable skins as per user settings
     private.disabled.bags = not AuroraConfig.bags
     private.disabled.banks = not AuroraConfig.banks
-    private.disabled.chat = not AuroraConfig.chat
+    -- KNOWN ISSUE (2026-08-17): chat skin force-disabled regardless of the
+    -- user's "Skin Chat" setting. It taints the EditMode-managed chat frames,
+    -- and Blizzard's shared managed-frame layout carries that taint into the
+    -- objective tracker — in delves/scenarios, LayoutContents then throws
+    -- "GetAuraDataByIndex(): Auras cannot be accessed when secret while
+    -- tainted by 'RealUI_Skins'" and aborts tracker layout. Confirmed by
+    -- paired taint.log + toggle evidence; full chain and fix direction in
+    -- docs/RealUI-Tracker-Ownership-Options.md. Restore the config read once
+    -- the offending write is made widget-API-only.
+    private.disabled.chat = true -- not AuroraConfig.chat
     private.disabled.fonts = not AuroraConfig.fonts
     private.disabled.tooltips = not AuroraConfig.tooltips
     private.disabled.mainmenubar = not AuroraConfig.mainmenubar
