@@ -408,7 +408,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_ObjectiveTracker\Blizzard_ObjectiveTracker.lua"/>
     <Script file="Blizzard_ObliterumUI\Blizzard_ObliterumUI.lua"/>
     <Script file="Blizzard_OrderHallUI\Blizzard_OrderHallUI.lua"/>
-    <!--Script file="Blizzard_OverrideActionBar\Blizzard_OverrideActionBar.lua"/-->
+    <Script file="Blizzard_OverrideActionBar\Mainline\Blizzard_OverrideActionBar.lua"/>
     <!--Script file="Blizzard_PagedContent\Blizzard_PagedContent.lua"/-->
     <Script file="Blizzard_PartyPoseUI\Blizzard_PartyPoseUI.lua"/>
     <!--Script file="Blizzard_PerformanceBar\Blizzard_PerformanceBar.lua"/-->
