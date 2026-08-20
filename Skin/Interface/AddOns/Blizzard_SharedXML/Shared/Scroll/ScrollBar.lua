@@ -32,13 +32,28 @@ do --[[ FrameXML\ScrollBar.xml ]]
             -- tex:SetPoint("BOTTOMRIGHT", bg, -3, 5)
             Button._auroraTextures = {tex}
 
-            Button:HookScript("OnShow", function()
+            local function setArrow()
                 if Button.direction == _G.ScrollControllerMixin.Directions.Decrease then
                     Base.SetTexture(tex, "arrowUp")
                 else
                     Base.SetTexture(tex, "arrowDown")
                 end
-            end)
+            end
+            -- B35: apply now, not just in the hook — OnShow only fires on a
+            -- Hide→Show transition, so a stepper that is already visible when
+            -- skinned (chat at login) kept Blizzard's atlas until the first
+            -- scroll toggled it.
+            setArrow()
+            Button:HookScript("OnShow", setArrow)
+
+            -- ...and re-assert after every state change:
+            -- MinimalScrollBarStepperScriptsMixin:OnButtonStateChanged does
+            -- Texture:SetAtlas(GetAtlas(), UseAtlasSize) on enable/disable/
+            -- enter/leave/mouse-down, stamping Blizzard's atlas back over the
+            -- arrow — including during login init, after the skin ran.
+            if Button.OnButtonStateChanged then
+                _G.hooksecurefunc(Button, "OnButtonStateChanged", setArrow)
+            end
         else
             -- Button:SetBackdropOption("offsets", {
             --     left = 0,
