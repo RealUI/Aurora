@@ -131,16 +131,22 @@ do --[[ SharedXML\FloatingChatFrame.xml ]]
         -- textures for the same arrowDown so they read as one set.
         local bottomButton = ScrollingMessageFrame.ScrollToBottomButton
         if bottomButton then
-            -- 17x15 in XML vs the scrollbar steppers' 17x11; the arrow
-            -- textures fill the button, so match the height or this arrow
-            -- renders taller than the two above it.
-            bottomButton:SetSize(17, 11)
+            -- Match the stepper geometry Aurora's UpdateTexture applies in
+            -- Skin.FrameTypeScrollBar: an 18x16 button with a 14x6 arrow —
+            -- full-button textures render a much fatter triangle than the
+            -- two arrows above this one. Size before Base.SetTexture: the
+            -- arrow's vertex offsets are computed from the region's width at
+            -- call time.
+            bottomButton:SetSize(18, 16)
             for _, getter in next, {
                 "GetNormalTexture", "GetPushedTexture",
                 "GetHighlightTexture", "GetDisabledTexture",
             } do
                 local tex = bottomButton[getter] and bottomButton[getter](bottomButton)
                 if tex then
+                    tex:ClearAllPoints()
+                    tex:SetPoint("CENTER")
+                    tex:SetSize(14, 6)
                     Base.SetTexture(tex, "arrowDown")
                 end
             end
@@ -161,7 +167,8 @@ do --[[ SharedXML\FloatingChatFrame.xml ]]
             local flash = bottomButton.Flash
             if flash then
                 flash:ClearAllPoints()
-                flash:SetAllPoints(bottomButton)
+                flash:SetPoint("CENTER")
+                flash:SetSize(14, 6)
                 flash:SetBlendMode("BLEND")
                 Base.SetTexture(flash, "arrowDown")
             end
