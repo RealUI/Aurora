@@ -12,11 +12,17 @@ local Color, Util = Aurora.Color, Aurora.Util
 
 do --[[ AddOns\Blizzard_Communities.lua ]]
     do --[[ CommunitiesList ]]
+        -- B57: never touch self.Icon in these hooks. ScrollBox recycles entry
+        -- buttons, and C_Club.SetAvatarTexture() refuses a texture an addon
+        -- has modified — CropCircularIcon's SetMask/RemoveMaskTexture/
+        -- SetTexCoord here made every recycled entry's avatar fail to load
+        -- (ADDON_ACTION_BLOCKED, CommunitiesList.lua Init). The template skin
+        -- already hides CircleMask, which squares the icon; the only loss is
+        -- the .08–.92 zoom crop.
         Hook.CommunitiesListEntryMixin = {}
         function Hook.CommunitiesListEntryMixin:SetAddCommunity()
             Skin.CommunitiesListEntryTemplate(self)
             Util.SetHighlightColor(self.Selection, Color.frame.a)
-            Base.CropCircularIcon(self.Icon)
         end
         function Hook.CommunitiesListEntryMixin:Init(elementData)
             local clubInfo = elementData.clubInfo
@@ -28,18 +34,15 @@ do --[[ AddOns\Blizzard_Communities.lua ]]
                 else
                     Util.SetHighlightColor(self.Selection, Color.frame.a)
                 end
-                Base.CropCircularIcon(self.Icon)
             end
         end
         function Hook.CommunitiesListEntryMixin:SetFindCommunity()
             Skin.CommunitiesListEntryTemplate(self)
             Util.SetHighlightColor(self.Selection, Color.frame.a)
-            Base.CropCircularIcon(self.Icon)
         end
         function Hook.CommunitiesListEntryMixin:SetGuildFinder()
             Skin.CommunitiesListEntryTemplate(self)
             self.Selection:SetColorTexture(Color.green.r, Color.green.g, Color.green.b, Color.frame.a)
-            Base.CropCircularIcon(self.Icon)
         end
     end
     do --[[ CommunitiesSettings ]]
@@ -341,7 +344,13 @@ do --[[ AddOns\Blizzard_Communities.xml ]]
             Button.Background:Hide()
 
             Button.LogoBorder:Hide()
-            Base.CropCircularIcon(Button.CommunityLogo, Button)
+            -- B57 family: ClubFinder.lua calls
+            -- C_Club.SetAvatarTexture(self.CommunityLogo, …) when the card is
+            -- populated — after this skin ran — and refuses a texture an
+            -- addon has modified, so CropCircularIcon here blocked Club
+            -- Finder logos the same way it blocked communities-list avatars.
+            -- Hiding the mask squares the logo without touching the texture.
+            Button.CircleMask:Hide()
 
             Button.HighlightBackground:SetAlpha(0)
             Base.SetHighlight(Button)
