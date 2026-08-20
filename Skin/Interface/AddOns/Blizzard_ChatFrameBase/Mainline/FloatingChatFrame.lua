@@ -131,6 +131,10 @@ do --[[ SharedXML\FloatingChatFrame.xml ]]
         -- textures for the same arrowDown so they read as one set.
         local bottomButton = ScrollingMessageFrame.ScrollToBottomButton
         if bottomButton then
+            -- 17x15 in XML vs the scrollbar steppers' 17x11; the arrow
+            -- textures fill the button, so match the height or this arrow
+            -- renders taller than the two above it.
+            bottomButton:SetSize(17, 11)
             for _, getter in next, {
                 "GetNormalTexture", "GetPushedTexture",
                 "GetHighlightTexture", "GetDisabledTexture",
@@ -149,12 +153,17 @@ do --[[ SharedXML\FloatingChatFrame.xml ]]
             -- every frame — which is why it only appeared *after* a scroll.
             -- Restyle instead of hiding, so the unread-below alert survives
             -- and all three arrows finally read as one set.
+            -- Anchor BEFORE Base.SetTexture: "arrowDown" is a white
+            -- SetColorTexture whose triangle is formed by SetVertexOffset,
+            -- and texture.lua computes those offsets from the region's width
+            -- at call time. Sizing afterwards leaves the offsets scaled for
+            -- the old useAtlasSize dimensions and the arrow comes out wrong.
             local flash = bottomButton.Flash
             if flash then
-                Base.SetTexture(flash, "arrowDown")
-                flash:SetBlendMode("BLEND")
                 flash:ClearAllPoints()
                 flash:SetAllPoints(bottomButton)
+                flash:SetBlendMode("BLEND")
+                Base.SetTexture(flash, "arrowDown")
             end
         end
 
