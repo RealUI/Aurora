@@ -359,6 +359,15 @@ do -- ScrollBar
             if Button.UpdateAtlas then
                 _G.hooksecurefunc(Button, "UpdateAtlas", UpdateTexture)
                 Button:HookScript("OnDisable", UpdateTexture)
+            elseif Button.OnButtonStateChanged then
+                -- B35: 12.x moved the atlas application from UpdateAtlas into
+                -- ButtonStateBehavior's OnButtonStateChanged, which re-stamps
+                -- Texture:SetAtlas() on every enable/disable/enter/leave/
+                -- mouse-down — including scrollbar init at login, after the
+                -- skin ran. The OnShow fallback below misses all of that: the
+                -- arrow stayed Blizzard's until the first scroll toggled a
+                -- Hide→Show. Re-assert after every stamp instead.
+                _G.hooksecurefunc(Button, "OnButtonStateChanged", UpdateTexture)
             else
                 Button:HookScript("OnShow", UpdateTexture)
             end
