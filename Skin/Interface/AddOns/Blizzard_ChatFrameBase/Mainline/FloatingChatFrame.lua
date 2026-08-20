@@ -141,10 +141,20 @@ do --[[ SharedXML\FloatingChatFrame.xml ]]
                 end
             end
 
-            -- Flash is the same atlas played as an alert; leave it hidden
-            -- rather than restyled so it cannot flash Blizzard art back in.
-            if bottomButton.Flash then
-                bottomButton.Flash:SetAlpha(0)
+            -- Flash carries that same atlas as an ADD-blended overlay at
+            -- useAtlasSize — the large pale triangle still reported after the
+            -- swap above. SetAlpha(0) cannot hold it: ChatFrameMixin:OnUpdate
+            -- runs UIFrameFlash on it for as long as the frame is scrolled up
+            -- (ChatFrameOverrides.lua), and the fade manager rewrites alpha
+            -- every frame — which is why it only appeared *after* a scroll.
+            -- Restyle instead of hiding, so the unread-below alert survives
+            -- and all three arrows finally read as one set.
+            local flash = bottomButton.Flash
+            if flash then
+                Base.SetTexture(flash, "arrowDown")
+                flash:SetBlendMode("BLEND")
+                flash:ClearAllPoints()
+                flash:SetAllPoints(bottomButton)
             end
         end
 
