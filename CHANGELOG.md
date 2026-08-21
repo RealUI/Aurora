@@ -1,4 +1,24 @@
-﻿## [12.1.0.4] ##
+﻿## [12.1.0.5] ##
+### Added ###
+
+  * add: **OverrideActionBar** (vehicle/override bar) — ported from the pre-reorg FrameXML skin, updated to the mixin API (`SetSkin`/`CalcSize` method hooks): endcap and background art removed, status bars flattened, xp-bar ticks; the six spell buttons inherit `ActionBarButtonTemplate` and take the same skin as the main action buttons [mainline]
+
+### Fixed ###
+
+  * fix: **scrollbar arrows showed Blizzard's atlas at login** on every scrollbar, switching to Aurora's arrow only after the first scroll — 12.x moved the stepper's atlas application from `UpdateAtlas` into `OnButtonStateChanged` (fires on enable/disable/hover/press, login init included), so the skin's OnShow-only fallback never held. Arrows are applied at skin time and re-asserted after every state change; also fixes the arrow flickering back to Blizzard's on hover. Same fix on the Oribos scrollbar variant [shared]
+  * fix: **chat return-to-bottom button** — the pale double-triangle was the button's `Flash` overlay: `ChatFrameMixin:OnUpdate` runs `UIFrameFlash` on it whenever the frame is scrolled up, overwriting the skin's `SetAlpha(0)` every frame. The overlay is restyled to Aurora's arrow instead of hidden (the unread-below alert keeps working), and the button is sized to the stepper geometry so all three arrows match [mainline]
+  * fix: **community and guild avatars failed to load** — runtime icon cropping in the list-entry hooks modified the same texture `C_Club.SetAvatarTexture()` writes to, and the protected call refuses addon-modified textures once ScrollBox recycles an entry (`ADDON_ACTION_BLOCKED`). The crops are removed; the template's hidden circle mask already squares the icons. The Club Finder card logo had the identical pattern waiting undetonated and gets the same treatment [mainline]
+
+### Changed ###
+
+  * chg: **the objective tracker and UI widget skins are disabled** pending a taint-safe rewrite. Field evidence (taint.log plus `issecurevariable` sweeps) showed the tracker's own layout state written under skin taint — self-perpetuating, and surfacing in delves as a refused aura read mid-update. The injection class is geometry writes (resize/re-anchor of measured frames) running Blizzard layout handlers synchronously inside skin executions; the rewrite rules are recorded in the workspace steering doc `objective-tracker-taint.md` [mainline]
+
+### Known Issues ###
+
+  * The objective tracker and world-event/scenario widgets render with Blizzard's styling while the skins above are gated [mainline]
+  * The `GameTooltip_InsertFrame` taint described under 12.1.0.2 is unchanged [mainline]
+
+## [12.1.0.4] ##
 ### Added ###
 
   * add: **UI widget templates** — the icon-bearing widget types are skinned for the first time (`ItemDisplay` and the shared item/currency bases, `IconTextAndBackground`, `DoubleIconAndText`). Aurora only ever defined skins for a handful of the ~35 widget templates, so every other type rendered with Blizzard's rounded icon art wherever widgets appear [mainline]
@@ -767,7 +787,8 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.4...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.5...develop
+[12.1.0.5]: https://github.com/Gethe/Aurora/compare/12.1.0.4...12.1.0.5
 [12.1.0.4]: https://github.com/Gethe/Aurora/compare/12.1.0.3...12.1.0.4
 [12.1.0.3]: https://github.com/Gethe/Aurora/compare/12.1.0.2...12.1.0.3
 [12.1.0.2]: https://github.com/Gethe/Aurora/compare/12.1.0.1...12.1.0.2
