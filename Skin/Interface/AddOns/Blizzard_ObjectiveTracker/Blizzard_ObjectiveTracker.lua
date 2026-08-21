@@ -289,6 +289,26 @@ do --[[ AddOns\Blizzard_ObjectiveTracker.xml ]]
 end
 
 function private.AddOns.Blizzard_ObjectiveTracker()
+    -- GATED 2026-08-21 pending a taint-safe rewrite. Field evidence from the
+    -- first clean taint.log plus in-game issecurevariable dumps showed the
+    -- tracker's own layout state (contentsHeight, height, state, firstBlock,
+    -- usedProgressBars, id, template, usedLines, …) written under skin-addon
+    -- taint on every module — self-perpetuating: each secure update reads the
+    -- poisoned fields, runs tainted, and rewrites them. Visible fallout in
+    -- delves: ShouldShowMawBuffs' GetAuraDataByIndex refused mid-update.
+    -- Mechanism: skinning inside the tracker's update cycle resizes/re-anchors
+    -- measured frames, which runs Blizzard layout handlers synchronously in
+    -- the skin's execution. Deferring does not help — the writes stay tainted.
+    --
+    -- Rewrite rules (doctrine: .kiro/steering/objective-tracker-taint.md):
+    --   * no custom keys on Blizzard frames/tables — external weak tables
+    --   * hide art via SetTexture("") only; recolor/re-atlas in place
+    --   * never SetSize/SetPoint/CreateTexture on measured tracker frames
+    --   * scenario/UIWidget modules: headers only, their blocks are pooled
+    --     with the shared widget system
+    --   * no addon code in click/dispatch paths
+    do return end -- luacheck: ignore
+
     if not IsConfigEnabled("objectiveTracker") then return end
 
     Util.Mixin(_G.ObjectiveTrackerFrameMixin, Hook.ObjectiveTrackerFrameMixin)
