@@ -6,9 +6,32 @@ if private.shouldSkip() then return end
 
 --[[ Core ]]
 local Aurora = private.Aurora
+local Base = Aurora.Base
+local Color = Aurora.Color
 local Hook = Aurora.Hook
 local Skin = Aurora.Skin
 local Util = Aurora.Util
+
+-- Taint-safe scroll box backdrop.
+--
+-- Skin.WowScrollBoxList → ScrollBoxBaseTemplate → Base.SetBackdrop writes
+-- textures onto the ScrollBox table, marking it addon-modified. Both PVPMatch
+-- scroll boxes drive TableBuilder cell construction, and PVPMatchTable's
+-- Populate feeds a SECRET honorLevel into C_PvP.GetHonorRewardInfo — which
+-- refuses secret arguments unless execution is untainted. Result: x10
+-- "Secret values are only allowed during untainted execution" on entering a
+-- battleground scoreboard (found 2026-08-22, epic BG).
+--
+-- Same cure as HonorFrame.SpecificScrollBox in Blizzard_PVPUI: put the
+-- backdrop on a sibling frame positioned behind the scroll box, leaving the
+-- scroll box itself untouched.
+local function BackdropBehind(ScrollBox)
+    local bg = _G.CreateFrame("Frame", nil, ScrollBox:GetParent())
+    bg:SetAllPoints(ScrollBox)
+    bg:SetFrameLevel(_G.math.max(ScrollBox:GetFrameLevel() - 1, 0))
+    Base.SetBackdrop(bg, Color.frame)
+    return bg
+end
 
 --do --[[ AddOns\Blizzard_PVPMatch.lua ]]
 do
@@ -43,8 +66,31 @@ do --[[ AddOns\Blizzard_PVPMatch.xml ]]
             end
 
             private.SetSkinned(Button, true)
-            Skin.LargeItemButtonTemplate(Button)
 
+            -- NOT Skin.LargeItemButtonTemplate: that one is built for WIDE
+            -- item rows (icon + a 108px name strip) and insets the backdrop
+            -- `right = 108`. PVPMatchResults lays its loot out as small
+            -- SQUARES, so the inset collapsed the backdrop to nothing — and
+            -- since the icon anchors to that backdrop, the reward icons
+            -- rendered as empty black boxes with only the quality border
+            -- showing ("You earned" row, found 2026-08-22 after a BG win).
+            -- Square-button variant: same backdrop + quality-border wiring
+            -- (_auroraIconBorder), icon cropped to the button itself.
+            Base.SetBackdrop(Button, Color.black, Color.frame.a)
+            Button._auroraIconBorder = Button
+
+            local bg = Button:GetBackdropTexture("bg")
+            if Button.Icon then
+                Base.CropIcon(Button.Icon)
+                Button.Icon:ClearAllPoints()
+                Button.Icon:SetPoint("TOPLEFT", bg, 1, -1)
+                Button.Icon:SetPoint("BOTTOMRIGHT", bg, -1, 1)
+            end
+
+            if Button.NameFrame then
+                Button.NameFrame:SetAlpha(0)
+                Button.NameFrame:SetTexture("")
+            end
             if Button.IconBorder then
                 Button.IconBorder:SetAlpha(0)
             end
@@ -86,7 +132,7 @@ function private.AddOns.Blizzard_PVPMatch()
     resultsContent.InsetBorderLeft:Hide()
     resultsContent.InsetBorderRight:Hide()
 
-    Skin.WowScrollBoxList(resultsContent.scrollBox)
+    BackdropBehind(resultsContent.scrollBox)
     Skin.MinimalScrollBar(resultsContent.scrollBar)
 
     local tabContainer = resultsContent.tabContainer
@@ -134,7 +180,7 @@ function private.AddOns.Blizzard_PVPMatch()
     scoreContent.InsetBorderLeft:Hide()
     scoreContent.InsetBorderRight:Hide()
 
-    Skin.WowScrollBoxList(scoreContent.ScrollBox)
+    BackdropBehind(scoreContent.ScrollBox)
     Skin.MinimalScrollBar(scoreContent.ScrollBar)
 
     local scoreTabContainer = scoreContent.TabContainer
