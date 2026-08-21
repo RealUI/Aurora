@@ -307,7 +307,8 @@ function private.AddOns.Blizzard_ObjectiveTracker()
     --   * scenario/UIWidget modules: headers only, their blocks are pooled
     --     with the shared widget system
     --   * no addon code in click/dispatch paths
-    do return end -- luacheck: ignore
+    local gated = true -- flip when the taint-safe rewrite lands
+    if gated then return end
 
     if not IsConfigEnabled("objectiveTracker") then return end
 

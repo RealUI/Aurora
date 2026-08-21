@@ -477,7 +477,8 @@ function private.AddOns.Blizzard_UIWidgets()
     -- embedded via Libs.xml, matching every observed blame label). Rewrite
     -- under the doctrine: recolor-in-place only, no geometry, headers only
     -- for pooled content.
-    do return end -- luacheck: ignore
+    local gated = true -- flip when the taint-safe rewrite lands
+    if gated then return end
     ----====####################====----
     --    Blizzard_UIWidgetManager    --
     ----====####################====----
