@@ -466,6 +466,18 @@ do --[[ AddOns\Blizzard_UIWidgets.xml ]]
 end
 
 function private.AddOns.Blizzard_UIWidgets()
+    -- GATED 2026-08-21, same investigation as the ObjectiveTracker skin gate
+    -- (see .kiro/steering/objective-tracker-taint.md). Scenario/delve tracker
+    -- content renders through these widget containers, and this skin resizes
+    -- and re-anchors widget frames (SetSize/SetHeight/SetPoint) inside
+    -- widget-layout executions — the write class that leaves Blizzard layout
+    -- state tainted. With the tracker skin gated, the MawBuffs refusal
+    -- persisted in delves; this file is the remaining skin running inside
+    -- those updates (Aurora executes under RealUI_Skins taint — it is loaded
+    -- embedded via Libs.xml, matching every observed blame label). Rewrite
+    -- under the doctrine: recolor-in-place only, no geometry, headers only
+    -- for pooled content.
+    do return end -- luacheck: ignore
     ----====####################====----
     --    Blizzard_UIWidgetManager    --
     ----====####################====----
