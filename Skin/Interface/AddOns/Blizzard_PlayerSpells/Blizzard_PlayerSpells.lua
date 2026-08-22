@@ -128,6 +128,19 @@ do  -- PlayerSpellsFrame.SpecFrame
             button.BorderShadow:SetAlpha(0)
         end
 
+        -- B08: the "not on any action bar" indicator is the rounded
+        -- `spellbook-item-unassigned-glow` atlas, anchored to overhang the
+        -- button by 3-4px on every side, so it read as a rounded glow around
+        -- square icons. Square it to the icon and use the flat highlight
+        -- colour. Its pulse comes from an alpha animation on the texture, so
+        -- swapping the texture keeps the animation intact.
+        if button.ActionBarHighlight then
+            button.ActionBarHighlight:ClearAllPoints()
+            button.ActionBarHighlight:SetPoint("TOPLEFT", button.Icon)
+            button.ActionBarHighlight:SetPoint("BOTTOMRIGHT", button.Icon)
+            Util.SetHighlightColor(button.ActionBarHighlight)
+        end
+
         -- Handle AutoCast overlay
         if button.AutoCastOverlay then
             local overlay = button.AutoCastOverlay
