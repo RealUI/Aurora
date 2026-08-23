@@ -152,44 +152,86 @@ function private.AddOns.Blizzard_WorldMap()
     -- why Minimize/Maximize cannot be hooked here.
     Util.Mixin(WorldMapFrame, Hook.WorldMapMixin)
 
-    -- The NavBar nudge that used to live in the Minimize hook. Blizzard fires
-    -- this event at the TOP of `WorldMapMixin:Minimize` and re-anchors the
-    -- NavBar itself further down, so the offset has to be applied a frame
-    -- later or it is immediately overwritten.
-    if _G.EventRegistry then
-        _G.EventRegistry:RegisterCallback("WorldMapMinimized", function()
-            _G.C_Timer.After(0, function()
-                if WorldMapFrame.NavBar and WorldMapFrame.TitleCanvasSpacerFrame then
-                    WorldMapFrame.NavBar:SetPoint("TOPLEFT", WorldMapFrame.TitleCanvasSpacerFrame, 5, -30)
-                end
-            end)
-        end, WorldMapFrame)
-    end
-
     -- PortraitFrameTemplate: manual taint-safe reimplementation.
     -- Skipped: Skin.NineSlicePanelTemplate (direct writes + SetBackdrop →
     --   CreateTexture), Skin.UIPanelCloseButton (FrameTypeButton →
     --   direct writes + HookScript + CreateLine), Skin.MaximizeMinimize-
     --   ButtonFrameTemplate (FrameTypeButton + CreateLine + CreateTexture).
     local BorderFrame = WorldMapFrame.BorderFrame
-    Util.Mixin(BorderFrame, Hook.PortraitFrameMixin)  -- hooksecurefunc, safe
+
+    --[[ B95: `Util.Mixin(BorderFrame, Hook.PortraitFrameMixin)` used to sit
+         here, marked "hooksecurefunc, safe". It is not safe, and it is the
+         twin of B74 one level down.
+
+         That mixin hooks exactly one method, `SetBorder`. Blizzard calls it
+         inside the functions B74 was about:
+
+           WorldMapMixin:OnShow                       :342
+             :345 self:SetDisplayState(…)             -- when needUpdateDisplayState
+                  SetDisplayState :130 self:Maximize() / :133 self:Minimize()
+                    Minimize :38  self.BorderFrame:SetBorder(…)   ← reads the
+                                                                   hooked key
+             ← still inside the same OnShow
+             :356 MapCanvasMixin.OnShow(self)
+                  → data providers refresh → AcquirePin → OnAcquired
+                    → UpdateMousePropagation → SetPropagateMouseClicks()  BLOCKED
+
+         So the taint is picked up at `SetBorder` and carried straight into pin
+         acquisition in the same execution. This is precisely the failure the
+         comment at the top of this function predicts — "eventually blocking
+         SetPassThroughButtons on map pins" — arriving under 12.x's new name.
+         The hook's body also did `NineSlice:SetBackdrop(...)`, a backdrop
+         write on this hierarchy, which that same comment bans.
+
+         Nothing is lost by dropping it: the NineSlice treatment below already
+         does this frame's border by hand. The hook only existed to re-assert
+         it after Blizzard swapped border layouts, and Blizzard announces those
+         swaps as events we can listen to instead. ]]
 
     -- NineSlice: hide all ornate border textures.  This replaces
     -- Skin.NineSlicePanelTemplate which uses direct writes (_auroraNineSlice)
     -- and Base.SetBackdrop (mass table writes + CreateTexture).
     local ns = BorderFrame.NineSlice
-    ns:SetFrameLevel(BorderFrame:GetFrameLevel() + 1)
-    for _, region in next, {ns:GetRegions()} do
-        region:SetAlpha(0)
-    end
+    local function RestyleBorderFrame()
+        ns:SetFrameLevel(BorderFrame:GetFrameLevel() + 1)
+        for _, region in next, {ns:GetRegions()} do
+            region:SetAlpha(0)
+        end
 
-    -- Darken existing Bg texture to serve as the frame backdrop.
-    local frameBg = BorderFrame.Bg
-    if frameBg then
-        frameBg:ClearAllPoints()
-        frameBg:SetAllPoints(BorderFrame)
-        local r, g, b = Color.frame:GetRGB()
-        frameBg:SetColorTexture(r, g, b, Util.GetFrameAlpha())
+        -- Darken existing Bg texture to serve as the frame backdrop.
+        local frameBg = BorderFrame.Bg
+        if frameBg then
+            frameBg:ClearAllPoints()
+            frameBg:SetAllPoints(BorderFrame)
+            local r, g, b = Color.frame:GetRGB()
+            frameBg:SetColorTexture(r, g, b, Util.GetFrameAlpha())
+        end
+    end
+    RestyleBorderFrame()
+
+    --[[ Re-apply after Blizzard swaps the border layout, and nudge the NavBar
+         on minimize — both of these used to be hook bodies (B74, B95).
+
+         Blizzard fires these events at the TOP of Minimize/Maximize and does
+         its own re-anchoring and border swap further down, so the work has to
+         land a frame later or it is immediately overwritten. `C_Timer.After`
+         also puts it in its own execution, so nothing here can reach the map's
+         secure path. ]]
+    if _G.EventRegistry then
+        local function OnDisplayStateChanged(_, minimized)
+            _G.C_Timer.After(0, function()
+                RestyleBorderFrame()
+                if minimized and WorldMapFrame.NavBar and WorldMapFrame.TitleCanvasSpacerFrame then
+                    WorldMapFrame.NavBar:SetPoint("TOPLEFT", WorldMapFrame.TitleCanvasSpacerFrame, 5, -30)
+                end
+            end)
+        end
+        _G.EventRegistry:RegisterCallback("WorldMapMinimized", function(owner)
+            OnDisplayStateChanged(owner, true)
+        end, WorldMapFrame)
+        _G.EventRegistry:RegisterCallback("WorldMapMaximized", function(owner)
+            OnDisplayStateChanged(owner, false)
+        end, WorldMapFrame)
     end
 
     BorderFrame.PortraitContainer:Hide()
