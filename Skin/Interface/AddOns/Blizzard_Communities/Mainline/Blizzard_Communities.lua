@@ -12,38 +12,26 @@ local Color, Util = Aurora.Color, Aurora.Util
 
 do --[[ AddOns\Blizzard_Communities.lua ]]
     do --[[ CommunitiesList ]]
-        -- B57: never touch self.Icon in these hooks. ScrollBox recycles entry
-        -- buttons, and C_Club.SetAvatarTexture() refuses a texture an addon
-        -- has modified — CropCircularIcon's SetMask/RemoveMaskTexture/
-        -- SetTexCoord here made every recycled entry's avatar fail to load
-        -- (ADDON_ACTION_BLOCKED, CommunitiesList.lua Init). The template skin
-        -- already hides CircleMask, which squares the icon; the only loss is
-        -- the .08–.92 zoom crop.
-        Hook.CommunitiesListEntryMixin = {}
-        function Hook.CommunitiesListEntryMixin:SetAddCommunity()
-            Skin.CommunitiesListEntryTemplate(self)
-            Util.SetHighlightColor(self.Selection, Color.frame.a)
-        end
-        function Hook.CommunitiesListEntryMixin:Init(elementData)
-            local clubInfo = elementData.clubInfo
-            Skin.CommunitiesListEntryTemplate(self)
-            if clubInfo then
-                local isGuild = clubInfo.clubType == _G.Enum.ClubType.Guild
-                if isGuild then
-                    self.Selection:SetColorTexture(Color.green.r, Color.green.g, Color.green.b, Color.frame.a)
-                else
-                    Util.SetHighlightColor(self.Selection, Color.frame.a)
-                end
-            end
-        end
-        function Hook.CommunitiesListEntryMixin:SetFindCommunity()
-            Skin.CommunitiesListEntryTemplate(self)
-            Util.SetHighlightColor(self.Selection, Color.frame.a)
-        end
-        function Hook.CommunitiesListEntryMixin:SetGuildFinder()
-            Skin.CommunitiesListEntryTemplate(self)
-            self.Selection:SetColorTexture(Color.green.r, Color.green.g, Color.green.b, Color.frame.a)
-        end
+        -- B57: the community list entries are NOT skinned, deliberately.
+        --
+        -- `Hook.CommunitiesListEntryMixin` used to live here with four methods
+        -- (Init / SetAddCommunity / SetFindCommunity / SetGuildFinder), each
+        -- calling `Skin.CommunitiesListEntryTemplate`. All of it was DEAD CODE:
+        -- nothing in Aurora ever ran `Util.Mixin(_G.CommunitiesListEntryMixin,
+        -- ...)`, so the hooks were never attached to anything. Removed
+        -- 2026-08-23 because dead code that looks live is worse than none —
+        -- it produced a confident wrong diagnosis of the recurring
+        -- `SetAvatarTexture()` block on 2026-08-20 and a "fix" that edited
+        -- functions which never execute.
+        --
+        -- If entry styling is ever wanted, do NOT hook the mixin: Blizzard's
+        -- initializer is `function(button, elementData) button:Init(...) end`
+        -- (CommunitiesList.lua:269), so hooking the mixin makes `button.Init`
+        -- an insecure variable that the initializer must read. Use the
+        -- ScrollBox's own `OnInitializedFrame` event
+        -- (`ScrollUtil.AddInitializedFrameCallback`), which fires after the
+        -- initializer has finished and is re-secured per element by
+        -- `secureexecuterange`.
     end
     do --[[ CommunitiesSettings ]]
         Hook.CommunitiesSettingsDialogMixin = {}
@@ -75,36 +63,27 @@ end
 
 do --[[ AddOns\Blizzard_Communities.xml ]]
     do --[[ CommunitiesList ]]
-        function Skin.CommunitiesListEntryTemplate(Button)
-            -- Taint-safe: avoid Skin.FrameTypeButton, Base.SetBackdrop, CreateTexture.
-            -- These mark buttons as addon-modified, causing SetAvatarTexture() to be
-            -- blocked and stream.streamId to become secret inside secureexecuterange.
-            Button.Background:Hide()
-
-            Button.GuildTabardBackground:SetSize(60, 60)
-
-            Util.SetHighlightColor(Button.Selection, Color.frame.a)
-
-            Button.CircleMask:Hide()
-
-            Button.GuildTabardEmblem:SetSize(36 * 1.3, 42 * 1.3)
-            Button.GuildTabardEmblem:SetPoint("CENTER", Button.GuildTabardBackground, 0, 6)
-            Button.GuildTabardBorder:SetAllPoints(Button.GuildTabardBackground)
-
-            Button.IconRing:SetAlpha(0)
-            Util.SetHighlightColor(Button.NewCommunityFlash, Color.frame.a)
-        end
+        -- `Skin.CommunitiesListEntryTemplate` removed 2026-08-23 with the dead
+        -- mixin hooks that were its only callers (see the B57 note above).
 
         function Skin.CommunitiesListFrameTemplate(Frame)
             Frame.Bg:Hide()
             Frame.TopFiligree:Hide()
             Frame.BottomFiligree:Hide()
             Frame.FilligreeOverlay:Hide()
-            -- NOTE: Do NOT skin anything that participates in the secure call chain here.
-            -- Skin.InsetFrameTemplate(Frame.InsetFrame)
+
+            -- The inset and the scroll BAR are ordinary chrome — neither is
+            -- read by the list's initializer, and `Skin.CommunitiesChatTemplate`
+            -- below has skinned exactly this pair on its own ScrollBox-backed
+            -- frame all along without trouble.
+            Skin.InsetFrameTemplate(Frame.InsetFrame)
+            Skin.MinimalScrollBar(Frame.ScrollBar)
+
+            -- The ScrollBox itself stays unskinned, and that line is NOT
+            -- superstition: `Skin.WowScrollBox` is `Base.SetBackdrop` on the
+            -- frame whose `Update` drives `secureexecuterange` over the
+            -- initializers. The inset behind it supplies the same look.
             -- Skin.WowScrollBox(Frame.ScrollBox)
-            -- Skin.MinimalScrollBar(Frame.ScrollBar)
-            -- Skin.InsetFrameTemplate(Frame.InsetFrame)
         end
 
         function Skin.CommunitiesListDropDownMenuTemplate(Frame)
@@ -122,12 +101,15 @@ do --[[ AddOns\Blizzard_Communities.xml ]]
             Frame.ColumnDisplay.InsetBorderTop:Hide()
             Frame.ColumnDisplay.InsetBorderLeft:Hide()
 
-            -- NOTE: Do NOT skin the ScrollBox or its children — they participate in
-            -- the secureexecuterange call chain and skinning them marks frames as
-            -- addon-modified, causing memberInfo fields to become secret values.
+            -- Chrome only, same boundary as the community list above: the inset
+            -- and the scroll bar are outside the initializer path.
+            Skin.InsetFrameTemplate(Frame.InsetFrame)
+            Skin.MinimalScrollBar(Frame.ScrollBar)
+
+            -- Not the ScrollBox: `Base.SetBackdrop` on the frame that runs
+            -- `secureexecuterange` over the member initializers is what made
+            -- memberInfo fields come back as secret values.
             -- Skin.WowScrollBox(Frame.ScrollBox)
-            -- Skin.MinimalScrollBar(Frame.ScrollBar)
-            -- Skin.InsetFrameTemplate(Frame.InsetFrame)
         end
         function Skin.CommunitiesFrameMemberListDropDownMenuTemplate(Frame)
             Skin.DropdownButton(Frame)
@@ -413,7 +395,31 @@ do --[[ AddOns\Blizzard_Communities.xml ]]
         end
     end
     do --[[ CommunitiesCalendar ]]
+        -- The round gold button at the top right of the chat pane. This was an
+        -- empty stub, which is why it stayed stock while everything around it
+        -- got skinned (identified by /fstack, beta 8). Keep Blizzard's calendar
+        -- artwork — it is the button's only affordance — but square it into an
+        -- Aurora button: flat backdrop, art inset, flat highlight instead of the
+        -- minimap zoom-button glow the template borrows.
         function Skin.CommunitiesCalendarButtonTemplate(Button)
+            Base.SetBackdrop(Button, Color.button, Color.frame.a)
+
+            for _, texture in _G.next, {
+                Button:GetNormalTexture(),
+                Button:GetPushedTexture(),
+            } do
+                texture:ClearAllPoints()
+                texture:SetPoint("TOPLEFT", 2, -2)
+                texture:SetPoint("BOTTOMRIGHT", -2, 2)
+            end
+
+            local highlight = Button:GetHighlightTexture()
+            if highlight then
+                highlight:ClearAllPoints()
+                highlight:SetAllPoints()
+                highlight:SetColorTexture(Color.highlight.r, Color.highlight.g, Color.highlight.b, 0.3)
+                highlight:SetBlendMode("BLEND")
+            end
         end
     end
     do --[[ GuildRewards ]]
@@ -759,10 +765,86 @@ function private.AddOns.Blizzard_Communities()
 
     Skin.CommunitiesListFrameTemplate(CommunitiesFrame.CommunitiesList)
 
-    -- Do not touch CommunitiesListEntryTemplate buttons at runtime.
-    -- Even deferred restyling leaves reused ScrollBox entries tainted on the
-    -- current client, which then blocks C_Club.SetAvatarTexture() inside the
-    -- secure initializer path.
+    -- Community list entries, skinned through Blizzard's OWN extension point.
+    --
+    -- The standing rule here used to be "never touch these buttons", written
+    -- when `C_Club.SetAvatarTexture()` blocks were blamed on the entry skin
+    -- (B57). That blame does not survive scrutiny: the hooks it named were
+    -- never attached to anything, and the block still happens with every one
+    -- of them gone. The entries are not the cause.
+    --
+    -- What is genuinely unsafe is hooking `CommunitiesListEntryMixin`. Blizzard's
+    -- initializer is `function(button, elementData) button:Init(elementData) end`
+    -- (CommunitiesList.lua:269), so a hook there makes `button.Init` an insecure
+    -- variable that the initializer is forced to read, tainting the execution
+    -- that goes on to call the protected `SetAvatarTexture` at :523.
+    --
+    -- `OnInitializedFrame` avoids that entirely: it fires from
+    -- `InvokeInitializer` AFTER the initializer has returned — the avatar is
+    -- already set — and `secureexecuterange` hands the next element a fresh
+    -- context, so nothing we do here can reach another entry's Init.
+    local listScrollBox = CommunitiesFrame.CommunitiesList
+        and CommunitiesFrame.CommunitiesList.ScrollBox
+    if listScrollBox and _G.ScrollUtil and _G.ScrollUtil.AddInitializedFrameCallback then
+        -- Every plate on this template — Background, Selection, HighlightTexture
+        -- and NewCommunityFlash — is declared `Size y="80"` with LEFT/RIGHT
+        -- anchors on a button that is 68 tall (CommunitiesList.xml). Blizzard's
+        -- own art hides that: it is a soft-edged menu bitmap whose padding
+        -- happens to fall in the overhang. Replace it with a flat colour and the
+        -- overhang becomes a hard 6px lip above and below every row, which is
+        -- the "boxes are off" in the beta 8 report. Re-anchor to the button.
+        local function FlatPlate(texture, r, g, b, a, blend)
+            texture:ClearAllPoints()
+            texture:SetAllPoints()
+            texture:SetColorTexture(r, g, b, a)
+            -- The template asks for ADD, which over a flat colour blows out to
+            -- the bright lavender wash the report is about.
+            texture:SetBlendMode(blend or "BLEND")
+        end
+
+        local function ApplyEntrySkin(Button, elementData)
+            -- Blizzard's own art, not ours: the coloured nav-button plate and
+            -- the circular avatar mask + ring.
+            Button.Background:Hide()
+            Button.CircleMask:Hide()
+            Button.IconRing:SetAlpha(0)
+
+            Button.GuildTabardBackground:SetSize(60, 60)
+            Button.GuildTabardEmblem:SetSize(36 * 1.3, 42 * 1.3)
+            Button.GuildTabardEmblem:SetPoint("CENTER", Button.GuildTabardBackground, 0, 6)
+            Button.GuildTabardBorder:SetAllPoints(Button.GuildTabardBackground)
+
+            -- Mouseover: the standard Aurora highlight, same weight the skin
+            -- uses everywhere else, instead of the stock lavender bitmap.
+            local highlight = Button:GetHighlightTexture()
+            if highlight then
+                FlatPlate(highlight, Color.highlight.r, Color.highlight.g, Color.highlight.b, 0.3)
+            end
+
+            FlatPlate(Button.NewCommunityFlash,
+                Color.highlight.r, Color.highlight.g, Color.highlight.b, 0.3, "ADD")
+
+            -- Selected row: guilds green, everything else the theme colour, both
+            -- heavier than the hover so the two read apart.
+            local clubInfo = elementData and elementData.clubInfo
+            if clubInfo and clubInfo.clubType == _G.Enum.ClubType.Guild then
+                FlatPlate(Button.Selection, Color.green.r, Color.green.g, Color.green.b, 0.45)
+            else
+                FlatPlate(Button.Selection, Color.highlight.r, Color.highlight.g, Color.highlight.b, 0.45)
+            end
+        end
+        -- Two shapes, deliberately. The event path hands the callback
+        -- `(owner, frame, elementData)`; `ForEachFrame` hands it
+        -- `(frame, elementData)` with no owner (ScrollBoxListView.lua:152), so
+        -- ScrollUtil's own `iterateExisting` argument would call this with the
+        -- wrong signature. Register for future entries, sweep existing ones by
+        -- hand — the sweep is a no-op at load and covers a re-skin.
+        local function OnEntryInitialized(_, Button, elementData)
+            ApplyEntrySkin(Button, elementData)
+        end
+        _G.ScrollUtil.AddInitializedFrameCallback(listScrollBox, OnEntryInitialized, listScrollBox)
+        listScrollBox:ForEachFrame(ApplyEntrySkin)
+    end
 
     Skin.CommunitiesFrameTabTemplate(CommunitiesFrame.ChatTab)
     Skin.CommunitiesFrameTabTemplate(CommunitiesFrame.RosterTab)
