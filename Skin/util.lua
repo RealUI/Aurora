@@ -402,6 +402,23 @@ function Util.Mixin(table, ...)
 end
 
 local wrappedPools = setmetatable({}, {__mode = "k"})
+--[[ TAINT HAZARD — read before adding a call site.
+
+     This REPLACES `pool.Acquire` with an addon-owned closure. Any Blizzard code
+     that acquires from the pool then runs our code inside its own execution,
+     and if that execution goes on to write a GLOBAL, the global is permanently
+     marked as tainted by this addon — every later reader inherits it.
+
+     That is not hypothetical: the ChatConfigFrame tab pool is acquired from
+     `ChatConfig_UpdateChatSettings → ChatTabManager:UpdateTabDisplay`, which
+     calls `UpdateSelection`, which writes `CURRENT_CHAT_FRAME_ID`. Wrapping that
+     pool tainted the global on every login for the whole session (confirmed in
+     taint.log, 2026-08-23; see Blizzard_ChatFrame/Mainline/ChatConfigFrame.lua
+     for the OnShow-based replacement).
+
+     Safe when the pool is only ever acquired from paths that do not write
+     globals or call protected functions — which is most of them. When in doubt,
+     prefer an OnShow hook that skins `pool:EnumerateActive()`. ]]
 function Util.WrapPoolAcquire(pool, templateOrSkinFunc)
     if not pool or wrappedPools[pool] then
         return
