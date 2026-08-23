@@ -17,8 +17,17 @@ local Skin = Aurora.Skin
 function private.FrameXML.ItemRef()
     if private.disabled.tooltips then return end
 
-    Skin.ShoppingTooltipTemplate(_G.ItemRefShoppingTooltip1)
-    Skin.ShoppingTooltipTemplate(_G.ItemRefShoppingTooltip2)
+    -- B94: same taint-safe path as GameTooltip and the main shopping tooltips.
+    -- Falls back to the old route if Blizzard_GameTooltip's skin has not run
+    -- yet, since these two files are triggered by different addons loading.
+    local ApplyTaintSafe = private.ApplyTaintSafeTooltipSkin
+    if ApplyTaintSafe then
+        ApplyTaintSafe(_G.ItemRefShoppingTooltip1)
+        ApplyTaintSafe(_G.ItemRefShoppingTooltip2)
+    else
+        Skin.ShoppingTooltipTemplate(_G.ItemRefShoppingTooltip1)
+        Skin.ShoppingTooltipTemplate(_G.ItemRefShoppingTooltip2)
+    end
 
     Skin.GameTooltipTemplate(_G.ItemRefTooltip)
     if private.isRetail then
