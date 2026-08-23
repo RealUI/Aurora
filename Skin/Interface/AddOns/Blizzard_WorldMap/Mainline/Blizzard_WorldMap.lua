@@ -12,13 +12,37 @@ local Color, Util = Aurora.Color, Aurora.Util
 
 do --[[ AddOns\Blizzard_WorldMap.lua ]]
     do --[[ Blizzard_WorldMap.lua ]]
+        --[[ B74: `Minimize` and `Maximize` are NOT hooked, deliberately.
+
+             `hooksecurefunc(WorldMapFrame, "Minimize")` makes that key an
+             insecure variable on the frame, and Blizzard reads it inside the
+             OnShow path:
+
+               WorldMapMixin:OnShow (Blizzard_WorldMap.lua:342)
+                 :345 self:SetDisplayState(displayState)   -- guarded by
+                      `if self.needUpdateDisplayState`, hence intermittent
+                 → QuestLogOwnerMixin:SetDisplayState :130 self:Maximize()
+                                                      :133 self:Minimize()
+                 ← back in OnShow
+                 :359 C_ChatInfo.PerformEmote("READ", …)   -- BLOCKED
+
+             Reading the hooked key taints the execution, and the protected
+             `PerformEmote` five lines later is refused — the exact B74 report,
+             blamed on RealUI_Skins because Aurora ships embedded inside it
+             (RealUI `.pkgmeta`). The `-- hooksecurefunc, safe` note that used
+             to sit on the Util.Mixin call below was the wrong assumption; this
+             is the third bug today from hooking a method Blizzard reads inside
+             a secure path (see also B57 and B88).
+
+             `Maximize` had an empty body — pure taint for no benefit, removed.
+             `Minimize` only re-anchored the NavBar; that now rides Blizzard's
+             own `WorldMapMinimized` event, dispatched through CallbackRegistry
+             so our taint cannot leak back into the caller.
+
+             `AddOverlayFrame` STAYS hooked: it is reached only from
+             `AddOverlayFrames` at load (Blizzard_WorldMap.lua:141), never from
+             the OnShow path, so nothing reads it before a protected call. ]]
         Hook.WorldMapMixin = {}
-        function Hook.WorldMapMixin:Minimize()
-            self.NavBar:SetPoint("TOPLEFT", self.TitleCanvasSpacerFrame, 5, -30)
-        end
-        function Hook.WorldMapMixin:Maximize()
-            --self.NavBar:SetPoint("TOPLEFT", self.TitleCanvasSpacerFrame, 4, -25)
-        end
         function Hook.WorldMapMixin:AddOverlayFrame(templateName, templateType, anchorPoint, relativeTo, relativePoint, offsetX, offsetY)
             if Skin[templateName] then
                 Skin[templateName](self.overlayFrames[#self.overlayFrames])
@@ -124,7 +148,23 @@ function private.AddOns.Blizzard_WorldMap()
     -- and hooksecurefunc are safe here.
     local WorldMapFrame = _G.WorldMapFrame
     Skin.WorldMapFrameTemplate(WorldMapFrame)
-    Util.Mixin(WorldMapFrame, Hook.WorldMapMixin)  -- hooksecurefunc, safe
+    -- Only AddOverlayFrame is left in this mixin; see the B74 note above for
+    -- why Minimize/Maximize cannot be hooked here.
+    Util.Mixin(WorldMapFrame, Hook.WorldMapMixin)
+
+    -- The NavBar nudge that used to live in the Minimize hook. Blizzard fires
+    -- this event at the TOP of `WorldMapMixin:Minimize` and re-anchors the
+    -- NavBar itself further down, so the offset has to be applied a frame
+    -- later or it is immediately overwritten.
+    if _G.EventRegistry then
+        _G.EventRegistry:RegisterCallback("WorldMapMinimized", function()
+            _G.C_Timer.After(0, function()
+                if WorldMapFrame.NavBar and WorldMapFrame.TitleCanvasSpacerFrame then
+                    WorldMapFrame.NavBar:SetPoint("TOPLEFT", WorldMapFrame.TitleCanvasSpacerFrame, 5, -30)
+                end
+            end)
+        end, WorldMapFrame)
+    end
 
     -- PortraitFrameTemplate: manual taint-safe reimplementation.
     -- Skipped: Skin.NineSlicePanelTemplate (direct writes + SetBackdrop →
