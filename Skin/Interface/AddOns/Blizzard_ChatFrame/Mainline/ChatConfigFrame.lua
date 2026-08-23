@@ -162,7 +162,42 @@ function private.FrameXML.ChatConfigFrame()
     Skin.ConfigCategoryButtonTemplate(_G.ChatConfigCategoryFrameButton5)
     Skin.ConfigCategoryButtonTemplate(_G.ChatConfigCategoryFrameButton6)
     Skin.ConfigCategoryButtonTemplate(_G.ChatConfigCategoryFrameButton7)
-    Util.WrapPoolAcquire(ChatConfigFrame.ChatTabManager and ChatConfigFrame.ChatTabManager.tabPool, "ChatWindowTab")
+    --[[ Chat window tabs: skinned on OnShow, NOT by wrapping the pool.
+
+         `Util.WrapPoolAcquire` REPLACES `pool.Acquire` with an addon closure.
+         Blizzard drives this particular pool from inside a secure path at
+         login — `ChatConfig_UpdateChatSettings → ChatTabManager:UpdateTabDisplay
+         → :UpdateSelection` — and `UpdateSelection` writes the global
+         `CURRENT_CHAT_FRAME_ID` (ChatConfigFrame.lua:2425). With our closure in
+         the acquire path, that write happens inside a tainted execution, so the
+         GLOBAL is permanently marked, and every `FCF_GetCurrentChatFrame()`
+         reader inherits the taint for the rest of the session.
+
+         Confirmed in `Logs/taint.log` (2026-08-23), three entries at login,
+         every session: "Execution tainted by RealUI_Skins while reading global
+         CURRENT_CHAT_FRAME_ID". Aurora ships embedded as `RealUI_Skins/Aurora`
+         (RealUI `.pkgmeta`), which is why the blame names RealUI_Skins.
+
+         Hooking `UpdateTabDisplay` instead would not help — `self:UpdateTabDisplay()`
+         is a table read, so hooking it makes the variable insecure and taints
+         the caller before `UpdateSelection` ever runs. Script handlers are
+         dispatched independently, so OnShow is the extension point that cannot
+         reach Blizzard's execution: at login nothing of ours runs at all, and
+         by the time the window is shown the tabs exist. ]]
+    local tabManager = ChatConfigFrame.ChatTabManager
+    local tabPool = tabManager and tabManager.tabPool
+    if tabPool and tabPool.EnumerateActive then
+        local function SkinChatWindowTabs()
+            for tab in tabPool:EnumerateActive() do
+                if not private.IsSkinned(tab) then
+                    Skin.ChatWindowTab(tab)
+                    private.SetSkinned(tab, true)
+                end
+            end
+        end
+        ChatConfigFrame:HookScript("OnShow", SkinChatWindowTabs)
+        SkinChatWindowTabs()
+    end
     Skin.ChatConfigBoxTemplate(_G.ChatConfigBackgroundFrame)
 
     local divider = _G.ChatConfigFrame:CreateTexture()
