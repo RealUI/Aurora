@@ -11,28 +11,27 @@ local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
 do --[[ AddOns\Blizzard_Communities.lua ]]
-    do --[[ CommunitiesList ]]
-        -- B57: the community list entries are NOT skinned, deliberately.
-        --
-        -- `Hook.CommunitiesListEntryMixin` used to live here with four methods
-        -- (Init / SetAddCommunity / SetFindCommunity / SetGuildFinder), each
-        -- calling `Skin.CommunitiesListEntryTemplate`. All of it was DEAD CODE:
-        -- nothing in Aurora ever ran `Util.Mixin(_G.CommunitiesListEntryMixin,
-        -- ...)`, so the hooks were never attached to anything. Removed
-        -- 2026-08-23 because dead code that looks live is worse than none —
-        -- it produced a confident wrong diagnosis of the recurring
-        -- `SetAvatarTexture()` block on 2026-08-20 and a "fix" that edited
-        -- functions which never execute.
-        --
-        -- If entry styling is ever wanted, do NOT hook the mixin: Blizzard's
-        -- initializer is `function(button, elementData) button:Init(...) end`
-        -- (CommunitiesList.lua:269), so hooking the mixin makes `button.Init`
-        -- an insecure variable that the initializer must read. Use the
-        -- ScrollBox's own `OnInitializedFrame` event
-        -- (`ScrollUtil.AddInitializedFrameCallback`), which fires after the
-        -- initializer has finished and is re-secured per element by
-        -- `secureexecuterange`.
-    end
+    --[[ CommunitiesList — no mixin hooks here, deliberately (B57).
+
+         The entries ARE skinned: from the ScrollBox's own `OnInitializedFrame`
+         callback, registered in `private.AddOns.Blizzard_Communities` further
+         down this file, where the reasoning is recorded in full.
+
+         What used to live here was `Hook.CommunitiesListEntryMixin` — four
+         methods (Init / SetAddCommunity / SetFindCommunity / SetGuildFinder)
+         calling `Skin.CommunitiesListEntryTemplate` — and all of it was DEAD
+         CODE: nothing in Aurora ever ran
+         `Util.Mixin(_G.CommunitiesListEntryMixin, ...)`, so the hooks were
+         attached to nothing. Removed 2026-08-23, because dead code that reads
+         as live is worse than none: it produced a confident wrong diagnosis of
+         the recurring `SetAvatarTexture()` block on 2026-08-20 and a "fix"
+         that edited functions which never execute.
+
+         Do not reintroduce a mixin hook here. Blizzard's initializer is
+         `function(button, elementData) button:Init(elementData) end`
+         (CommunitiesList.lua:269), so hooking the mixin makes `button.Init` an
+         insecure variable the initializer is forced to read, tainting the
+         execution that goes on to call the protected `SetAvatarTexture`. ]]
     do --[[ CommunitiesSettings ]]
         Hook.CommunitiesSettingsDialogMixin = {}
         function Hook.CommunitiesSettingsDialogMixin:SetClubId(clubId)
