@@ -479,6 +479,30 @@ function private.AddOns.Blizzard_UIWidgets()
     -- for pooled content.
     local gated = true -- flip when the taint-safe rewrite lands
     if gated then return end
+
+    --[[ ============================================================
+         EVERYTHING BELOW THIS LINE IS DEAD CODE — ~546 lines, to the
+         end of the file. The gate above returns unconditionally.
+
+         Stated explicitly because the dead block reads as live and has
+         already misled one investigation. It carries detailed comments
+         describing protections ("Re-implement the geometry with
+         SafeNumber to avoid secret number arithmetic in every call
+         path"), and a reader reasonably concludes those protections are
+         in force. They are not — none of this executes.
+
+         In particular the five `<Mixin>.Setup = function(...)`
+         replacements below (TextWithState, BaseItemTemplate,
+         ItemDisplay, BaseCurrencyTemplate, HorizontalCurrencies) never
+         run, so they neither taint the mixin tables nor protect
+         anything. During the 2026-08-24 beta 10 taint hunt this block
+         was read as active and produced a confident but wrong diagnosis
+         of the delve tooltip errors, which turned out to be the known
+         Blizzard map-canvas bug (see known-wow-ui-bugs.md #1).
+
+         Do not analyse this block as shipped behaviour. Either finish
+         the rewrite described above and flip the gate, or delete it.
+         ============================================================ ]]
     ----====####################====----
     --    Blizzard_UIWidgetManager    --
     ----====####################====----
