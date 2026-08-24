@@ -1,4 +1,24 @@
-﻿## [12.1.0.5] ##
+﻿## [12.1.0.6] ##
+### Fixed ###
+
+  * fix: **opening the world map threw a blocked-action error, and map pins lost their mouse handling.** Two separate hooks in the same execution: `WorldMapFrame`'s `Minimize`/`Maximize` and `BorderFrame`'s `SetBorder` were both hooked, and Blizzard reads all three from inside `WorldMapMixin:OnShow` — via `SetDisplayState`, which runs only when the display state is stale, hence the intermittency. Reading a hooked key taints the execution, and the same OnShow then calls the protected `C_ChatInfo.PerformEmote` and acquires the AreaPOI/delve pins, which call `SetPropagateMouseClicks`. Both hooks are gone: the empty `Maximize` hook is deleted, and the NavBar nudge and border restyle now ride Blizzard's own `WorldMapMinimized`/`WorldMapMaximized` events [mainline]
+  * fix: **the chat system was tainted at every login.** `Util.WrapPoolAcquire` replaces a pool's `Acquire`, and Blizzard acquires chat-config tabs from inside `ChatConfig_UpdateChatSettings → UpdateTabDisplay → UpdateSelection` — which writes the global `CURRENT_CHAT_FRAME_ID`. Written inside an addon-owned call, that global stayed tainted for the session and every later `FCF_GetCurrentChatFrame` reader inherited it. The tabs are skinned from the config frame's `OnShow` instead, so nothing of ours runs during Blizzard's login path. Confirmed by taint.log going from three RealUI_Skins entries per login to none [mainline]
+  * fix: **auction house and item-link comparison tooltips had no background.** `ShoppingTooltip1/2` and the `ItemRef` pair went through the generic `NineSlicePanelTemplate` route, which stacks an Aurora backdrop on top of Blizzard's nine-slice; the backdrop was present and simply never drew. GameTooltip's taint-safe path — hide the border pieces, colour Blizzard's own Center via `SetCenterColor` — is what actually renders a tooltip panel, and all four now use it. As a side effect they leave the heavy `NineSliceUtil.ApplyLayout` hook entirely [mainline]
+  * fix: **community and guild list entries are skinned again**, having been left stock after the avatar-loading fix in 12.1.0.5. They are styled from the ScrollBox's own `OnInitializedFrame` callback, which fires after Blizzard's initializer has set the avatar and is re-secured per element — not by hooking `CommunitiesListEntryMixin`, which is what made `C_Club.SetAvatarTexture` refuse in the first place. The entry plates are also re-anchored: every one is declared 80px tall on a 68px button, so a flat colour left a 6px lip. Panel insets, scroll bars and the calendar button (an empty skin stub) are skinned too [mainline]
+  * fix: **battleground scoreboard errors on entering a match** — x10 "Secret values are only allowed during untainted execution". `Skin.WowScrollBoxList` backdrops the ScrollBox itself, marking it addon-modified, and both PVPMatch scroll boxes drive TableBuilder cell construction whose `Populate` feeds a secret `honorLevel` to `C_PvP.GetHonorRewardInfo`. The backdrop moves to a sibling frame behind the scroll box, the same cure already used for `HonorFrame.SpecificScrollBox` [mainline]
+  * fix: **end-of-match reward icons rendered as empty black boxes** — the loot buttons take a square skin, matching the rest of the UI [mainline]
+  * fix: **the spellbook "not on any action bar" indicator** was the rounded `spellbook-item-unassigned-glow` atlas anchored to overhang the button by 3–4px, reading as a rounded glow around a square icon. It is squared to the icon and takes the flat highlight colour; the pulse animation is unaffected [mainline]
+
+### Changed ###
+
+  * chg: `Util.WrapPoolAcquire` carries a taint-hazard note. It replaces `pool.Acquire` outright, so any Blizzard code that acquires from that pool runs addon code inside its own execution — and if that execution writes a global or calls a protected function, the damage is permanent for the session. Fifty-one call sites remain; only the one with evidence was changed. Prefer an `OnShow` sweep over `pool:EnumerateActive()` when in doubt [shared]
+
+### Known Issues ###
+
+  * The objective tracker and world-event/scenario widgets still render with Blizzard's styling while those skins are gated (unchanged from 12.1.0.5) [mainline]
+  * The `GameTooltip_InsertFrame` taint described under 12.1.0.2 is unchanged [mainline]
+
+## [12.1.0.5] ##
 ### Added ###
 
   * add: **OverrideActionBar** (vehicle/override bar) — ported from the pre-reorg FrameXML skin, updated to the mixin API (`SetSkin`/`CalcSize` method hooks): endcap and background art removed, status bars flattened, xp-bar ticks; the six spell buttons inherit `ActionBarButtonTemplate` and take the same skin as the main action buttons [mainline]
@@ -787,7 +807,8 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.5...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.6...develop
+[12.1.0.6]: https://github.com/Gethe/Aurora/compare/12.1.0.5...12.1.0.6
 [12.1.0.5]: https://github.com/Gethe/Aurora/compare/12.1.0.4...12.1.0.5
 [12.1.0.4]: https://github.com/Gethe/Aurora/compare/12.1.0.3...12.1.0.4
 [12.1.0.3]: https://github.com/Gethe/Aurora/compare/12.1.0.2...12.1.0.3
