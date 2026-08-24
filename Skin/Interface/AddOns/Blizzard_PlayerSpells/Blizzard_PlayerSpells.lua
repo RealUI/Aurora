@@ -470,16 +470,39 @@ function private.AddOns.Blizzard_PlayerSpells()
         heroTalentsContainer:SetPoint("TOPLEFT", self, "TOPLEFT", offsetX, offsetY)
     end)
 
-    -- Talent node buttons — hook the global mixin so every button (pooled or not) is covered
-    -- instantly when Blizzard updates its visual state, without needing to iterate the pool.
-    -- UpdateStateBorder fires on every rank/state change and controls BorderSheen visibility.
-    _G.hooksecurefunc(_G.ClassTalentButtonArtMixin, "UpdateStateBorder", function(self)
-        -- Suppress the rotating gold sheen atlas — visually noisy on a dark Aurora background
-        if self.BorderSheen then
-            self.BorderSheen:SetAlpha(0)
-            self.BorderSheen:Hide()
-        end
-    end)
+    --[[ B105: the talent BorderSheen suppression is REMOVED, not moved.
+
+         It used to be `hooksecurefunc(_G.ClassTalentButtonArtMixin,
+         "UpdateStateBorder", ...)` — hiding a decorative gold sheen. That one
+         cosmetic hook poisoned a Blizzard global for the whole session:
+
+           ClassTalentButtonSpendMixin:OnEnter                      :221
+             :224 TalentButtonSpendMixin.OnEnter(self)
+                  ClassTalentButtonBaseMixin:UpdateStateBorder      :97
+                    ClassTalentButtonArtMixin.UpdateStateBorder(…)  ← reads the
+                                                                     hooked key
+             :225 self:ShowActionBarHighlights()                    ← tainted
+                  ClearOnBarHighlightMarks() → ON_BAR_HIGHLIGHT_MARKS = {}
+
+         Blizzard's own source flags that table: "Keys within
+         ON_BAR_HIGHLIGHT_MARKS and ACTION_HIGHLIGHT_MARKS are vulnerable to
+         taint from talent and spellbook code." Written inside a tainted
+         execution it stays tainted, and `ActionBarController_UpdateAllSpell-
+         Highlights` re-reads it constantly — 1428 taint events in a nine
+         minute taint.log (2026-08-24), the single largest source in the file
+         and the only global Aurora was tainting at all.
+
+         Hovering one talent button was enough. Same shape as B57/B74/B88/B95:
+         hooksecurefunc protects the hooked function's execution, not the
+         caller's READ of the key.
+
+         To bring the cosmetic back taint-free: Blizzard only ever calls
+         `SetAlpha`/`SetShown` on `BorderSheen`, never `SetTexture`, so a
+         one-time `BorderSheen:SetTexture("")` per button makes it permanently
+         invisible with no hook at all — swept from an OnShow handler over
+         `TalentsFrame:EnumerateAllTalentButtons()`. Deliberately not done in
+         the same change as the removal: the sheen is decoration, the taint is
+         not, and the two should not be verified together. ]]
 
     Skin.UIPanelButtonTemplate(TalentsFrame.ApplyButton)
     Skin.UIPanelButtonTemplate(TalentsFrame.InspectCopyButton)
