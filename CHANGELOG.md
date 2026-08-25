@@ -1,4 +1,18 @@
-﻿## [12.1.0.6] ##
+﻿## [12.1.0.7] ##
+### Fixed ###
+
+  * fix: **hovering a talent button poisoned the action bar highlight system for the whole session.** The skin hooked `ClassTalentButtonArtMixin.UpdateStateBorder` to hide the rotating gold sheen on talent nodes — and `ClassTalentButtonSpendMixin:OnEnter` reads that mixin key one line before calling `ShowActionBarHighlights`, which writes the global `ON_BAR_HIGHLIGHT_MARKS`. Blizzard's own source flags that table as taint-vulnerable, and `ActionBarController_UpdateAllSpellHighlights` re-reads it constantly: 1428 taint events in a nine-minute log from one hover, the single largest taint source and the only global Aurora was tainting at all. The hook is removed outright — the sheen is back for now; a taint-free suppression (a one-time `SetTexture("")` sweep, no hook) is noted in the source for a later release, deliberately not bundled with the removal so the two verify separately [mainline]
+
+### Changed ###
+
+  * chg: the ~546 lines below the UIWidgets gate are now explicitly flagged as dead code. The gate at the top of the block returns unconditionally, but the block reads as live — it carries comments describing SafeNumber protections that are not in force — and it misled a taint investigation into a confident wrong diagnosis. No behaviour change; the block either gets the taint-safe rewrite it was parked for, or gets deleted [mainline]
+
+### Known Issues ###
+
+  * The objective tracker and world-event/scenario widgets still render with Blizzard's styling while those skins are gated (unchanged from 12.1.0.5) [mainline]
+  * The `GameTooltip_InsertFrame` taint described under 12.1.0.2 is unchanged [mainline]
+
+## [12.1.0.6] ##
 ### Fixed ###
 
   * fix: **opening the world map threw a blocked-action error, and map pins lost their mouse handling.** Two separate hooks in the same execution: `WorldMapFrame`'s `Minimize`/`Maximize` and `BorderFrame`'s `SetBorder` were both hooked, and Blizzard reads all three from inside `WorldMapMixin:OnShow` — via `SetDisplayState`, which runs only when the display state is stale, hence the intermittency. Reading a hooked key taints the execution, and the same OnShow then calls the protected `C_ChatInfo.PerformEmote` and acquires the AreaPOI/delve pins, which call `SetPropagateMouseClicks`. Both hooks are gone: the empty `Maximize` hook is deleted, and the NavBar nudge and border restyle now ride Blizzard's own `WorldMapMinimized`/`WorldMapMaximized` events [mainline]
@@ -807,7 +821,8 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.6...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.7...develop
+[12.1.0.7]: https://github.com/Gethe/Aurora/compare/12.1.0.6...12.1.0.7
 [12.1.0.6]: https://github.com/Gethe/Aurora/compare/12.1.0.5...12.1.0.6
 [12.1.0.5]: https://github.com/Gethe/Aurora/compare/12.1.0.4...12.1.0.5
 [12.1.0.4]: https://github.com/Gethe/Aurora/compare/12.1.0.3...12.1.0.4
