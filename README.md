@@ -8,7 +8,8 @@ It is maintained for current Retail WoW and can run standalone or embedded (for 
 Information
 -----------
 
-  * Current development target is WoW 12.1.x.
+  * Current development target is WoW 12.1.x (Retail).
+  * Stable builds also ship Classic flavors: Classic Era (1.15.x), Burning Crusade Classic, and Mists of Pandaria Classic — one package, four TOCs.
   * Aurora includes a live Color Mode system with Normal, HDR, and accessibility presets.
   * Skinning updates prioritize taint-safe hooks and compatibility with Blizzard UI changes.
 
@@ -74,5 +75,5 @@ profile store.
 Bug Reports
 -----------
 
-Please report issues on [GitHub](https://github.com/Gethe/Aurora).
+Please report issues on [GitHub](https://github.com/RealUI/Aurora).
 For support, discussion, and quick troubleshooting help, join the [RealUI Discord](https://discord.gg/sasExJYxgf).
