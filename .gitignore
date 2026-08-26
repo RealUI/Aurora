@@ -5,3 +5,5 @@
 ## Sublime Text ##
 *.sublime-workspace
 dev/__pycache__/
+
+.mailmap
