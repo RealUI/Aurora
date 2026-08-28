@@ -157,14 +157,35 @@ function private.AddOns.Blizzard_DelvesCompanionConfiguration()
             abilityList.CompanionAbilityListBackground:SetAlpha(0)
         end
 
-        -- Skin paging control buttons
+        -- PortraitFrameTemplate parts: StripBlizzardTextures only reaches the
+        -- frame's own regions and the NineSlice, so the portrait ring and the
+        -- close button keep their Blizzard art unless handled here.
+        if abilityList.PortraitContainer then
+            abilityList.PortraitContainer:Hide()
+        end
+        if abilityList.TitleContainer then
+            abilityList.TitleContainer:SetHeight(private.FRAME_TITLE_HEIGHT)
+            abilityList.TitleContainer:SetPoint("TOPLEFT", 24, -1)
+        end
+        if abilityList.CloseButton then
+            Skin.UIPanelCloseButton(abilityList.CloseButton)
+        end
+
+        -- Role dropdown (WowStyle1DropdownTemplate)
+        if abilityList.DelvesCompanionRoleDropdown then
+            Skin.DropdownButton(abilityList.DelvesCompanionRoleDropdown)
+        end
+
+        -- Skin paging control buttons. FrameTypeButton clears the normal/pushed/
+        -- disabled textures, so the plain page arrows need the Nav skins that put
+        -- Aurora's arrow back - otherwise both buttons render as empty boxes.
         local pagingControls = abilityList.DelvesCompanionAbilityListPagingControls
         if pagingControls then
             if pagingControls.NextPageButton then
-                Skin.FrameTypeButton(pagingControls.NextPageButton)
+                Skin.NavButtonNext(pagingControls.NextPageButton)
             end
             if pagingControls.PrevPageButton then
-                Skin.FrameTypeButton(pagingControls.PrevPageButton)
+                Skin.NavButtonPrevious(pagingControls.PrevPageButton)
             end
         end
 
