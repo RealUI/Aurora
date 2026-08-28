@@ -88,23 +88,44 @@ function private.AddOns.Blizzard_DelvesCompanionConfiguration()
     Util.Mixin(_G.CompanionConfigSlotTemplateMixin, Hook.CompanionConfigSlotTemplateMixin)
 
     ------------------------------------------------
-    -- Tooltip taint guard
-    ------------------------------------------------
-    -- Mirror the QuestMap workaround: run the portrait tooltip path in
-    -- secure context so GameTooltip widget set sizing/layout does not receive
-    -- secret-number values in addon-tainted execution.
-    if _G.CompanionPortraitFrameMixin and _G.CompanionPortraitFrameMixin.OnEnter and _G.securecallfunction then
-        local origPortraitOnEnter = _G.CompanionPortraitFrameMixin.OnEnter
-        _G.CompanionPortraitFrameMixin.OnEnter = function(self)
-            return _G.securecallfunction(origPortraitOnEnter, self)
-        end
-    end
-
-    ------------------------------------------------
     -- Skin the main configuration frame
     ------------------------------------------------
     local frame = _G.DelvesCompanionConfigurationFrame
     if not frame then return end
+
+    ------------------------------------------------
+    -- Tooltip taint guard
+    ------------------------------------------------
+    -- Skinning the tooltip hierarchy makes widgetContainer:GetHeight() return a
+    -- secret number, so GameTooltip_AddWidgetSet errors at GameTooltip.lua:607
+    -- on `GetHeight() + (verticalPadding or 0)` when the companion portrait is
+    -- hovered. securecallfunction does NOT help here - secret values error on
+    -- ANY arithmetic regardless of execution context (see the note in
+    -- SharedTooltipTemplates.lua), and the previous wrapper never applied
+    -- anyway: the mixin is copied onto the frame when the XML loads, before
+    -- this addon callback runs, so patching the prototype missed the instance.
+    --
+    -- Owning GameTooltip_AddWidgetSet is also ruled out by that same note, and
+    -- it cannot be reimplemented locally because RegisterForWidgetSet needs
+    -- WidgetLayout, a file-local in GameTooltip.lua. The failing arithmetic is
+    -- the last two lines of the function and produces only the overflow return
+    -- value, which this call site discards - GameTooltip_InsertFrame has
+    -- already inserted and shown the widget container by then. So swallow the
+    -- tail on the instance and leave the global alone.
+    --
+    -- The throw skips the GameTooltip:Show() that follows it in Blizzard's
+    -- OnEnter, so re-assert it here; on the non-erroring path the tooltip is
+    -- already shown and the second call is a no-op.
+    local portrait = frame.CompanionPortraitFrame
+    if portrait and portrait.OnEnter then
+        local origPortraitOnEnter = portrait.OnEnter
+        portrait:SetScript("OnEnter", function(self)
+            _G.pcall(origPortraitOnEnter, self)
+            if _G.GameTooltip:GetOwner() == self then
+                _G.GameTooltip:Show()
+            end
+        end)
+    end
 
     -- Strip the InsetFrameTemplate and DialogBorderTemplate decorative textures
     Base.StripBlizzardTextures(frame)
