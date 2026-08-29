@@ -1,4 +1,21 @@
-﻿## [12.1.0.7] ##
+﻿## [12.1.0.8] ##
+### Fixed ###
+
+  * fix: **the objective tracker threw `GetAuraDataByIndex(): Auras cannot be accessed when secret while tainted by 'RealUI_Skins'` in LFR and delves.** Blizzard's `ShouldShowMawBuffs` reads `C_UnitAuras.GetAuraDataByIndex("player", 1, "MAW")` unguarded, and under the Midnight secret-aura rules that API throws rather than returning nil when the execution is tainted. All three of its callers are `MawBuffsContainerMixin:Update` and the scenario tracker's `OnEvent`/`LayoutContents`, so the throw landed mid-layout and took the stage block down with it. The function is wrapped to short-circuit to `false` when `C_Secrets.ShouldAurasBeSecret()` reports secret auras — the only honest answer at that point, and the Maw/Torghast surface it gates is legacy content. This silences the throw; it does not undo the tracker-side taint (see Known Issues) [mainline]
+  * fix: **the Delves companion abilities panel had two blank boxes where the page arrows belong**, plus an unskinned close button, role dropdown and portrait ring. The arrows went through `Skin.FrameTypeButton`, which clears the normal/pushed/disabled textures — Blizzard's art was stripped and nothing put back; they now take `Skin.NavButtonNext`/`NavButtonPrevious`, as `Blizzard_PlayerSpells` already does on the identical paging template. The frame also inherits `PortraitFrameTemplate`, and `StripBlizzardTextures` reaches only the frame's own regions and its NineSlice, never the child frames, so `CloseButton`, `PortraitContainer` and the role dropdown are handled explicitly [mainline]
+  * fix: **hovering the Delves companion portrait threw `GameTooltip.lua:607: attempt to perform arithmetic on a secret number value`.** Skinning the tooltip hierarchy makes `widgetContainer:GetHeight()` return a secret number, which `GameTooltip_AddWidgetSet` then adds padding to. The skin already carried a `securecallfunction` guard for this, and it had never applied: `mixin=` copies `CompanionPortraitFrameMixin` onto the frame when the XML loads, before the addon callback runs, so patching the prototype missed the instance — and securecallfunction would not have helped anyway, since secret values error on any arithmetic regardless of execution context. The guard now sits on the instance and swallows only the failing tail, whose return value this call site discards; the `GameTooltip:Show()` the throw used to skip is re-asserted [mainline]
+
+### Changed ###
+
+  * chg: **the objective tracker skin is enabled again**, gated off since 12.1.0.5. With the MawBuffs aura throw guarded, the fault that was aborting `LayoutContents` no longer fires, and a full play session produced no tracker errors. This removes the symptom, not the cause — the skin still writes to tracker frames in the ways `objective-tracker-taint.md` prohibits, and the gate is one flag away if faults return. Treat any new tracker-side secret-value or layout error as this gate, and reach for the rewrite rather than for another guard [mainline]
+
+### Known Issues ###
+
+  * The `ShouldShowMawBuffs` guard owns a Blizzard global, which taints it permanently for every later reader — the same cost documented for `GameTooltip_InsertFrame`. Accepted because all three of its readers already sit inside the poisoned tracker set, and because the alternative is an error that aborts tracker layout [mainline]
+  * The world-event/scenario UI widgets still render with Blizzard's styling while that skin is gated [mainline]
+  * The `GameTooltip_InsertFrame` taint described under 12.1.0.2 is unchanged [mainline]
+
+## [12.1.0.7] ##
 ### Fixed ###
 
   * fix: **hovering a talent button poisoned the action bar highlight system for the whole session.** The skin hooked `ClassTalentButtonArtMixin.UpdateStateBorder` to hide the rotating gold sheen on talent nodes — and `ClassTalentButtonSpendMixin:OnEnter` reads that mixin key one line before calling `ShowActionBarHighlights`, which writes the global `ON_BAR_HIGHLIGHT_MARKS`. Blizzard's own source flags that table as taint-vulnerable, and `ActionBarController_UpdateAllSpellHighlights` re-reads it constantly: 1428 taint events in a nine-minute log from one hover, the single largest taint source and the only global Aurora was tainting at all. The hook is removed outright — the sheen is back for now; a taint-free suppression (a one-time `SetTexture("")` sweep, no hook) is noted in the source for a later release, deliberately not bundled with the removal so the two verify separately [mainline]
@@ -821,7 +838,8 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.7...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.8...develop
+[12.1.0.8]: https://github.com/Gethe/Aurora/compare/12.1.0.7...12.1.0.8
 [12.1.0.7]: https://github.com/Gethe/Aurora/compare/12.1.0.6...12.1.0.7
 [12.1.0.6]: https://github.com/Gethe/Aurora/compare/12.1.0.5...12.1.0.6
 [12.1.0.5]: https://github.com/Gethe/Aurora/compare/12.1.0.4...12.1.0.5
