@@ -307,7 +307,15 @@ function private.AddOns.Blizzard_ObjectiveTracker()
     --   * scenario/UIWidget modules: headers only, their blocks are pooled
     --     with the shared widget system
     --   * no addon code in click/dispatch paths
-    local gated = true -- flip when the taint-safe rewrite lands
+    -- UNGATED 2026-08-29 by owner decision. The C_Secrets guard on
+    -- ShouldShowMawBuffs (see Blizzard_MawBuffs\Blizzard_MawBuffs.lua) removes
+    -- the aura read that was throwing, so the fault no longer aborts
+    -- LayoutContents. That removes the SYMPTOM, not the poisoning: the writes
+    -- below still violate the rules above, notably the ScenarioStageBlock
+    -- CreateFrame/SetPoint/CreateTexture work (rules 2/3/4). Treat any new
+    -- tracker-side secret-value or layout fault as this gate, and reach for the
+    -- rewrite rather than for another guard.
+    local gated = false -- flip back to true if the tracker faults return
     if gated then return end
 
     if not IsConfigEnabled("objectiveTracker") then return end
