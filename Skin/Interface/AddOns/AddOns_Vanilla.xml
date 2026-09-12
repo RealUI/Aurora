@@ -269,7 +269,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_MoneyFrame\Classic\Localization.lua"/-->
     <!-- End of section added for Blizzard_MoneyFrame by the Aurora XML Updater -->
     <!--Script file="Blizzard_MovePad\Blizzard_MovePad.lua"/-->
-    <!--Script file="Blizzard_NamePlates\Blizzard_NamePlates.lua"/-->
+    <Script file="Blizzard_NamePlates\Classic\Blizzard_NamePlates.lua"/>
     <!--Script file="Blizzard_Notification\Blizzard_Notification.lua"/-->
     <!--Script file="Blizzard_ObjectAPI\Blizzard_ObjectAPI.lua"/-->
     <!--Script file="Blizzard_OverrideActionBar\Blizzard_OverrideActionBar.lua"/-->
@@ -498,7 +498,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_Subtitles\Blizzard_Subtitles.lua"/-->
     <Script file="Blizzard_TalentUI\Classic\Blizzard_TalentUI.lua"/>
     <!--Script file="Blizzard_TextStatusBar\Blizzard_TextStatusBar.lua"/-->
-    <!--Script file="Blizzard_TimeManager\Blizzard_TimeManager.lua"/-->
+    <Script file="Blizzard_TimeManager\Classic\Blizzard_TimeManager.lua"/>
     <!--Script file="Blizzard_TokenUI\Blizzard_TokenUI.lua"/-->
     <Script file="Blizzard_TradeSkillUI\Vanilla\Blizzard_TradeSkillUI.lua"/>
     <Script file="Blizzard_TrainerUI\Classic\Blizzard_TrainerUI.lua"/>
