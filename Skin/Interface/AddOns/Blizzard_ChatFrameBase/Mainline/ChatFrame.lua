@@ -19,8 +19,12 @@ do --[[ SharedXML\ChatFrame.lua ]]
 
         local info = _G.ChatTypeInfo[chatType]
         if chatType == "CHANNEL" then
-            local channeleditBox = _G.ChatFrameUtil.GetActiveWindow();
-            local localID, channelName = _G.GetChannelName(channeleditBox:GetChannelTarget())
+            -- The channel belongs to the edit box being updated, not to whichever
+            -- one happens to be focused: ChatFrameUtil.GetActiveWindow() returns
+            -- ACTIVE_CHAT_EDIT_BOX, which is nil whenever UpdateHeader runs outside
+            -- a user-opened edit box (UPDATE_CHAT_WINDOWS -> UpdateDefaultChatTarget
+            -- at login, for a window whose default target is a channel).
+            local localID, channelName = _G.GetChannelName(editBox:GetChannelTarget())
             if channelName then
                 info = _G.ChatTypeInfo["CHANNEL"..localID]
             end
