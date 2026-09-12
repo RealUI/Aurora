@@ -6,7 +6,9 @@ if private.shouldSkip() then return end
 
 --[[ Core ]]
 local Aurora = private.Aurora
+local Base = Aurora.Base
 local Skin = Aurora.Skin
+local Util = Aurora.Util
 
 --[[ Vanilla-style Group Finder (era-only addon).
     Evidence: wow-ui-source-era/Interface/AddOns/Blizzard_GroupFinder_VanillaStyle/
@@ -21,8 +23,86 @@ local Skin = Aurora.Skin
     and disables SetText/paste — anti-automation hardening; only its
     UIPanelInputScrollFrameTemplate container is skinned), the role icon
     buttons and gear OptionsButtons (meaningful icon art), and the LFG eye
-    animation (active-queue indicator). Row templates left for iteration.
+    animation (active-queue indicator).
 ]]
+
+--[[ Row templates (deferred in the first pass; added 2026-09-13).
+
+    All three row families are recycled by their container, so each is skinned
+    from an update/add hook rather than once at load:
+      * Browse results   -- WowScrollBoxList + LFGBrowseSearchEntryTemplate
+                            (Blizzard_LFGVanilla_Browse.lua:58-65)
+      * Listing rows     -- CreateScrollBoxListTreeListView + LFGListingActivityRowTemplate
+                            (Blizzard_LFGVanilla_Listing.lua:741+)
+      * Category buttons -- created lazily into CategoryView.CategoryButtons by
+                            LFGListingCategorySelection_AddButton (Listing.lua:704-716)
+
+    ScrollBox:ForEachFrame hands the callback `(frame, elementData)` with no
+    owner (ScrollBoxListView.lua:152), so these take the frame first.
+
+    Kept, per the "NOT touched" policy above: the party/class/newcomer icons on
+    a result row, the Enumerate and Solo role art, and the category icons --
+    all of it carries meaning. What gets recoloured is the ADD-blended
+    highlight/selected bars, the parts that actually fight the theme; the blend
+    reset plus Aurora's highlight colour is the same treatment the classic
+    AuctionUI rows use (Blizzard_AuctionUI/Classic/Blizzard_AuctionUI.lua:32-41).
+]]
+local function SkinHighlight(texture, alpha)
+    if not texture then return end
+    texture:SetBlendMode("BLEND")
+    Util.SetHighlightColor(texture, alpha)
+end
+
+local function SkinRoleCount(Frame)
+    -- RoleCountNoScriptsTemplate. Skin.RoleCountNoScriptsTemplate is Mainline-only,
+    -- so the three swaps are inlined; the parentKeys match the era template at
+    -- Blizzard_UIPanelTemplates/Classic/UIPanelTemplates.xml:323. Base.SetTexture
+    -- is safe to repeat on a recycled frame (texture.lua tracks what it built).
+    if not Frame then return end
+    if Frame.TankIcon then Base.SetTexture(Frame.TankIcon, "iconTANK") end
+    if Frame.HealerIcon then Base.SetTexture(Frame.HealerIcon, "iconHEALER") end
+    if Frame.DamagerIcon then Base.SetTexture(Frame.DamagerIcon, "iconDAMAGER") end
+end
+
+local function SkinSearchEntry(Button)
+    if not Button or private.IsSkinned(Button) then return end
+    private.SetSkinned(Button, true)
+
+    -- groupfinder-highlightbar-yellow / -blue
+    SkinHighlight(Button.Selected, 0.5)
+    SkinHighlight(Button.Highlight, 0.2)
+
+    if Button.DataDisplay then
+        SkinRoleCount(Button.DataDisplay.RoleCount)
+    end
+end
+
+local function SkinActivityRow(Frame)
+    if not Frame or private.IsSkinned(Frame) then return end
+    private.SetSkinned(Frame, true)
+
+    -- Raw CheckButton carrying the stock UI-CheckBox-* art, which is what the
+    -- classic Skin.UICheckButtonTemplate expects even though the XML does not
+    -- inherit the template (Blizzard_LFGVanilla_Listing.xml:168).
+    if Frame.CheckButton then
+        Skin.UICheckButtonTemplate(Frame.CheckButton)
+    end
+
+    -- ExpandOrCollapseButton left alone: Skin.ExpandOrCollapse is Mainline-only
+    -- and the stock +/- art stays legible against the dark backdrop, so a
+    -- half-port would look worse than none.
+end
+
+local function SkinCategoryButton(Button)
+    if not Button or private.IsSkinned(Button) then return end
+    private.SetSkinned(Button, true)
+
+    if Button.Cover then
+        Button.Cover:SetAlpha(0)  -- groupfinder-button-cover gradient over the icon
+    end
+    SkinHighlight(Button.SelectedTexture, 0.5)
+    SkinHighlight(Button.HighlightTexture or Button:GetHighlightTexture(), 0.2)
+end
 
 function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
     local LFGParentFrame = _G.LFGParentFrame
@@ -91,6 +171,12 @@ function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
     if Browse.ScrollBar then
         Skin.WowClassicScrollBar(Browse.ScrollBar)
     end
+    if Browse.ScrollBox then
+        Skin.WowScrollBoxList(Browse.ScrollBox)
+        _G.hooksecurefunc(Browse.ScrollBox, "Update", function(self)
+            self:ForEachFrame(SkinSearchEntry)
+        end)
+    end
     if Browse.SendMessageButton then
         Skin.UIPanelButtonTemplate(Browse.SendMessageButton)
     end
@@ -142,9 +228,32 @@ function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
         if ActivityView.ScrollBar then
             Skin.WowClassicScrollBar(ActivityView.ScrollBar)
         end
+        if ActivityView.ScrollBox then
+            Skin.WowScrollBoxList(ActivityView.ScrollBox)
+            _G.hooksecurefunc(ActivityView.ScrollBox, "Update", function(self)
+                self:ForEachFrame(SkinActivityRow)
+            end)
+        end
         -- Container chrome only — the EditBox inside is secure (see header)
         if ActivityView.Comment then
             Skin.UIPanelInputScrollFrameTemplate(ActivityView.Comment)
+        end
+    end
+
+    -- Category buttons are built on demand, so catch them as they are added and
+    -- sweep any that already exist (a no-op at load, a re-skin on reload).
+    if _G.LFGListingCategorySelection_AddButton then
+        _G.hooksecurefunc("LFGListingCategorySelection_AddButton", function(self, btnIndex)
+            local buttons = self and self.CategoryButtons
+            if buttons then
+                SkinCategoryButton(buttons[btnIndex])
+            end
+        end)
+    end
+    local CategoryView = Listing.CategoryView
+    if CategoryView and CategoryView.CategoryButtons then
+        for _, button in ipairs(CategoryView.CategoryButtons) do
+            SkinCategoryButton(button)
         end
     end
 end
