@@ -855,7 +855,8 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.8...develop
+[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.9...develop
+[12.1.0.9]: https://github.com/Gethe/Aurora/compare/12.1.0.8...12.1.0.9
 [12.1.0.8]: https://github.com/Gethe/Aurora/compare/12.1.0.7...12.1.0.8
 [12.1.0.7]: https://github.com/Gethe/Aurora/compare/12.1.0.6...12.1.0.7
 [12.1.0.6]: https://github.com/Gethe/Aurora/compare/12.1.0.5...12.1.0.6
