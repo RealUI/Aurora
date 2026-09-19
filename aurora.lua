@@ -215,7 +215,16 @@ function private.OnLoad()
     -- Skip CharacterFrame modifications if Chonky Character Sheet is loaded.
     -- Retail only: CharacterStatsPane and PaperDollFrame_UpdateStats do not
     -- exist on classic clients (their paperdoll has a different stats pane).
-    if private.isRetail and AuroraConfig.characterSheet and not _G.C_AddOns.IsAddOnLoaded("ChonkyCharacterSheet") then
+    -- isRetail is not enough of a gate: it is true on WoW Forever, where the
+    -- manifest points at Blizzard_UIPanels_Game\Camelot\CharacterFrame.lua and
+    -- that skin does not exist yet, so private.FrameXML.CharacterFrame is nil.
+    -- Same check the four hooks above and the FriendsFrame one below use.
+    -- (The body is Forever-safe once the Camelot skin lands: ItemLevelFrame,
+    -- ItemLevelCategory and AttributesCategory all exist in Camelot's
+    -- CharacterFrame.xml and PaperDollFrame.lua.)
+    if private.isRetail and AuroraConfig.characterSheet
+        and type(private.FrameXML.CharacterFrame) == "function"
+        and not _G.C_AddOns.IsAddOnLoaded("ChonkyCharacterSheet") then
         _G.hooksecurefunc(private.FrameXML, "CharacterFrame", function()
             _G.CharacterStatsPane.ItemLevelFrame:SetPoint("TOP", 0, -12)
             _G.CharacterStatsPane.ItemLevelFrame.Background:Hide()
