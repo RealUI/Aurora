@@ -92,9 +92,14 @@ function private.AddOns.Blizzard_ProfessionsBook()
     Skin.UIPanelCloseButton(ProfessionsBookFrame.CloseButton)
     _G.ProfessionsBookFrameTutorialButton:Hide()
 
-    -- Hide the left/right parchment page backgrounds
-    _G.ProfessionsBookPage1:Hide()
-    _G.ProfessionsBookPage2:Hide()
+    -- Hide the left/right parchment page backgrounds. WoW Forever's Camelot
+    -- ProfessionsBook templates have no parchment pages to hide.
+    for i = 1, 2 do
+        local page = _G["ProfessionsBookPage" .. i]
+        if page then
+            page:Hide()
+        end
+    end
 
     -- Dark background for the content area
     local ProfessionsContentFrame = _G.ProfessionsContentFrame
