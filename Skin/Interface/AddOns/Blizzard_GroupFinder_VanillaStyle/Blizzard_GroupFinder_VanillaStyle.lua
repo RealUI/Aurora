@@ -10,6 +10,21 @@ local Base = Aurora.Base
 local Skin = Aurora.Skin
 local Util = Aurora.Util
 
+-- This addon ships per-family variants and Aurora's skin was written against
+-- the Classic ones. Forever loads the Mainline variants, where the lists use
+-- MinimalScrollBar instead of WowClassicScrollBar (Mainline\…_Browse.xml vs
+-- Classic\…_Browse.xml). Skin.WowClassicScrollBar is itself only registered by
+-- Blizzard_SharedXML\Classic\, which the Forever manifest does not include, so
+-- calling it there is a nil call, not just the wrong look.
+local function SkinScrollBar(ScrollBar)
+    if not ScrollBar then return end
+    if private.isForever then
+        Skin.MinimalScrollBar(ScrollBar)
+    else
+        Skin.WowClassicScrollBar(ScrollBar)
+    end
+end
+
 --[[ Vanilla-style Group Finder (era-only addon).
     Evidence: wow-ui-source-era/Interface/AddOns/Blizzard_GroupFinder_VanillaStyle/
     Blizzard_LFGVanilla_{ParentFrame,Browse,Listing}.xml — LFGParentFrame is a
@@ -177,7 +192,7 @@ function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
     end
 
     if Browse.ScrollBar then
-        Skin.WowClassicScrollBar(Browse.ScrollBar)
+        SkinScrollBar(Browse.ScrollBar)
     end
     if Browse.ScrollBox then
         Skin.WowScrollBoxList(Browse.ScrollBox)
@@ -234,7 +249,7 @@ function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
             end
         end
         if ActivityView.ScrollBar then
-            Skin.WowClassicScrollBar(ActivityView.ScrollBar)
+            SkinScrollBar(ActivityView.ScrollBar)
         end
         if ActivityView.ScrollBox then
             Skin.WowScrollBoxList(ActivityView.ScrollBox)
