@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals select ipairs type
+-- luacheck: globals select ipairs type next
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -341,8 +341,21 @@ function private.FrameXML.MailFrame()
         if _G.OpenMailFrameIcon then
             _G.OpenMailFrameIcon:Hide()
         end
-        _G.OpenMailHorizontalBarLeft:Hide()
-        select(9, _G.OpenMailFrame:GetRegions()):Hide() -- HorizontalBarRight
+        -- Both halves of the divider use the same texture file; only the left
+        -- one is named, so the right half used to be reached by region index.
+        -- That index counts the inherited ButtonFrameTemplate regions as well,
+        -- and the count does not hold on Forever -- select(9, ...) returned nil
+        -- and took the rest of this skin with it. Match on the texture instead,
+        -- which covers both halves and does not care how many regions precede
+        -- them.
+        for _, region in next, {_G.OpenMailFrame:GetRegions()} do
+            if region:IsObjectType("Texture") then
+                local texture = region:GetTexture()
+                if type(texture) == "string" and texture:lower():find("ui%-classtrainer%-horizontalbar") then
+                    region:Hide()
+                end
+            end
+        end
 
         Skin.UIPanelButtonTemplate(_G.OpenMailReportSpamButton)
 
