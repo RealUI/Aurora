@@ -1009,11 +1009,35 @@ _G.SlashCmdList.AURORA = function(msg, editBox)
             _G.print("|cffff0000Aurora:|r LibTextDump is not available.")
             _G.print("|cff00a0ffTip:|r Install LibTextDump to enable debug output.")
         end
+    elseif msg == "skinaudit" then
+        -- Skins run behind pcall, so a skin written against frames this client
+        -- does not have fails silently. List what failed, with the client
+        -- identity, so a login on a new flavor produces a work list.
+        local failures = private.skinFailures or {}
+        local build, buildNumber, _, interfaceVersion = _G.GetBuildInfo()
+        _G.print(("|cff00a0ffAurora skin audit:|r %s (%s), interface %s%s"):format(
+            build, buildNumber, interfaceVersion,
+            private.isForever and " |cffffcc00[Forever/Camelot]|r" or ""))
+
+        if #failures == 0 then
+            _G.print("  |cff00ff00No skin failures recorded this session.|r")
+            return
+        end
+
+        _G.print(("  |cffff0000%d skin(s) failed.|r"):format(#failures))
+        for i = 1, #failures do
+            local failure = failures[i]
+            _G.print(("  |cffffcc00%s|r %s"):format(failure.kind, failure.name))
+            _G.print("      " .. failure.err)
+        end
+        _G.print("|cff00a0ffTip:|r /aurora debug has the full log, including the")
+        _G.print("  dev-only nil-frame warnings with their debugstack.")
     elseif msg == "help" then
         _G.print("|cff00a0ffAurora Commands:|r")
         _G.print("  |cffffffff/aurora|r - Open configuration panel")
         _G.print("  |cffffffff/aurora help|r - Show this help message")
         _G.print("  |cffffffff/aurora debug|r - Display debug information")
+        _G.print("  |cffffffff/aurora skinaudit|r - List skins that failed to apply")
         _G.print("  |cffffffff/aurora status|r - Show system status")
         _G.print("  |cffffffff/aurora reset|r - Reset configuration to defaults and reload UI")
         _G.print("  |cffffffff/aurora insertframe|r - DEV: toggle the GameTooltip_InsertFrame replacement")

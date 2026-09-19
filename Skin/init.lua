@@ -162,6 +162,26 @@ do -- set up file order
     private.SharedXML = setmetatable({}, mt)
 end
 
+-- Skin bodies shared between flavors. A replacement file loads under exactly one
+-- of Mainline\ or Camelot\, so the Camelot skin cannot delegate to the Mainline
+-- one; bodies too large to duplicate live in Skin\shared\ (listed by hand in
+-- skin.xml, which loads on every flavor) and register themselves here for the
+-- flavor files to call.
+private.SharedSkins = {}
+
+-- Every skin that failed under pcall this session, for /aurora skinaudit.
+-- Skins run behind pcall so one bad frame reference cannot take down the rest,
+-- which means failures are otherwise silent. On a new client flavor that
+-- silence is the problem, not the protection.
+private.skinFailures = {}
+local function RecordSkinFailure(kind, name, err)
+    tinsert(private.skinFailures, {
+        kind = kind,
+        name = name,
+        err = tostring(err),
+    })
+end
+
 
 -- GC Tuning System
 -- Provides three modes for Lua's garbage collector:
@@ -267,6 +287,7 @@ local function SafeApplyAddOnSkin(addOnName, addOnModule)
         appliedAddOnSkins[addOnName] = true
     else
         private.debug("skin", "addOn module failed", addOnName, err)
+        RecordSkinFailure("addon", addOnName, err)
     end
 end
 
@@ -331,6 +352,7 @@ eventFrame:SetScript("OnEvent", function(dialog, event, addonName)
                 local ok, err = _G.pcall(file.list[file.name])
                 if not ok then
                     private.debug("skin", "file module failed", file.name, err)
+                    RecordSkinFailure("file", file.name, err)
                 end
             end
 
