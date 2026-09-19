@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals
+-- luacheck: globals type
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -395,7 +395,12 @@ function private.AddOns.Blizzard_PlayerSpells()
     -- Hide the parchment atlas and the solid black underlay — the Aurora frame background shows through
     if SpecFrame.Background then SpecFrame.Background:Hide() end
     if SpecFrame.BlackBG then SpecFrame.BlackBG:Hide() end
-    _G.hooksecurefunc(SpecFrame, "UpdateSpecFrame", Hook.UpdatePlayeerSpecFrame)
+    -- Camelot replaces Blizzard_ClassSpecializationsFrame.xml and ships no Lua
+    -- for it, so the ClassSpecFrameMixin methods -- UpdateSpecFrame among them
+    -- -- do not exist on Forever.
+    if type(SpecFrame.UpdateSpecFrame) == "function" then
+        _G.hooksecurefunc(SpecFrame, "UpdateSpecFrame", Hook.UpdatePlayeerSpecFrame)
+    end
 
     -- TalentsFrame
     local TalentsFrame = PlayerSpellsFrame.TalentsFrame
