@@ -230,53 +230,56 @@ function private.FrameXML.FriendsFrame()
     --------------
     -- WhoFrame --
     --------------
+    -- WoW Forever (Camelot FriendsFrame.xml) ships no Who tab at all: no
+    -- WhoFrame, no FriendsFrameTab2. Everything below must survive that.
     local WhoFrame = _G.WhoFrame
-    Skin.InsetFrameTemplate(_G.WhoFrameListInset)
-    Skin.WhoFrameColumnHeaderTemplate(_G.WhoFrameColumnHeader1)
-    Skin.WhoFrameColumnHeaderTemplate(_G.WhoFrameColumnHeader2)
+    if WhoFrame then
+        Skin.InsetFrameTemplate(_G.WhoFrameListInset)
+        Skin.WhoFrameColumnHeaderTemplate(_G.WhoFrameColumnHeader1)
+        Skin.WhoFrameColumnHeaderTemplate(_G.WhoFrameColumnHeader2)
 
-    Skin.DropdownButton(_G.WhoFrameDropdown)
-    Skin.WhoFrameColumnHeaderTemplate(_G.WhoFrameColumnHeader3)
-    Skin.WhoFrameColumnHeaderTemplate(_G.WhoFrameColumnHeader4)
+        Skin.DropdownButton(_G.WhoFrameDropdown)
+        Skin.WhoFrameColumnHeaderTemplate(_G.WhoFrameColumnHeader3)
+        Skin.WhoFrameColumnHeaderTemplate(_G.WhoFrameColumnHeader4)
 
-    Skin.FriendsFrameButtonTemplate(_G.WhoFrameGroupInviteButton)
-    Skin.MagicButtonTemplate(_G.WhoFrameAddFriendButton)
-    Skin.MagicButtonTemplate(_G.WhoFrameWhoButton)
+        Skin.FriendsFrameButtonTemplate(_G.WhoFrameGroupInviteButton)
+        Skin.MagicButtonTemplate(_G.WhoFrameAddFriendButton)
+        Skin.MagicButtonTemplate(_G.WhoFrameWhoButton)
 
-    _G.WhoFrameGroupInviteButton:SetPoint("BOTTOMRIGHT", -5, 5)
-    _G.WhoFrameWhoButton:ClearAllPoints()
-    _G.WhoFrameWhoButton:SetPoint("BOTTOMLEFT", 5, 5)
-    _G.WhoFrameAddFriendButton:ClearAllPoints()
-    _G.WhoFrameAddFriendButton:SetPoint("BOTTOMLEFT", _G.WhoFrameWhoButton, "BOTTOMRIGHT", 1, 0)
-    _G.WhoFrameAddFriendButton:SetPoint("BOTTOMRIGHT", _G.WhoFrameGroupInviteButton, "BOTTOMLEFT", -1, 0)
+        _G.WhoFrameGroupInviteButton:SetPoint("BOTTOMRIGHT", -5, 5)
+        _G.WhoFrameWhoButton:ClearAllPoints()
+        _G.WhoFrameWhoButton:SetPoint("BOTTOMLEFT", 5, 5)
+        _G.WhoFrameAddFriendButton:ClearAllPoints()
+        _G.WhoFrameAddFriendButton:SetPoint("BOTTOMLEFT", _G.WhoFrameWhoButton, "BOTTOMRIGHT", 1, 0)
+        _G.WhoFrameAddFriendButton:SetPoint("BOTTOMRIGHT", _G.WhoFrameGroupInviteButton, "BOTTOMLEFT", -1, 0)
 
-    Skin.FrameTypeEditBox(_G.WhoFrameEditBox)
-    _G.WhoFrameEditBox:ClearAllPoints()
-    _G.WhoFrameEditBox:SetPoint("BOTTOMLEFT", _G.WhoFrameWhoButton, "TOPLEFT", 2, -2)
-    _G.WhoFrameEditBox:SetPoint("BOTTOMRIGHT", _G.WhoFrameGroupInviteButton, "TOPRIGHT", -2, -2)
-    _G.WhoFrameEditBox:SetBackdropOption("offsets", {
-        left = -2,
-        right = -2,
-        top = 7,
-        bottom = 7,
-    })
+        Skin.FrameTypeEditBox(_G.WhoFrameEditBox)
+        _G.WhoFrameEditBox:ClearAllPoints()
+        _G.WhoFrameEditBox:SetPoint("BOTTOMLEFT", _G.WhoFrameWhoButton, "TOPLEFT", 2, -2)
+        _G.WhoFrameEditBox:SetPoint("BOTTOMRIGHT", _G.WhoFrameGroupInviteButton, "TOPRIGHT", -2, -2)
+        _G.WhoFrameEditBox:SetBackdropOption("offsets", {
+            left = -2,
+            right = -2,
+            top = 7,
+            bottom = 7,
+        })
 
-    Skin.WowScrollBoxList(WhoFrame.ScrollBox)
-    Skin.MinimalScrollBar(WhoFrame.ScrollBar)
+        Skin.WowScrollBoxList(WhoFrame.ScrollBox)
+        Skin.MinimalScrollBar(WhoFrame.ScrollBar)
+    end
 
     ----------------------
     -- FriendsFrameMisc --
     ----------------------
-    Skin.FriendsFrameTabTemplate(_G.FriendsFrameTab1)
-    Skin.FriendsFrameTabTemplate(_G.FriendsFrameTab2)
-    Skin.FriendsFrameTabTemplate(_G.FriendsFrameTab3)
-    Skin.FriendsFrameTabTemplate(_G.FriendsFrameTab4)
-    Util.PositionRelative("TOPLEFT", FriendsFrame, "BOTTOMLEFT", 20, -1, 1, "Right", {
-        _G.FriendsFrameTab1,
-        _G.FriendsFrameTab2,
-        _G.FriendsFrameTab3,
-        _G.FriendsFrameTab4,
-    })
+    local tabs = {}
+    for i = 1, 4 do
+        local tab = _G["FriendsFrameTab" .. i]
+        if tab then
+            Skin.FriendsFrameTabTemplate(tab)
+            tabs[#tabs + 1] = tab
+        end
+    end
+    Util.PositionRelative("TOPLEFT", FriendsFrame, "BOTTOMLEFT", 20, -1, 1, "Right", tabs)
 
     if not private.disabled.tooltips then
         Skin.FrameTypeFrame(_G.FriendsTooltip)
