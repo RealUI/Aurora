@@ -48,16 +48,11 @@ function private.FrameXML.ReputationFrame()
     local ReputationDetailFrame = ReputationFrame.ReputationDetailFrame
     if ReputationDetailFrame then
         -- StandingBar inherits Camelot's ReputationBarTemplate, which is a
-        -- ColoredProgressBarTemplate carrying only BonusIcon and Texture --
-        -- none of the end caps or Background the Mainline bar has, hence the
-        -- guards rather than the unconditional hides used there.
-        local StandingBar = ReputationDetailFrame.StandingBar
-        if StandingBar then
-            Skin.FrameTypeStatusBar(StandingBar)
-            if StandingBar.Background then StandingBar.Background:SetAlpha(0) end
-            if StandingBar.LeftTexture then StandingBar.LeftTexture:Hide() end
-            if StandingBar.RightTexture then StandingBar.RightTexture:Hide() end
-        end
+        -- ColoredProgressBarTemplate -- a Frame with a masked Fill, not a
+        -- StatusBar. SharedSkins.ReputationBar dispatches on the object type;
+        -- calling Skin.FrameTypeStatusBar directly here threw
+        -- "SetStatusBarTexture is not a function" and cost the whole skin.
+        private.SharedSkins.ReputationBar(ReputationDetailFrame.StandingBar)
 
         if ReputationDetailFrame.MakeInactiveCheckbox then
             Skin.UICheckButtonTemplate(ReputationDetailFrame.MakeInactiveCheckbox)

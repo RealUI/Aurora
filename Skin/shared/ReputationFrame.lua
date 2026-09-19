@@ -108,6 +108,28 @@ do --[[ FrameXML\ReputationFrame.lua ]]
     end
 end
 
+-- ReputationBarTemplate is a StatusBar on retail but a Frame on Camelot, where
+-- it inherits ColoredProgressBarTemplate. Skin.FrameTypeStatusBar routes the
+-- Frame-based form to Skin.ColoredProgressBarTemplate itself, so this only has
+-- to deal with the decoration either form may carry.
+function private.SharedSkins.ReputationBar(bar)
+    if not bar then return end
+
+    Skin.FrameTypeStatusBar(bar)
+
+    -- Retail's bar carries UI-Character-ReputationBar end caps and a
+    -- Background fill; Camelot's carries none of them.
+    if bar.LeftTexture then bar.LeftTexture:Hide() end
+    if bar.RightTexture then bar.RightTexture:Hide() end
+    if bar.Background then bar.Background:SetAlpha(0) end
+
+    -- Present on the old template; keep the guards in case they return.
+    if bar.Highlight1 then bar.Highlight1:SetAlpha(0) end
+    if bar.Highlight2 then bar.Highlight2:SetAlpha(0) end
+    if bar.AtWarHighlight1 then bar.AtWarHighlight1:SetAlpha(0) end
+    if bar.AtWarHighlight2 then bar.AtWarHighlight2:SetAlpha(0) end
+end
+
 do --[[ FrameXML\ReputationFrame.xml ]]
     local function OnEnter(button)
         (button._bdFrame or button):SetBackdropBorderColor(Color.highlight)
@@ -158,26 +180,7 @@ do --[[ FrameXML\ReputationFrame.xml ]]
             toggle:SetSize(14, 14)
         end
 
-        local ReputationBar = Content.ReputationBar
-        if ReputationBar then
-            Skin.FrameTypeStatusBar(ReputationBar)
-
-            -- ReputationBarTemplate is a StatusBar now, but it still carries
-            -- the UI-Character-ReputationBar end caps and a Background fill.
-            -- Without hiding these the bar keeps Blizzard's rounded ends and
-            -- gradient — the same regions the pre-ScrollBox skin dealt with.
-            -- Camelot's ReputationBarTemplate inherits ColoredProgressBarTemplate
-            -- and carries none of them, which the guards already absorb.
-            if ReputationBar.LeftTexture then ReputationBar.LeftTexture:Hide() end
-            if ReputationBar.RightTexture then ReputationBar.RightTexture:Hide() end
-            if ReputationBar.Background then ReputationBar.Background:SetAlpha(0) end
-
-            -- Present on the old template; keep the guards in case they return.
-            if ReputationBar.Highlight1 then ReputationBar.Highlight1:SetAlpha(0) end
-            if ReputationBar.Highlight2 then ReputationBar.Highlight2:SetAlpha(0) end
-            if ReputationBar.AtWarHighlight1 then ReputationBar.AtWarHighlight1:SetAlpha(0) end
-            if ReputationBar.AtWarHighlight2 then ReputationBar.AtWarHighlight2:SetAlpha(0) end
-        end
+        private.SharedSkins.ReputationBar(Content.ReputationBar)
 
         -- charactercreate-customize-dropdown-linemouseover-* three-slice
         local BackgroundHighlight = Content.BackgroundHighlight
