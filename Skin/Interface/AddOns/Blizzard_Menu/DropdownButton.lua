@@ -50,7 +50,10 @@ do --[[ Blizzard_Menu\DropdownButton.lua ]]
             -- local rightOfs = -105
             if not Frame then
                 if private.isDev then
-                    _G.print("Skin.DropdownButton - Frame is nil. This is likely a bug. You should not see this message.")
+                    -- Name the caller: on flavors that lack a frame (e.g. Forever's Camelot
+                    -- FriendsFrame has no WhoFrameDropdown) this is the only way to find the skin.
+                    _G.print("Skin.DropdownButton - Frame is nil. This is likely a bug. You should not see this message.\n"
+                        .. _G.debugstack(2, 1, 0))
                 end
                 return
             end
@@ -147,7 +150,8 @@ do --[[ Blizzard_Menu\DropdownButton.lua ]]
             -- local rightOfs = -105
             if not Frame then
                 if private.isDev then
-                    _G.print("Skin.FilterButton - Frame is nil. This is likely a bug. You should not see this message.")
+                    _G.print("Skin.FilterButton - Frame is nil. This is likely a bug. You should not see this message.\n"
+                        .. _G.debugstack(2, 1, 0))
                 end
                 return
             end
