@@ -675,7 +675,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\Shared\ExtraAbilityContainer.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Camelot\CharacterFrameConstants.lua"/--><!-- replacement -->
     <!--Script file="Blizzard_UIPanels_Game\Shared\CharacterFrameTabAPI.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\Camelot\CharacterFrame.lua"/--><!-- replacement -->
+    <Script file="Blizzard_UIPanels_Game\Camelot\CharacterFrame.lua"/><!-- replacement -->
     <!--Script file="Blizzard_UIPanels_Game\Mainline\AzeritePaperDollItemOverlay.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Mainline\PaperDollFrameConstants.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Camelot\PaperDollFrameConstants.lua"/--><!-- additive -->
@@ -684,7 +684,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\Vanilla\PaperDollFrameStats.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Cata\PaperDollFrameStats.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Camelot\PaperDollFrameStats.lua"/--><!-- additive -->
-    <!--Script file="Blizzard_UIPanels_Game\Camelot\ReputationFrame.lua"/--><!-- replacement -->
+    <Script file="Blizzard_UIPanels_Game\Camelot\ReputationFrame.lua"/><!-- replacement -->
     <!--Script file="Blizzard_UIPanels_Game\Camelot\SkillsFrame.lua"/--><!-- replacement -->
     <!--Script file="Blizzard_UIPanels_Game\Mainline\FriendshipStatusBar.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Camelot\QuestFrameTemplates.lua"/--><!-- replacement -->
