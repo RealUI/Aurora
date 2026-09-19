@@ -139,6 +139,18 @@ do --[[ FrameXML\ContainerFrame.xml ]]
         -- frame carries TitleText, so re-anchoring it to the background would
         -- move the bag title 24px left, which the old code never did.
     end
+    -- Called by ContainerFrameBackpackTemplate below but never defined, on any
+    -- flavor -- the bag money frame has been killing that skin function since
+    -- it was written. It only surfaced once the removed ClickableTitleFrame
+    -- line above stopped throwing first. ContainerMoneyFrameTemplate inherits
+    -- SmallMoneyFrameTemplate, which Aurora deliberately no-ops, so delegate
+    -- rather than no-op here: if money frames ever get skinned, bags follow.
+    -- Resolved at call time because the MoneyFrame skin file may load later.
+    function Skin.ContainerMoneyFrameTemplate(Frame)
+        if Frame and Skin.SmallMoneyFrameTemplate then
+            Skin.SmallMoneyFrameTemplate(Frame)
+        end
+    end
     function Skin.ContainerFrameBackpackTemplate(Frame)
         if not Frame then
             if private.isDev then
