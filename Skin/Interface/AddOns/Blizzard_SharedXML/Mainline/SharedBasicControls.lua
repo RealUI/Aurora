@@ -57,6 +57,11 @@ function private.SharedXML.SharedBasicControls()
     Skin.NavButtonPrevious(ScriptErrorsFrame.PreviousError)
     Skin.NavButtonNext(ScriptErrorsFrame.NextError)
 
-    Skin.UIPanelButtonTemplate(ScriptErrorsFrame.Close)
+    -- WoW Forever renames the dialog's dismiss button parentKey from Close to
+    -- CloseButton in Blizzard_ScriptErrorsFrame.xml.
+    local closeButton = ScriptErrorsFrame.Close or ScriptErrorsFrame.CloseButton
+    if closeButton then
+        Skin.UIPanelButtonTemplate(closeButton)
+    end
     ScriptErrorsFrame.ScrollFrame:SetPoint("BOTTOMRIGHT", -5, 5)
 end
