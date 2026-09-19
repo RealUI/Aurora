@@ -74,6 +74,12 @@ end
 
 function private.AddOns.Blizzard_ProfessionsBook()
     local ProfessionsBookFrame = _G.ProfessionsBookFrame
+    -- WoW Forever has no standalone professions book: its TOC marks
+    -- Blizzard_ProfessionsBook.xml [ExcludeLoadGameType camelot] and loads a
+    -- Camelot\ template set instead, so the frame this whole skin is written
+    -- against is never created. Nothing below can run.
+    if not ProfessionsBookFrame then return end
+
     Skin.NineSlicePanelTemplate(ProfessionsBookFrame.NineSlice)
     ProfessionsBookFrame.NineSlice:SetFrameLevel(1)
 
