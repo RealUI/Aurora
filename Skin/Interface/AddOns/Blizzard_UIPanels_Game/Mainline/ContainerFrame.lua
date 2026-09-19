@@ -126,9 +126,18 @@ do --[[ FrameXML\ContainerFrame.xml ]]
 
         Base.CropIcon(Frame.FilterIcon.Icon, Frame.FilterIcon)
 
-        Frame.ClickableTitleFrame:ClearAllPoints()
-        Frame.ClickableTitleFrame:SetPoint("TOPLEFT", bg)
-        Frame.ClickableTitleFrame:SetPoint("BOTTOMRIGHT", bg, "TOPRIGHT", 0, -private.FRAME_TITLE_HEIGHT)
+        -- ClickableTitleFrame was removed from ContainerFrameTemplate and has
+        -- been throwing here -- silently, behind the skin pcall -- which cost
+        -- every bag after the first its skin. It is a deletion, not a rename:
+        -- it was an invisible click region widened to the full title bar, and
+        -- bags now drag at frame level (ContainerFrameTemplate is movable +
+        -- enableMouse with ContainerFrameMixin:OnDragStart). The visible title
+        -- strip is already positioned by Skin.PortraitFrameBaseTemplate, via
+        -- the Skin.PortraitFrameFlatTemplate call at the top of this function.
+        --
+        -- Do not "restore" this by pointing it at Frame.TitleContainer: that
+        -- frame carries TitleText, so re-anchoring it to the background would
+        -- move the bag title 24px left, which the old code never did.
     end
     function Skin.ContainerFrameBackpackTemplate(Frame)
         if not Frame then
