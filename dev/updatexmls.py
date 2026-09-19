@@ -15,6 +15,8 @@ _trees_root = os.path.normpath(os.path.join(_dev_dir, '..', '..'))
 #   tree:      wow-ui-source checkout for that client (sibling of the Aurora repo)
 #   toc_order: the client's TOC suffix search order ('' = suffix-less TOC)
 #   family:    what the client substitutes for [Family] in TOC file paths
+#   game:      what the client substitutes for [Game] (defaults to the flavor
+#              name; Forever needs Blizzard's codename 'Camelot')
 #   gametypes: tokens this client matches in AllowLoadGameType directives
 #   skin_dirs: Aurora skin subfolders searched (most specific first) when a
 #              TOC lists a flat path — lets flavor-specific skins live in
@@ -56,6 +58,21 @@ flavors = {
         'gametypes': {'classic', 'mists'},
         'skin_dirs': ['Mists', 'Classic'],
         'adp': 50,
+    },
+    # WoW Forever (1.60.x, client folder _classic_beta_, upstream branch
+    # `forever`). Despite the 1.x version it is NOT a classic-family client:
+    # Blizzard built it on the Mainline architecture with a 'Camelot' game
+    # overlay ([Family] = Mainline, [Game] = Camelot, gametype tokens
+    # 'mainline' + 'camelot' where retail has 'mainline' + 'standard').
+    # Camelot-specific skins live in Blizzard_X\Camelot\ next to Mainline\.
+    'Forever': {
+        'tree': os.path.join(_trees_root, 'wow-ui-source-forever'),
+        'toc_order': ['Camelot', 'Mainline', 'Standard', ''],
+        'family': 'Mainline',
+        'game': 'Camelot',
+        'gametypes': {'mainline', 'camelot'},
+        'skin_dirs': ['Camelot', 'Mainline'],
+        'adp': 60,
     },
 }
 
@@ -205,7 +222,7 @@ def generate_manifest(flavor, cfg):
         toc_file = resolve_toc(addon_path, dirname, cfg['toc_order'])
         if toc_file is None:
             continue
-        loads_here, files = parse_toc(toc_file, cfg['family'], cfg['gametypes'], flavor)
+        loads_here, files = parse_toc(toc_file, cfg['family'], cfg['gametypes'], cfg.get('game', flavor))
         if not loads_here:
             continue
         if dirname in aurora_addons:
