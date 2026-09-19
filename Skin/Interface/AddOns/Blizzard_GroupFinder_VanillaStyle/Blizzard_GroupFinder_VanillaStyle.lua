@@ -116,8 +116,16 @@ function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
         bottom = 74,
     })
 
-    Skin.CharacterFrameTabButtonTemplate(_G.LFGParentFrameTab1)
-    Skin.CharacterFrameTabButtonTemplate(_G.LFGParentFrameTab2)
+    -- LFGVanillaTabButtonTemplate has a different base per flavor: the classic
+    -- clients load Classic\LFGVanillaTabTemplates.xml, where it inherits
+    -- CharacterFrameTabButtonTemplate, while Forever loads Mainline\Templates.xml,
+    -- where it inherits PanelTabButtonTemplate. Aurora's
+    -- Skin.CharacterFrameTabButtonTemplate is also only registered by the
+    -- Cata/Classic FrameXML skins, which the Forever manifest does not include.
+    local SkinTab = private.isForever and Skin.PanelTabButtonTemplate
+        or Skin.CharacterFrameTabButtonTemplate
+    SkinTab(_G.LFGParentFrameTab1)
+    SkinTab(_G.LFGParentFrameTab2)
 
     -- The close button is the only unnamed direct Button child
     for _, child in next, {LFGParentFrame:GetChildren()} do
