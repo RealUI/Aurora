@@ -127,10 +127,16 @@ function private.AddOns.Blizzard_Professions()
         Skin.MaximizeMinimizeButtonFrameTemplate(ProfessionsFrame.MaximizeMinimize)
     end
 
-    for i = 1, 3 do
-        local tab = select(i, ProfessionsFrame.TabSystem:GetChildren())
-        if tab then
-            Skin.ProfessionsFrameTabTemplate(tab)
+    -- The TabSystem is declared by the flavor's own ProfessionsFrame.xml, not by
+    -- the shared ProfessionsFrameBase, and Camelot's replacement does not have
+    -- one -- it uses a single ProfessionsOverviewTab instead. (Skinning that tab
+    -- is new-surface work, not a port of this loop.)
+    if ProfessionsFrame.TabSystem then
+        for i = 1, 3 do
+            local tab = select(i, ProfessionsFrame.TabSystem:GetChildren())
+            if tab then
+                Skin.ProfessionsFrameTabTemplate(tab)
+            end
         end
     end
 
@@ -253,8 +259,15 @@ function private.AddOns.Blizzard_Professions()
         Util.Mixin(_G.ProfessionsFlyoutCurrencyButtonMixin, Hook.ProfessionsFlyoutButtonMixin)
     end
 
-    Skin.UIPanelButtonTemplate(CraftingPage.CreateButton)
-    Skin.UIPanelButtonTemplate(CraftingPage.CreateAllButton)
+    -- Camelot's ProfessionsCraftingPageTemplate drops both create buttons in
+    -- favour of a GamepadCreateMultiple input prompt, so these are nil on
+    -- Forever. Guarded like every other optional member in this function.
+    if CraftingPage.CreateButton then
+        Skin.UIPanelButtonTemplate(CraftingPage.CreateButton)
+    end
+    if CraftingPage.CreateAllButton then
+        Skin.UIPanelButtonTemplate(CraftingPage.CreateAllButton)
+    end
     if CraftingPage.ViewGuildCraftersButton then
         Skin.UIPanelButtonTemplate(CraftingPage.ViewGuildCraftersButton)
     end
@@ -350,6 +363,17 @@ function private.AddOns.Blizzard_Professions()
                 a.fill:Hide()
             end
         end)
+    end
+
+    -- Camelot's ProfessionsFrame declares only BookPage, CraftingPage,
+    -- ProfessionsOverviewTab and TabIndicators: specializations and crafting
+    -- orders are both retail-only systems, so neither page exists. The two
+    -- sections below index their page unguarded, and nothing follows
+    -- OrdersPage, so bail here rather than wrap ~200 lines in a conditional.
+    -- Checked together because they stand or fall together on every flavor
+    -- that has them; split this if one ever ships without the other.
+    if not (ProfessionsFrame.SpecPage and ProfessionsFrame.OrdersPage) then
+        return
     end
 
     -- SpecPage -----------------------------------------------------------
