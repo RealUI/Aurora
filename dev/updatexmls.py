@@ -205,11 +205,51 @@ def resolve_skin(dirname, path, skin_dirs):
     return candidates[0], False
 
 
-def entry_line(entry, found):
+def game_overlay_kind(toc_path, toc_entries_lower, game, family):
+    """Classify a [Game]-dir TOC path as 'additive' or 'replacement'.
+
+    A [Game] overlay file is *additive* when the client also loads the
+    [Family]/Shared/flat file of the same name (the base still defines the
+    frames and the overlay patches them), and a *replacement* when it does not
+    (the base is excluded for this gametype and the overlay stands alone).
+
+    The distinction decides how Aurora skins it: an additive file needs at most
+    a guard in the existing [Family] skin, a replacement needs its own skin
+    because the frame tree the [Family] skin targets is gone.
+
+    Only flavors that declare an explicit `game` distinct from their `family`
+    are classified -- in practice Forever/Camelot. Everywhere else [Game] is
+    either the same dir as [Family] or the long-settled classic split, and
+    annotating those would churn four manifests to say nothing new.
+    """
+    if not game or game == family:
+        return None
+    prefix = f"{game}\\".lower()
+    if toc_path.lower().startswith(prefix):
+        base = toc_path[len(prefix):]
+    else:
+        # Second form, rarer: the overlay sits in the [Family] dir with a
+        # _{Game} filename suffix instead of its own dir. Two files use it on
+        # 1.60.1 -- Blizzard_TrainerUI_Camelot.lua and Bindings_Camelot.xml.
+        stem, ext = os.path.splitext(toc_path)
+        if not stem.lower().endswith(f"_{game}".lower()):
+            return None
+        base = stem[:-(len(game) + 1)] + ext
+        base = base.split('\\')[-1]
+    siblings = [f"{family}\\{base}", f"Shared\\{base}", base]
+    if any(s.lower() in toc_entries_lower for s in siblings):
+        return 'additive'
+    return 'replacement'
+
+
+def entry_line(entry, found, kind=None):
     processed_lines[entry.replace('\\', '/')] = True
-    if found:
-        return xml_include_lua % entry
-    return xml_no_include_lua % entry
+    line = (xml_include_lua if found else xml_no_include_lua) % entry
+    if kind:
+        # A sibling comment, not a nested one: the inactive form is itself a
+        # comment and <!-- --> does not nest.
+        line = f"{line.rstrip(chr(10))}<!-- {kind} -->\n"
+    return line
 
 
 def generate_manifest(flavor, cfg):
@@ -231,12 +271,19 @@ def generate_manifest(flavor, cfg):
             continue
         if dirname in aurora_addons:
             out.append(xml_info_addons % dirname)
+            # Classification needs the whole file list, so build it up front.
+            # Only expanded addons get annotated: a collapsed addon has one
+            # skin entry for the whole addon, with no per-file path to mark.
+            entries_lower = {p.lower() for p in files}
+            game = cfg.get('game')  # None unless the flavor declares one
             for path in files:
                 lua_path = f"{os.path.splitext(path)[0]}.lua"
                 entry, found = resolve_skin(dirname, lua_path, cfg['skin_dirs'])
                 if entry.lower() not in seen:
                     seen.add(entry.lower())
-                    out.append(entry_line(entry, found))
+                    out.append(entry_line(entry, found,
+                                          game_overlay_kind(path, entries_lower,
+                                                            game, cfg['family'])))
             out.append(xml_info_addons_end % dirname)
         else:
             entry, found = resolve_skin(dirname, f"{dirname}.lua", cfg['skin_dirs'])
