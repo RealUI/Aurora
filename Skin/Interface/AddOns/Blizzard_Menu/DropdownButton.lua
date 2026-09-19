@@ -146,6 +146,15 @@ do --[[ Blizzard_Menu\DropdownButton.lua ]]
                 SkinDropDownMenuButton(Frame)
             end
         end
+        -- WowStyle2DropdownTemplate (Blizzard_Menu\MenuTemplates.xml) is a
+        -- DropdownButton like the WowStyle1 ones, differing only in its mixin
+        -- and its art, so it takes the same skin. This was the one genuinely
+        -- live call to an undefined Skin.* template: Blizzard_HouseEditor calls
+        -- it for the pet behaviour dropdown and the customize-panel dropdowns,
+        -- and both were nil calls that killed the rest of that skin function.
+        function Skin.WowStyle2DropdownTemplate(Frame, Width)
+            Skin.DropdownButton(Frame, Width)
+        end
         function Skin.FilterButton(Frame, Width)
             -- local rightOfs = -105
             if not Frame then
