@@ -23,8 +23,16 @@ end
 function private.FrameXML.RolePoll()
     Skin.DialogBorderTemplate(_G.RolePollPopup.Border)
     Skin.UIPanelCloseButton(_G.RolePollPopupCloseButton)
-    Skin.LFGRoleButtonTemplate(_G.RolePollPopupRoleButtonTank)
-    Skin.LFGRoleButtonTemplate(_G.RolePollPopupRoleButtonHealer)
-    Skin.LFGRoleButtonTemplate(_G.RolePollPopupRoleButtonDPS)
+
+    -- Skin.LFGRoleButtonTemplate is registered by the Blizzard_GroupFinder skin,
+    -- and Blizzard_GroupFinder does not load on WoW Forever (Camelot ships
+    -- Blizzard_GroupFinder_VanillaStyle instead), so the template is absent
+    -- there while this file still loads. Skin the role buttons only when it is.
+    if Skin.LFGRoleButtonTemplate then
+        Skin.LFGRoleButtonTemplate(_G.RolePollPopupRoleButtonTank)
+        Skin.LFGRoleButtonTemplate(_G.RolePollPopupRoleButtonHealer)
+        Skin.LFGRoleButtonTemplate(_G.RolePollPopupRoleButtonDPS)
+    end
+
     Skin.UIPanelButtonTemplate(_G.RolePollPopupAcceptButton)
 end
