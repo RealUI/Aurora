@@ -83,11 +83,27 @@ function private.FrameXML.Blizzard_TokenUI()
     Skin.WowScrollBoxList(TokenFrame.ScrollBox)
     _G.hooksecurefunc(TokenFrame.ScrollBox, 'Update', Hook.UpdateCurrencyScrollBox)
     Hook.UpdateCurrencyScrollBox(TokenFrame.ScrollBox)
-    TokenFrame.ScrollBox:SetPoint("TOPLEFT", _G.CharacterFrame.Inset, 4, -35)
-    Skin.DropdownButton(TokenFrame.filterDropdown)
-    TokenFrame.filterDropdown:ClearAllPoints()
-    TokenFrame.filterDropdown:SetPoint("TOPLEFT", 18,  -30)
-    TokenFrame.CurrencyTransferLogToggleButton:SetPoint("TOPRIGHT", -10, -30)
+
+    -- WoW Forever's currency tab is a different panel: Camelot's CharacterFrame
+    -- inherits PortraitFrameBaseTemplate rather than ButtonFrameTemplate, so it
+    -- has no Inset, and Camelot anchors the ScrollBox to CharacterFrameLeftPaneHost
+    -- itself. Leave Blizzard's own anchoring alone when there is no Inset to
+    -- anchor to. Camelot also drops the filter dropdown and the transfer log
+    -- toggle, and replaces TokenFramePopup with an inline TokenDetailFrame.
+    local characterFrameInset = _G.CharacterFrame and _G.CharacterFrame.Inset
+    if characterFrameInset then
+        TokenFrame.ScrollBox:SetPoint("TOPLEFT", characterFrameInset, 4, -35)
+    end
+
+    if TokenFrame.filterDropdown then
+        Skin.DropdownButton(TokenFrame.filterDropdown)
+        TokenFrame.filterDropdown:ClearAllPoints()
+        TokenFrame.filterDropdown:SetPoint("TOPLEFT", 18,  -30)
+    end
+
+    if TokenFrame.CurrencyTransferLogToggleButton then
+        TokenFrame.CurrencyTransferLogToggleButton:SetPoint("TOPRIGHT", -10, -30)
+    end
 
     -- WoW Forever (Camelot Blizzard_TokenUI.xml) has no TokenFramePopup: the
     -- currency options popout and the transfer flow with it.
