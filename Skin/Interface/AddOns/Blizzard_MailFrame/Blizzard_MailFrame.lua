@@ -185,9 +185,16 @@ function private.FrameXML.MailFrame()
     if type(_G.MailFrame_UpdateTrialState) == "function" then
         _G.hooksecurefunc("MailFrame_UpdateTrialState", Hook.MailFrame_UpdateTrialState)
     end
-    _G.hooksecurefunc("InboxFrame_Update", Hook.InboxFrame_Update)
+    -- Forever keeps SendMailFrame_Update but not InboxFrame_Update or
+    -- OpenMail_Update. Guarded individually so one absence does not cost the
+    -- other hooks or the rest of the mail skin below.
+    if type(_G.InboxFrame_Update) == "function" then
+        _G.hooksecurefunc("InboxFrame_Update", Hook.InboxFrame_Update)
+    end
     _G.hooksecurefunc("SendMailFrame_Update", Hook.SendMailFrame_Update)
-    _G.hooksecurefunc("OpenMail_Update", Hook.OpenMail_Update)
+    if type(_G.OpenMail_Update) == "function" then
+        _G.hooksecurefunc("OpenMail_Update", Hook.OpenMail_Update)
+    end
 
     ---------------
     -- MailFrame --
