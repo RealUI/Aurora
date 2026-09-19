@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals select ipairs
+-- luacheck: globals select ipairs type
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -179,7 +179,12 @@ end
 
 
 function private.FrameXML.MailFrame()
-    _G.hooksecurefunc("MailFrame_UpdateTrialState", Hook.MailFrame_UpdateTrialState)
+    -- No trial accounts on WoW Forever: MailFrame_UpdateTrialState does not
+    -- exist there. Guard before the other hooks so one absence does not cost
+    -- the whole mail skin.
+    if type(_G.MailFrame_UpdateTrialState) == "function" then
+        _G.hooksecurefunc("MailFrame_UpdateTrialState", Hook.MailFrame_UpdateTrialState)
+    end
     _G.hooksecurefunc("InboxFrame_Update", Hook.InboxFrame_Update)
     _G.hooksecurefunc("SendMailFrame_Update", Hook.SendMailFrame_Update)
     _G.hooksecurefunc("OpenMail_Update", Hook.OpenMail_Update)
