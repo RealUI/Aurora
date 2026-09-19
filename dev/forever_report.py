@@ -320,6 +320,20 @@ def section_8(fv):
 
 skin_def = re.compile(r'function\s+Skin\.([A-Za-z_][A-Za-z0-9_]*)\s*\(|Skin\.([A-Za-z_][A-Za-z0-9_]*)\s*=')
 skin_call = re.compile(r'Skin\.([A-Za-z_][A-Za-z0-9_]*)\s*\(')
+lua_block_comment = re.compile(r'--\[(=*)\[.*?\]\1\]', re.DOTALL)
+lua_line_comment = re.compile(r'--[^\n]*')
+
+
+def strip_lua_comments(text):
+    """Blank out Lua comments so commented-out calls are not reported.
+
+    Without this the call scan matches lines like
+        --Skin.SoulbindTreeTemplate(SoulbindViewer.Tree)
+    which are deliberately disabled, not broken. Block comments go first so a
+    '--' inside one cannot be mistaken for the start of a line comment.
+    """
+    text = lua_block_comment.sub('', text)
+    return lua_line_comment.sub('', text)
 
 
 def core_skin_files():
@@ -354,7 +368,7 @@ def section_9(fv):
     available, sources = set(), {}
     for path in loaded:
         with open(path, 'r', encoding='utf-8', errors='replace') as file:
-            for match in skin_def.finditer(file.read()):
+            for match in skin_def.finditer(strip_lua_comments(file.read())):
                 available.add(match.group(1) or match.group(2))
 
     # Where each name IS defined, across the whole skin tree.
@@ -364,7 +378,7 @@ def section_9(fv):
                 continue
             path = os.path.join(root, name)
             with open(path, 'r', encoding='utf-8', errors='replace') as file:
-                for match in skin_def.finditer(file.read()):
+                for match in skin_def.finditer(strip_lua_comments(file.read())):
                     key = match.group(1) or match.group(2)
                     sources.setdefault(key, set()).add(
                         os.path.relpath(path, aurora_path))
@@ -372,7 +386,7 @@ def section_9(fv):
     missing = {}
     for path in loaded:
         with open(path, 'r', encoding='utf-8', errors='replace') as file:
-            text = file.read()
+            text = strip_lua_comments(file.read())
         for match in skin_call.finditer(text):
             name = match.group(1)
             if name in available:
