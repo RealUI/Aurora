@@ -9,4 +9,16 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="theme.lua"/>
     <Script file="skin.lua"/>
     <Script file="deprecated.lua"/>
+
+    <!-- Skin bodies shared between flavors (D3.1). A Blizzard file that one
+         flavor replaces puts only one of the matching skins in a manifest, so
+         the replacing skin cannot delegate to the replaced one; anything too
+         large to duplicate lives here instead and both flavor files call it.
+         Loaded after the core above and before any generated manifest, so
+         these must not call private.shouldSkip(): AURORA_DEBUG_PROJECT is not
+         set until the manifest runs.
+         Note: no double hyphen anywhere in this comment. XML forbids it inside
+         a comment, and an unparseable skin.xml means init.lua never loads, so
+         every skin file in every manifest fails on its shouldSkip line. -->
+    <Script file="shared\ReputationFrame.lua"/>
 </Ui>
