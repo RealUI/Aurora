@@ -14,6 +14,32 @@ local Color, Util = Aurora.Color, Aurora.Util
 --end
 
 do --[[ FrameXML\SecureUIPanelTemplates.xml ]]
+    -- Blizzard declares UIPanelScrollBarButton here as a virtual Texture, and
+    -- Aurora's scroll-arrow callers expect this to leave the retexturable arrow
+    -- at _auroraTextures[1] so they can point it up or down themselves. It had
+    -- never actually been defined, so every caller was a nil call.
+    --
+    -- Its only callers today are Skin.OribosScroll{Up,Down}ButtonTemplate in
+    -- Blizzard_GarrisonTemplates, which nothing references statically and whose
+    -- Blizzard templates are gone from every source tree. They are left in place
+    -- rather than deleted because Aurora dispatches skins dynamically in several
+    -- files (Skin[frame._auroraTemplate] and friends), so "no static caller" is
+    -- not proof of unreachable.
+    function Skin.UIPanelScrollBarButton(Button)
+        Skin.FrameTypeButton(Button)
+
+        local bg = Button.GetBackdropTexture and Button:GetBackdropTexture("bg")
+        local arrow = Button:CreateTexture(nil, "ARTWORK")
+        if bg then
+            arrow:SetPoint("TOPLEFT", bg, 3, -3)
+            arrow:SetPoint("BOTTOMRIGHT", bg, -3, 3)
+        else
+            arrow:SetPoint("TOPLEFT", 3, -3)
+            arrow:SetPoint("BOTTOMRIGHT", -3, 3)
+        end
+
+        Button._auroraTextures = {arrow}
+    end
     function Skin.LargeInputBoxTemplate(EditBox)
         Skin.FrameTypeEditBox(EditBox)
         EditBox:SetBackdropOption("offsets", {
