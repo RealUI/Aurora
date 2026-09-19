@@ -5,25 +5,34 @@ local ADDON_NAME, private = ...
 
 private.API_MAJOR, private.API_MINOR = 12, 0
 
-private.isRetail = _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE
-private.isVanilla = _G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC
+local interfaceVersion = select(4, _G.GetBuildInfo())
+
+-- WoW Forever (1.60.x, Blizzard codename Camelot) reports a 1.x version but
+-- runs the Mainline UI architecture with a Camelot overlay, so it is gated on
+-- the interface number (16000-19999) rather than WOW_PROJECT_ID, the same way
+-- Midnight is gated below. Era stays below 16000 and TBC starts at 20000.
+private.isForever = interfaceVersion >= 16000 and interfaceVersion < 20000
+
+private.isRetail = _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE or private.isForever
+private.isVanilla = _G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC and not private.isForever
 private.isBCC = _G.WOW_PROJECT_ID == _G.WOW_PROJECT_BURNING_CRUSADE_CLASSIC
 private.isWrath = _G.WOW_PROJECT_ID == (_G.WOW_PROJECT_WRATH_CLASSIC or 11)
 private.isCata = _G.WOW_PROJECT_ID == (_G.WOW_PROJECT_CATACLYSM_CLASSIC or 14)
 private.isMists = _G.WOW_PROJECT_ID == (_G.WOW_PROJECT_MISTS_CLASSIC or 19)
 
 private.isClassic = not private.isRetail
-private.isMidnight = private.isRetail and select(4, _G.GetBuildInfo()) >= 120000
-private.isBetaBuild = private.isRetail and select(4, _G.GetBuildInfo()) >= 130000
+private.isMidnight = private.isRetail and interfaceVersion >= 120000
+private.isBetaBuild = private.isRetail and interfaceVersion >= 130000
 
 
 local debugProjectID = {
-    [0] = private.isRetail,
+    [0] = private.isRetail and not private.isForever,
     [10] = private.isVanilla,
     [20] = private.isBCC,
     [30] = private.isWrath,
     [40] = private.isCata,
     [50] = private.isMists,
+    [60] = private.isForever,
 }
 function private.shouldSkip()
     return not debugProjectID[_G.AURORA_DEBUG_PROJECT]
