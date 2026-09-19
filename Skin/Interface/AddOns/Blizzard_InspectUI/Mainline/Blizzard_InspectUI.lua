@@ -107,14 +107,17 @@ function private.AddOns.Blizzard_InspectUI()
     --       Blizzard_InspectUI       --
     ----====####################====----
     Skin.ButtonFrameTemplate(InspectFrame)
-    Skin.PanelTabButtonTemplate(_G.InspectFrameTab1)
-    Skin.PanelTabButtonTemplate(_G.InspectFrameTab2)
-    Skin.PanelTabButtonTemplate(_G.InspectFrameTab3)
-    Util.PositionRelative("TOPLEFT", InspectFrame, "BOTTOMLEFT", 20, -1, 1, "Right", {
-        _G.InspectFrameTab1,
-        _G.InspectFrameTab2,
-        _G.InspectFrameTab3,
-    })
+    -- WoW Forever (Camelot Blizzard_InspectUI.xml) has no InspectFrameTab3, so
+    -- the tab list is built from what exists rather than assumed.
+    local tabs = {}
+    for i = 1, 3 do
+        local tab = _G["InspectFrameTab" .. i]
+        if tab then
+            Skin.PanelTabButtonTemplate(tab)
+            tabs[#tabs + 1] = tab
+        end
+    end
+    Util.PositionRelative("TOPLEFT", InspectFrame, "BOTTOMLEFT", 20, -1, 1, "Right", tabs)
 
     ----====#####################====----
     --      InspectPaperDollFrame      --
