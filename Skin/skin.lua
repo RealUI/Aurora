@@ -224,6 +224,20 @@ do -- StatusBar
             return
         end
 
+        -- WoW Forever introduces bars that are Frames, not StatusBars:
+        -- ColoredProgressBarTemplate drives a masked Fill texture through its
+        -- mixin and has none of the SetStatusBar* API this function uses.
+        -- Every caller here assumed a real StatusBar, so one such frame threw
+        -- "SetStatusBarTexture is not a function" and took the caller's whole
+        -- skin function with it. Route them instead of throwing; on retail
+        -- every caller passes a genuine StatusBar, so nothing changes there.
+        if not StatusBar.SetStatusBarColor then
+            if Skin.ColoredProgressBarTemplate then
+                Skin.ColoredProgressBarTemplate(StatusBar)
+            end
+            return
+        end
+
         if StatusBar.SetStatusBarAtlas then
             _G.hooksecurefunc(StatusBar, "SetStatusBarAtlas", Hook_SetStatusBarTexture)
         else
