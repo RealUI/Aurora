@@ -121,7 +121,11 @@ function private.AddOns.Blizzard_Professions()
     end
 
     Skin.UIPanelCloseButton(ProfessionsFrame.CloseButton)
-    Skin.MaximizeMinimizeButtonFrameTemplate(ProfessionsFrame.MaximizeMinimize)
+    -- Camelot replaces Blizzard_ProfessionsFrame.xml and drops the
+    -- maximize/minimize toggle, so this is nil on Forever.
+    if ProfessionsFrame.MaximizeMinimize then
+        Skin.MaximizeMinimizeButtonFrameTemplate(ProfessionsFrame.MaximizeMinimize)
+    end
 
     for i = 1, 3 do
         local tab = select(i, ProfessionsFrame.TabSystem:GetChildren())
