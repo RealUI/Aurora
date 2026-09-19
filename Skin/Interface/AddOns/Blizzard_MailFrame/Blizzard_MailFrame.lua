@@ -216,13 +216,23 @@ function private.FrameXML.MailFrame()
         end
     end
 
-    Skin.NavButtonPrevious(_G.InboxPrevPageButton)
-    _G.InboxPrevPageButton:ClearAllPoints()
-    _G.InboxPrevPageButton:SetPoint("BOTTOMLEFT", 14, 10)
+    -- WoW Forever's MailFrame.xml makes the inbox paging buttons parentKey
+    -- children of InboxFrame instead of globals; retail still names them.
+    local InboxFrame = _G.InboxFrame
+    local prevPage = _G.InboxPrevPageButton or (InboxFrame and InboxFrame.PrevPageButton)
+    local nextPage = _G.InboxNextPageButton or (InboxFrame and InboxFrame.NextPageButton)
 
-    Skin.NavButtonNext(_G.InboxNextPageButton)
-    _G.InboxNextPageButton:ClearAllPoints()
-    _G.InboxNextPageButton:SetPoint("BOTTOMRIGHT", -17, 10)
+    if prevPage then
+        Skin.NavButtonPrevious(prevPage)
+        prevPage:ClearAllPoints()
+        prevPage:SetPoint("BOTTOMLEFT", 14, 10)
+    end
+
+    if nextPage then
+        Skin.NavButtonNext(nextPage)
+        nextPage:ClearAllPoints()
+        nextPage:SetPoint("BOTTOMRIGHT", -17, 10)
+    end
 
     Skin.UIPanelButtonTemplate(_G.OpenAllMail)
     _G.OpenAllMail:ClearAllPoints()
