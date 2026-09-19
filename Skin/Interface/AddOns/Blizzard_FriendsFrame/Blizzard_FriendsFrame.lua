@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals next select
+-- luacheck: globals next select type
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -109,7 +109,13 @@ end
 
 function private.FrameXML.FriendsFrame()
     _G.hooksecurefunc("FriendsFrame_UpdateFriendButton", Hook.FriendsFrame_UpdateFriendButton)
-    _G.hooksecurefunc("WhoList_InitButton", Hook.WhoList_InitButton)
+    -- WhoList_InitButton lives in Mainline\FriendsFrame.lua, which Camelot
+    -- excludes; the Who list does not exist on Forever. This hook sits above
+    -- the guarded WhoFrame block below, so without this check it throws before
+    -- that guard is ever reached and the whole FriendsFrame skin is lost.
+    if type(_G.WhoList_InitButton) == "function" then
+        _G.hooksecurefunc("WhoList_InitButton", Hook.WhoList_InitButton)
+    end
 
     local FriendsFrame = _G.FriendsFrame
     Skin.ButtonFrameTemplate(FriendsFrame)
