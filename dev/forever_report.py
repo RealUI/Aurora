@@ -403,6 +403,42 @@ def section_9(fv):
     print(f"\n  {len(missing)} template(s) called but unavailable on {TARGET}")
 
 
+positional_pick = re.compile(r'select\s*\(\s*([^,]+?)\s*,\s*([^)]*?)(GetRegions|GetChildren)\(\)')
+
+
+def section_10(fv):
+    header(10, 'Positional child/region picks in skins active on the target')
+    print("  Gap class F. The target's shared panel templates gain gamepad focus")
+    print("  children (FrameGlow, LeftJumpHint, RightJumpHint, FocusJumpHint), so")
+    print("  select(N, frame:GetChildren()) shifts on anything derived from them.")
+    print("  GetRegions() is listed too: region order has held so far, but an")
+    print("  index that runs off the end returns nil and kills the skin, and one")
+    print("  that merely shifts hides the wrong thing *silently*.")
+    print("  This is a list to review, not a list of bugs -- most are fine.\n")
+
+    rows = []
+    for entry, enabled in manifest(TARGET):
+        if not enabled:
+            continue
+        path = os.path.join(aurora_path, entry.replace('\\', os.sep))
+        if not os.path.isfile(path):
+            continue
+        with open(path, 'r', encoding='utf-8', errors='replace') as file:
+            for number, line in enumerate(file, 1):
+                if line.strip().startswith('--'):
+                    continue
+                if positional_pick.search(line):
+                    rows.append((entry, number, line.strip()))
+
+    current = None
+    for entry, number, text in rows:
+        if entry != current:
+            current = entry
+            print(f"\n  {entry}")
+        print(f"      {number}: {text}")
+    print(f"\n  {len(rows)} positional pick(s) in {len({r[0] for r in rows})} skin(s)")
+
+
 sections = {
     1: ('load sets', lambda ml, fv: section_1(ml, fv)),
     2: ('camelot idioms', lambda ml, fv: section_2(fv)),
@@ -413,6 +449,7 @@ sections = {
     7: ('unique addons', lambda ml, fv: section_7(ml, fv)),
     8: ('donor fit', lambda ml, fv: section_8(fv)),
     9: ('missing skin templates', lambda ml, fv: section_9(fv)),
+    10: ('positional picks', lambda ml, fv: section_10(fv)),
 }
 
 
