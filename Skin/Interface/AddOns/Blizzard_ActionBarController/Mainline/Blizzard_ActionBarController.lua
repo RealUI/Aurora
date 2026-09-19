@@ -299,11 +299,29 @@ do --[[ FrameXML\ActionBarController.xml ]]
             CheckButton.NewActionTexture:SetTexCoord(0.15, 0.85, 0.15, 0.85)
             CheckButton.SpellHighlightTexture:SetAllPoints()
             CheckButton.SpellHighlightTexture:SetTexCoord(0.15, 0.85, 0.15, 0.85)
-            CheckButton.AutoCastable:SetAllPoints()
-            CheckButton.AutoCastable:SetTexCoord(0.21875, 0.765625, 0.21875, 0.765625)
-            CheckButton.AutoCastShine:ClearAllPoints()
-            CheckButton.AutoCastShine:SetPoint("TOPLEFT", 2, -2)
-            CheckButton.AutoCastShine:SetPoint("BOTTOMRIGHT", -2, 2)
+            -- Blizzard replaced the pet auto-cast decorations: the AutoCastable
+            -- texture and the AutoCastShine frame are gone, and both now live
+            -- inside an AutoCastOverlay frame (AutoCastOverlayTemplate) as
+            -- .Corners and .Shine. The old field names survived here and this
+            -- line has been throwing -- silently, behind the skin pcall -- so
+            -- everything below it in this function stopped applying.
+            --
+            -- Intent carried over: the overlay covers the button so its corner
+            -- art lands on the square button's corners (was AutoCastable
+            -- SetAllPoints + texcoord crop of the old ornate ring), and the
+            -- rotating "ants" texture is pulled inside the button edge instead
+            -- of overhanging it by 5px (was AutoCastShine inset 2px). The Mask
+            -- stays at its template anchors, so the ants read as a thin ring
+            -- hugging the edge.
+            local autoCastOverlay = CheckButton.AutoCastOverlay
+            if autoCastOverlay then
+                autoCastOverlay:SetAllPoints()
+                if autoCastOverlay.Shine then
+                    autoCastOverlay.Shine:ClearAllPoints()
+                    autoCastOverlay.Shine:SetPoint("TOPLEFT", 2, -2)
+                    autoCastOverlay.Shine:SetPoint("BOTTOMRIGHT", -2, 2)
+                end
+            end
 
             if private.isVanilla then
                 CheckButton:SetNormalTexture("")
