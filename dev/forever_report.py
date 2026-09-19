@@ -318,6 +318,77 @@ def section_8(fv):
             print(f"  {label:74} {len(overlay):>3}  {'  '.join(cells) or '-- no counterpart --'}")
 
 
+skin_def = re.compile(r'function\s+Skin\.([A-Za-z_][A-Za-z0-9_]*)\s*\(|Skin\.([A-Za-z_][A-Za-z0-9_]*)\s*=')
+skin_call = re.compile(r'Skin\.([A-Za-z_][A-Za-z0-9_]*)\s*\(')
+
+
+def core_skin_files():
+    """The hand-written Skin\\*.lua that skin.xml loads on every flavor."""
+    # aurora_path carries an unresolved 'dev\..' segment, so normalise before
+    # walking up, or the '..'s eat one component too many.
+    skin_dir = os.path.normpath(os.path.join(os.path.normpath(aurora_path), '..', '..'))
+    xml = os.path.join(skin_dir, 'skin.xml')
+    out = []
+    if os.path.isfile(xml):
+        with open(xml, 'r', encoding='utf-8', errors='replace') as file:
+            for ref in re.findall(r'<Script file="([^"]+)"', file.read()):
+                out.append(os.path.join(skin_dir, ref.replace('\\', os.sep)))
+    return out
+
+
+def section_9(fv):
+    header(9, 'Skin templates called on the target but registered nowhere it loads')
+    print("  Gap class E: Aurora's own cross-file registrations. A Skin.<Template> is")
+    print("  defined by the skin file matching the Blizzard file that declares it, so")
+    print("  when the target loads a different set of Blizzard addons the definition")
+    print("  can go missing while the callers keep loading. No comparison of the two")
+    print("  Blizzard trees can see this -- it is a property of the manifest.\n")
+
+    # Everything the target actually loads: the generated manifest plus the
+    # hand-written core files from skin.xml.
+    loaded = [os.path.join(aurora_path, e.replace('\\', os.sep))
+              for e, enabled in manifest(TARGET) if enabled]
+    loaded += core_skin_files()
+    loaded = [p for p in loaded if os.path.isfile(p)]
+
+    available, sources = set(), {}
+    for path in loaded:
+        with open(path, 'r', encoding='utf-8', errors='replace') as file:
+            for match in skin_def.finditer(file.read()):
+                available.add(match.group(1) or match.group(2))
+
+    # Where each name IS defined, across the whole skin tree.
+    for root, _, files in os.walk(aurora_path):
+        for name in files:
+            if not name.endswith('.lua'):
+                continue
+            path = os.path.join(root, name)
+            with open(path, 'r', encoding='utf-8', errors='replace') as file:
+                for match in skin_def.finditer(file.read()):
+                    key = match.group(1) or match.group(2)
+                    sources.setdefault(key, set()).add(
+                        os.path.relpath(path, aurora_path))
+
+    missing = {}
+    for path in loaded:
+        with open(path, 'r', encoding='utf-8', errors='replace') as file:
+            text = file.read()
+        for match in skin_call.finditer(text):
+            name = match.group(1)
+            if name in available:
+                continue
+            rel = os.path.relpath(path, aurora_path)
+            missing.setdefault(name, set()).add(rel)
+
+    for name in sorted(missing):
+        where = sorted(sources.get(name, []))
+        print(f"\n  Skin.{name}")
+        print(f"      defined in: {', '.join(where) if where else '*** NOWHERE -- broken on every flavor ***'}")
+        for caller in sorted(missing[name]):
+            print(f"      called by:  {caller}")
+    print(f"\n  {len(missing)} template(s) called but unavailable on {TARGET}")
+
+
 sections = {
     1: ('load sets', lambda ml, fv: section_1(ml, fv)),
     2: ('camelot idioms', lambda ml, fv: section_2(fv)),
@@ -327,6 +398,7 @@ sections = {
     6: ('missing globals', lambda ml, fv: section_6(ml, fv)),
     7: ('unique addons', lambda ml, fv: section_7(ml, fv)),
     8: ('donor fit', lambda ml, fv: section_8(fv)),
+    9: ('missing skin templates', lambda ml, fv: section_9(fv)),
 }
 
 
