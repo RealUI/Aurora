@@ -296,7 +296,16 @@ function private.FrameXML.FriendsFrame()
     --------------------
     local AddFriendFrame = _G.AddFriendFrame
     Skin.DialogBorderTemplate(AddFriendFrame.Border)
-    Skin.FrameTypeButton(_G.AddFriendInfoFrame.ContinueButton)
+    -- AddFriendInfoFrame has no ContinueButton parentKey in either tree
+    -- (Blizzard_AddFriend\AddFriendTemplates.xml declares OkayButton /
+    -- CancelButton / AcceptButton), so this has been nil on retail too. It only
+    -- surfaced on Forever because the WhoList_InitButton guard above let
+    -- execution reach it. Guarded rather than repointed: which of the three
+    -- buttons the original meant is a guess, and skinning the wrong one is
+    -- worse than skinning none.
+    if _G.AddFriendInfoFrame.ContinueButton then
+        Skin.FrameTypeButton(_G.AddFriendInfoFrame.ContinueButton)
+    end
     Skin.UIPanelInfoButton(_G.AddFriendEntryFrameInfoButton)
     do -- AddFriendNameEditBox
         Skin.FrameTypeEditBox(_G.AddFriendNameEditBox)
