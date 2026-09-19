@@ -552,7 +552,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_SharedXML\CustomBindingButtonTemplate.lua"/-->
     <!--Script file="Blizzard_SharedXML\Shared\Tabs\MinimalTab.lua"/-->
     <!--Script file="Blizzard_SharedXML\Shared\Tabs\RightSideTab.lua"/-->
-    <!--Script file="Blizzard_SharedXML\Camelot\ProgressBars\ColoredProgressBar.lua"/--><!-- replacement -->
+    <Script file="Blizzard_SharedXML\Camelot\ProgressBars\ColoredProgressBar.lua"/><!-- replacement -->
     <!--Script file="Blizzard_SharedXML\Shared\Button\UIPanelButtonTemplates.lua"/-->
     <!--Script file="Blizzard_SharedXML\Shared\Dialog\DialogTemplates.lua"/-->
     <!--Script file="Blizzard_SharedXML\DialogUtil.lua"/-->
