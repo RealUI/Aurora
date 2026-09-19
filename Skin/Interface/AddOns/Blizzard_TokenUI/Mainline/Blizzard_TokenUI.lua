@@ -89,20 +89,24 @@ function private.FrameXML.Blizzard_TokenUI()
     TokenFrame.filterDropdown:SetPoint("TOPLEFT", 18,  -30)
     TokenFrame.CurrencyTransferLogToggleButton:SetPoint("TOPRIGHT", -10, -30)
 
+    -- WoW Forever (Camelot Blizzard_TokenUI.xml) has no TokenFramePopup: the
+    -- currency options popout and the transfer flow with it.
     local TokenFramePopup = _G.TokenFramePopup
-    Skin.SecureDialogBorderTemplate(TokenFramePopup.Border)
-    TokenFramePopup:SetSize(175, 90)
-    local titleText = TokenFramePopup.Title
-    titleText:ClearAllPoints()
-    titleText:SetPoint("TOPLEFT")
-    titleText:SetPoint("BOTTOMRIGHT", TokenFramePopup, "TOPRIGHT", 0, -private.FRAME_TITLE_HEIGHT)
-    Skin.UICheckButtonTemplate(TokenFramePopup.InactiveCheckbox)
-    TokenFramePopup.InactiveCheckbox:SetPoint("TOPLEFT", TokenFramePopup, 24, -26)
-    Skin.UICheckButtonTemplate(TokenFramePopup.BackpackCheckbox)
-    TokenFramePopup.BackpackCheckbox:SetPoint("TOPLEFT", TokenFramePopup.InactiveCheckbox, "BOTTOMLEFT", 0, -8)
-    Skin.UIPanelButtonTemplate(TokenFramePopup.CurrencyTransferToggleButton)
-    TokenFramePopup.CurrencyTransferToggleButton:SetPoint("TOPLEFT", TokenFramePopup.BackpackCheckbox, "BOTTOMLEFT", 0, -8)
-    Skin.UIPanelCloseButton(TokenFramePopup["$parent.CloseButton"])
+    if TokenFramePopup then
+        Skin.SecureDialogBorderTemplate(TokenFramePopup.Border)
+        TokenFramePopup:SetSize(175, 90)
+        local titleText = TokenFramePopup.Title
+        titleText:ClearAllPoints()
+        titleText:SetPoint("TOPLEFT")
+        titleText:SetPoint("BOTTOMRIGHT", TokenFramePopup, "TOPRIGHT", 0, -private.FRAME_TITLE_HEIGHT)
+        Skin.UICheckButtonTemplate(TokenFramePopup.InactiveCheckbox)
+        TokenFramePopup.InactiveCheckbox:SetPoint("TOPLEFT", TokenFramePopup, 24, -26)
+        Skin.UICheckButtonTemplate(TokenFramePopup.BackpackCheckbox)
+        TokenFramePopup.BackpackCheckbox:SetPoint("TOPLEFT", TokenFramePopup.InactiveCheckbox, "BOTTOMLEFT", 0, -8)
+        Skin.UIPanelButtonTemplate(TokenFramePopup.CurrencyTransferToggleButton)
+        TokenFramePopup.CurrencyTransferToggleButton:SetPoint("TOPLEFT", TokenFramePopup.BackpackCheckbox, "BOTTOMLEFT", 0, -8)
+        Skin.UIPanelCloseButton(TokenFramePopup["$parent.CloseButton"])
+    end
 
     local CurrencyTransferMenu = _G.CurrencyTransferMenu
     Skin.DialogBorderNoCenterTemplate(CurrencyTransferMenu.NineSlice)
