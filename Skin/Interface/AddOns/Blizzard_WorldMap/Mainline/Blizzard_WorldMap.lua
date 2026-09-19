@@ -80,8 +80,11 @@ do --[[ AddOns\Blizzard_WorldMap.xml ]]
         end
         function Skin.WorldMapTrackingOptionsButtonTemplate(Button)
             Button:GetRegions():SetPoint("TOPRIGHT")
-            Button.Background:Hide()
-            Button.Border:Hide()
+            -- Camelot's Blizzard_WorldMapTemplates.xml strips this button down
+            -- to Icon + ResetButton: no Background, Border, FilterCounterBanner
+            -- or FilterCounter.
+            if Button.Background then Button.Background:Hide() end
+            if Button.Border then Button.Border:Hide() end
 
             local tex = Button:GetHighlightTexture()
             tex:SetTexture([[Interface\Minimap\Tracking\None]], "ADD")
