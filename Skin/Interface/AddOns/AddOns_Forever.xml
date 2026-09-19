@@ -215,7 +215,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_FrameXML\GuildUtil.lua"/-->
     <!--Script file="Blizzard_FrameXML\InstanceDifficulty.lua"/-->
     <!--Script file="Blizzard_FrameXML\Camelot\InstanceDifficultyOverrides.lua"/--><!-- replacement -->
-    <!--Script file="Blizzard_FrameXML\Camelot\EquipmentFlyout.lua"/--><!-- replacement -->
+    <Script file="Blizzard_FrameXML\Camelot\EquipmentFlyout.lua"/><!-- replacement -->
     <!--Script file="Blizzard_FrameXML\Shared\LowHealthFrame.lua"/-->
     <!--Script file="Blizzard_FrameXML\Mainline\LowHealthFrame.lua"/-->
     <!--Script file="Blizzard_FrameXML\Mainline\CombatFeedback.lua"/-->
