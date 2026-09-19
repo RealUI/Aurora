@@ -39,13 +39,18 @@ function private.AddOns.Blizzard_TrainerUI()
     local ClassTrainerTrainButton = _G.ClassTrainerTrainButton
     Skin.MagicButtonTemplate(ClassTrainerTrainButton)
 
-    local moneyBG = _G.CreateFrame("Frame", nil, ClassTrainerFrame)
-    moneyBG:SetSize(142, 18)
-    moneyBG:SetPoint("BOTTOMLEFT", 8, 5)
-    Base.SetBackdrop(moneyBG, Color.frame)
-    moneyBG:SetBackdropBorderColor(Color.yellow)
-    Skin.SmallMoneyFrameTemplate(_G.ClassTrainerFrameMoneyFrame)
-    _G.ClassTrainerFrameMoneyFrame:SetPoint("RIGHT", moneyBG, 11, 0)
+    -- WoW Forever's trainer XML attaches the cost display as parentKey "money"
+    -- instead of naming it ClassTrainerFrameMoneyFrame; retail still names it.
+    local moneyFrame = _G.ClassTrainerFrameMoneyFrame or ClassTrainerFrame.money
+    if moneyFrame then
+        local moneyBG = _G.CreateFrame("Frame", nil, ClassTrainerFrame)
+        moneyBG:SetSize(142, 18)
+        moneyBG:SetPoint("BOTTOMLEFT", 8, 5)
+        Base.SetBackdrop(moneyBG, Color.frame)
+        moneyBG:SetBackdropBorderColor(Color.yellow)
+        Skin.SmallMoneyFrameTemplate(moneyFrame)
+        moneyFrame:SetPoint("RIGHT", moneyBG, 11, 0)
+    end
 
     Skin.ClassTrainerSkillButtonTemplate(ClassTrainerFrame.skillStepButton)
     Skin.WowScrollBoxList(ClassTrainerFrame.ScrollBox)
