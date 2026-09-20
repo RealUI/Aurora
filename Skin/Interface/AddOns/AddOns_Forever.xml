@@ -313,7 +313,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_Kiosk\Blizzard_Kiosk.lua"/-->
     <Script file="Blizzard_LandingSoulbinds\Blizzard_LandingSoulbinds.lua"/>
     <!--Script file="Blizzard_LegacyChallengeTracker\Blizzard_LegacyChallengeTracker.lua"/-->
-    <!--Script file="Blizzard_LegacySystem\Blizzard_LegacySystem.lua"/-->
+    <Script file="Blizzard_LegacySystem\Blizzard_LegacySystem.lua"/>
     <!--Script file="Blizzard_LFGUtil\Blizzard_LFGUtil.lua"/-->
     <!--Script file="Blizzard_LoadLocale\Blizzard_LoadLocale.lua"/-->
     <Script file="Blizzard_MacroUI\Mainline\Blizzard_MacroUI.lua"/>
@@ -647,7 +647,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_StoreUI\Blizzard_StoreUI.lua"/-->
     <!--Script file="Blizzard_SubscriptionInterstitialUI\Blizzard_SubscriptionInterstitialUI.lua"/-->
     <Script file="Blizzard_Subtitles\Mainline\Blizzard_Subtitles.lua"/>
-    <!--Script file="Blizzard_SwingTimer\Blizzard_SwingTimer.lua"/-->
+    <Script file="Blizzard_SwingTimer\Blizzard_SwingTimer.lua"/>
     <!--Script file="Blizzard_TextStatusBar\Blizzard_TextStatusBar.lua"/-->
     <Script file="Blizzard_TieredEntranceTraits\Blizzard_TieredEntranceTraits.lua"/>
     <Script file="Blizzard_TimeManager\Mainline\Blizzard_TimeManager.lua"/>
