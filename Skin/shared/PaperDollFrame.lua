@@ -31,9 +31,20 @@ do --[[ FrameXML\PaperDollFrame.lua ]]
         end
 
         local _, specName = _G.C_SpecializationInfo.GetSpecializationInfo(_G.C_SpecializationInfo.GetSpecialization(), nil, nil, nil, _G.UnitSex("player"))
-        if specName and specName ~= "" then
+
+        -- Mirror Blizzard's own branch. Overwriting with the spec form
+        -- unconditionally printed "Level 2 Mage Mage" on Forever, where a
+        -- specless character gets the class name back as specName.
+        if specName and specName ~= "" and specName ~= classLocale then
             _G.CharacterLevelText:SetFormattedText(_G.PLAYER_LEVEL, level, classColor.colorStr, specName, classLocale)
+        else
+            _G.CharacterLevelText:SetFormattedText(_G.PLAYER_LEVEL_NO_SPEC, level, classColor.colorStr, classLocale)
         end
+
+        -- The re-anchor below assumes Aurora reshaped the title area, which it
+        -- only does on the retail CharacterFrame. On Camelot the frame keeps
+        -- Blizzard's own geometry and this pushed the text outside the panel.
+        if private.isForever then return end
 
         local showTrialCap = false
         if _G.GameLimitedMode_IsActive() then
