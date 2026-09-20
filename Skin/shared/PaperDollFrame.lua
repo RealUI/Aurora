@@ -17,7 +17,7 @@ local _, private = ...
 local Aurora = private.Aurora
 local Base = Aurora.Base
 local Hook, Skin = Aurora.Hook, Aurora.Skin
-local Color = Aurora.Color
+local Color, Util = Aurora.Color, Aurora.Util
 
 do --[[ FrameXML\PaperDollFrame.lua ]]
     function Hook.PaperDollFrame_SetLevel()
@@ -150,12 +150,24 @@ do --[[ FrameXML\PaperDollFrame.xml ]]
                 if Button.Hider then Button.Hider:SetTexture("") end
                 if Button.Highlight then Button.Highlight:SetTexture("") end
             else
-                -- Camelot: a CheckButton carrying only Icon and an unnamed
-                -- UI-Character-Info-StatTab backing texture.
+                -- Camelot: a CheckButton carrying only Icon plus an unnamed
+                -- UI-Character-Info-StatTab texture on the BORDER layer.
                 for _, region in next, {Button:GetRegions()} do
                     if region:IsObjectType("Texture") and region ~= Button.Icon then
                         region:SetAlpha(0)
                     end
+                end
+
+                -- The selected state is a <CheckedTexture>, not a normal
+                -- region, so the loop above never reaches it and the gold
+                -- UI-Character-Info-StatTab-Selected art stayed on the active
+                -- tab. Recolour rather than hide: it is the only thing marking
+                -- which tab is current.
+                local checked = Button.GetCheckedTexture and Button:GetCheckedTexture()
+                if checked then
+                    checked:ClearAllPoints()
+                    checked:SetAllPoints(Button)
+                    Util.SetHighlightColor(checked, 0.5)
                 end
             end
 
