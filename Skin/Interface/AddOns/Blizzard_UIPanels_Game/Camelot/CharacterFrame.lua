@@ -190,6 +190,42 @@ function private.FrameXML.CharacterFrame()
         end)
     end
 
+    -- CharacterStatsPaneScrollBoxTemplate carries its own chrome, separate from
+    -- the pane hosts HidePaneArt sweeps: a common-insideframe Border (the
+    -- ornate gold plate around the stat list) and decorative
+    -- UI-Character-Info-ScrollLine rules, the same pair the Skills and
+    -- Statistics tabs have. Both scroll boxes use the template -- the player
+    -- one and the pet one -- so both are done here.
+    for _, name in next, {"CharacterStatsPaneScrollBox", "CharacterStatsPanePetScrollBox"} do
+        local box = _G[name]
+        if box then
+            if box.Border then
+                box.Border:SetAlpha(0)
+            end
+
+            Skin.WowScrollBoxList(box.ScrollBox)
+            Skin.MinimalScrollBar(box.ScrollBar)
+
+            -- The rules are unnamed, and sit either directly on the container
+            -- or one level down depending on the instance, so sweep both.
+            local function HideScrollLines(frame)
+                for _, region in next, {frame:GetRegions()} do
+                    if region:IsObjectType("Texture") then
+                        local atlas = region:GetAtlas()
+                        if atlas and atlas:find("UI%-Character%-Info%-ScrollLine") then
+                            region:Hide()
+                        end
+                    end
+                end
+            end
+
+            HideScrollLines(box)
+            for _, child in next, {box:GetChildren()} do
+                HideScrollLines(child)
+            end
+        end
+    end
+
     -- Camelot moves ClassBackground onto CharacterStatsPaneScrollBox; on retail
     -- it hangs off CharacterStatsPane.
     local ScrollBox = _G.CharacterStatsPaneScrollBox
