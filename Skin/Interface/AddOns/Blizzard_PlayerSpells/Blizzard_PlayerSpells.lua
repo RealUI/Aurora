@@ -353,6 +353,43 @@ do  -- PlayerSpellsFrame.SpecFrame
         Base.CropIcon(Button:GetPushedTexture())
         Base.CropIcon(Button:GetHighlightTexture())
     end
+
+    -- Three Camelot-only templates in ClassTalents\Blizzard_ClassTalentsFrame.xml.
+    -- Retail declares none of them.
+
+    -- The talent tab strip, built by TabSystemOwnerTemplate from the
+    -- tabTemplate KeyValue rather than declared in XML. It inherits
+    -- TabSystemButtonTemplate, the same base PlayerSpellsFrame's own tabs use.
+    function Skin.ClassTalentsFrameTabTemplate(Button)
+        Skin.PlayerSpellsFrameTabTemplate(Button)
+    end
+
+    -- The "Active Specialization" block above the trees. Only the button needs
+    -- skinning; YellowGlow is a tutorial flourish that ships hidden.
+    function Skin.ClassTalentActiveSpecTemplate(Frame)
+        if not Frame then return end
+        if Frame.ActivateButton then
+            Skin.UIPanelButtonTemplate(Frame.ActivateButton)
+        end
+    end
+
+    -- Pooled per-tree headers (ClassTalentsFrameMixin's treeHeaderPool). The
+    -- Talents-Main-Ring-c60 / talents-main-ring-box-c60 / Talents-small-divider
+    -- art is the Camelot tree frame; the Icon, Name and Text are the content.
+    function Skin.ClassTalentTreeHeaderTemplate(Frame)
+        if not Frame or private.IsSkinned(Frame) then return end
+        private.SetSkinned(Frame, true)
+
+        for _, key in next, {"MainRing", "TextBackground", "Divider"} do
+            if Frame[key] then
+                Frame[key]:SetAlpha(0)
+            end
+        end
+
+        if Frame.Icon then
+            Base.CropIcon(Frame.Icon, Frame)
+        end
+    end
 end
 
 function private.AddOns.Blizzard_PlayerSpells()
@@ -514,6 +551,49 @@ function private.AddOns.Blizzard_PlayerSpells()
     Skin.SearchBoxTemplate(TalentsFrame.SearchBox)
     if TalentsFrame.LoadSystem and TalentsFrame.LoadSystem.Dropdown then
         Skin.DropdownButton(TalentsFrame.LoadSystem.Dropdown)
+    end
+
+    -- Camelot-only additions to the talents frame.
+    Skin.ClassTalentActiveSpecTemplate(TalentsFrame.ActiveSpec)
+
+    -- Its own tab strip, separate from PlayerSpellsFrame.TabSystem above.
+    --
+    -- Hooking AddTab alone was wrong: TabSystemOwnerTemplate adds the Primary
+    -- and Secondary tabs during the frame's own OnLoad, which is *before* this
+    -- skin runs, and hooksecurefunc only sees later calls -- so the tabs stayed
+    -- stock gold. Sweep what is already there, then hook for anything added
+    -- later. The mixin table is deliberately not hooked: Mixin() copies methods
+    -- at creation, so existing frames would never see it.
+    local TabSystem = TalentsFrame.TabSystem
+    if TabSystem then
+        local function SkinTabs(self)
+            for _, tab in next, {self:GetChildren()} do
+                if not private.IsSkinned(tab) then
+                    private.SetSkinned(tab, true)
+                    Skin.ClassTalentsFrameTabTemplate(tab)
+                end
+            end
+        end
+
+        SkinTabs(TabSystem)
+        if TabSystem.AddTab then
+            _G.hooksecurefunc(TabSystem, "AddTab", SkinTabs)
+        end
+    end
+
+    -- Tree headers come from treeHeaderPool. Same correction: RefreshTreeHeaders
+    -- has usually already run by the time the frame is visible, so sweep the
+    -- active pool first and hook for later refreshes.
+    local function SkinTreeHeaders(self)
+        if not self.treeHeaderPool then return end
+        for header in self.treeHeaderPool:EnumerateActive() do
+            Skin.ClassTalentTreeHeaderTemplate(header)
+        end
+    end
+
+    SkinTreeHeaders(TalentsFrame)
+    if TalentsFrame.RefreshTreeHeaders then
+        _G.hooksecurefunc(TalentsFrame, "RefreshTreeHeaders", SkinTreeHeaders)
     end
 
     -- SpellBookFrame
