@@ -8,7 +8,7 @@ if private.shouldSkip() then return end
 local Aurora = private.Aurora
 local Base = Aurora.Base
 local Skin = Aurora.Skin
-local Color = Aurora.Color
+local Color, Util = Aurora.Color, Aurora.Util
 
 --do --[[ FrameXML\MainMenuBarBagButtons.lua ]]
 --end
@@ -52,13 +52,25 @@ do --[[ FrameXML\MainMenuBarBagButtons.xml ]]
             local pushed = ItemButton:GetPushedTexture()
             if pushed then pushed:SetAlpha(0) end
 
-            -- ui-hud-actionbar-iconframe-bags, ADD-blended at .4. It reads as a
-            -- gold wash over Aurora's backdrop, so square it to the icon rather
-            -- than leaving it standing off the border.
+            -- Both highlights are ui-hud-actionbar-iconframe-bags, a **gold
+            -- frame** atlas -- squaring them to the icon was not enough, it
+            -- just drew a gold border tight to the slot. That is the gold edge
+            -- on the backpack button in the frame stack: SlotHighlightTexture
+            -- is shown whenever the slot is a valid target, and it kept
+            -- Blizzard's art. Replace the atlas with Aurora's highlight colour;
+            -- both keep their meaning and lose the frame.
+            --
+            -- Re-applied here rather than once at skin time because
+            -- UpdateTextures re-sets both atlases, and SetAtlas overrides the
+            -- SetColorTexture that SetHighlightColor uses.
             local highlight = ItemButton:GetHighlightTexture()
-            if highlight then highlight:SetAllPoints(bg) end
+            if highlight then
+                highlight:SetAllPoints(bg)
+                Util.SetHighlightColor(highlight, 0.2)
+            end
             if ItemButton.SlotHighlightTexture then
                 ItemButton.SlotHighlightTexture:SetAllPoints(bg)
+                Util.SetHighlightColor(ItemButton.SlotHighlightTexture, 0.35)
             end
 
             -- The keyring and backpack draw their glyph through icon via
