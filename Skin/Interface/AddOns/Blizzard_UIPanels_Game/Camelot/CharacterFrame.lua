@@ -6,6 +6,7 @@ if private.shouldSkip() then return end
 
 --[[ Core ]]
 local Aurora = private.Aurora
+local Base = Aurora.Base
 local Skin = Aurora.Skin
 local Color = Aurora.Color
 
@@ -64,6 +65,24 @@ local function HidePaneArt(host)
             region:Hide()
         end
     end
+
+    -- The common-framedivider between the two panes is not a region of the
+    -- host: it sits on an unnamed child Frame, so the loop above never reached
+    -- it and the gold rule stayed on screen. Sweep one level down, but by
+    -- atlas -- the children also carry ItemLevelFrame, the stat categories and
+    -- other content that must not be blanked.
+    for _, child in next, {host:GetChildren()} do
+        for _, region in next, {child:GetRegions()} do
+            if region:IsObjectType("Texture") then
+                local atlas = region:GetAtlas()
+                if atlas and (atlas:find("common%-framedivider")
+                    or atlas:find("UI%-Character%-Info%-Stat%-BG")
+                    or atlas:find("UI%-Character%-Info%-General%-BG")) then
+                    region:Hide()
+                end
+            end
+        end
+    end
 end
 
 function private.FrameXML.CharacterFrame()
@@ -87,8 +106,28 @@ function private.FrameXML.CharacterFrame()
         end
     end
 
-    if CharacterFrame.RightPaneToggleButton then
-        Skin.FrameTypeButton(CharacterFrame.RightPaneToggleButton)
+    -- The right-pane toggle carries UI-SpellbookIcon-PrevPage-Up/Down, a
+    -- spellbook page arrow sized for Blizzard's art. On a 28x28 Aurora button
+    -- it reads as a stray icon, so replace it with Aurora's own arrow the way
+    -- the scroll buttons do.
+    local RightPaneToggleButton = CharacterFrame.RightPaneToggleButton
+    if RightPaneToggleButton then
+        Skin.FrameTypeButton(RightPaneToggleButton)
+        RightPaneToggleButton:SetSize(18, 18)
+
+        for _, getter in next, {"GetNormalTexture", "GetPushedTexture", "GetHighlightTexture"} do
+            local tex = RightPaneToggleButton[getter] and RightPaneToggleButton[getter](RightPaneToggleButton)
+            if tex then tex:SetAlpha(0) end
+        end
+
+        if not RightPaneToggleButton._auroraArrow then
+            local bg = RightPaneToggleButton:GetBackdropTexture("bg")
+            local arrow = RightPaneToggleButton:CreateTexture(nil, "ARTWORK")
+            arrow:SetPoint("TOPLEFT", bg, 4, -4)
+            arrow:SetPoint("BOTTOMRIGHT", bg, -4, 4)
+            Base.SetTexture(arrow, "arrowLeft")
+            RightPaneToggleButton._auroraArrow = arrow
+        end
     end
 
     -- Retained retail internals ------------------------------------------
