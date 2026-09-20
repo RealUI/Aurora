@@ -12,7 +12,7 @@ local Color, Util = Aurora.Color, Aurora.Util
 
 do --[[ Blizzard_SharedXML\Mainline\TabSystem\TabSystemTemplates.lua ]]
     -- Side of a square icon tab, replacing Blizzard's 44x32. Tune here.
-    local ICON_TAB_SIZE = 24
+    local ICON_TAB_SIZE = 32
 
     function Skin.TabSystemButtonTemplate(Button)
         Skin.FrameTypeButton(Button)
@@ -45,60 +45,63 @@ do --[[ Blizzard_SharedXML\Mainline\TabSystem\TabSystemTemplates.lua ]]
         local bg = Button:GetBackdropTexture("bg")
 
         -- TabSystemButtonArtTemplate carries *two* looks and shows whichever
-        -- Init() selects: the three-slice above for a text tab, and this square
+        -- Init() selects: the three-slice above for a text tab, and a square
         -- set for an icon tab. Only the text half was handled, which is why the
         -- spellbook's category tabs kept their gold plate -- they are icon tabs.
-        for _, key in next, {"SquareBackground", "SquareBackgroundActive",
-                             "SquareBackgroundActiveGlow"} do
-            local region = Button[key]
-            if region then region:SetAlpha(0) end
-        end
-
-        -- The icon is masked square by IconMask; Base.CropIcon drops masks
-        -- before cropping, which is what is wanted. Only fit it to the backdrop
-        -- when there actually is one -- a text tab's Icon is unused and sizing
-        -- it would give the tab a phantom square.
+        --
+        -- None of the square-mode work can be done once at skin time. The tab
+        -- pool hands the same button back on RemoveAllTabs/AddTab and Init runs
+        -- SetSquareMode + UpdateTabWidth + SetTabSelected again, and a button
+        -- skinned while its Icon was still textureless would never have been
+        -- treated as an icon tab at all -- private.IsSkinned locks it out for
+        -- good. Measured on the spellbook, build 69913: of six pooled tabs,
+        -- four were right, one was raw 44x32 and one was sized but unfitted.
+        -- So branch on self.tabIcon inside the hooks, which Init re-runs.
         local Icon = Button.Icon
-        if Icon and Icon:GetTexture() then
+
+        local function ApplySquareMode(self)
+            if not self.tabIcon or not Icon then return end
+
+            for _, key in next, {"SquareBackground", "SquareBackgroundActive",
+                                 "SquareBackgroundActiveGlow"} do
+                local region = self[key]
+                if region then region:SetAlpha(0) end
+            end
+
+            -- The icon is masked square by IconMask; Base.CropIcon drops masks
+            -- before cropping, which is what is wanted here.
             Base.CropIcon(Icon)
 
-            -- TabSystemButtonArtMixin:SetTabSelected re-adds a CENTER point to
-            -- Icon on every select *and* deselect, which conflicts with a
-            -- TOPLEFT/BOTTOMRIGHT fit set once, so the fit has to be re-applied
-            -- after it. The square art is re-zeroed in the same pass: the tab
-            -- pool hands the same button back on RemoveAllTabs/AddTab and Init
-            -- runs SetSquareMode again, so a once-only SetAlpha(0) is not
-            -- enough -- the selected tab kept showing its glow plate.
-            local function ReapplySquare()
-                for _, key in next, {"SquareBackground", "SquareBackgroundActive",
-                                     "SquareBackgroundActiveGlow"} do
-                    local region = Button[key]
-                    if region then region:SetAlpha(0) end
-                end
+            -- SetTabSelected re-adds a CENTER point to Icon on every select
+            -- *and* deselect, so the fit has to be re-applied after it.
+            Icon:ClearAllPoints()
+            Icon:SetPoint("TOPLEFT", bg, 2, -2)
+            Icon:SetPoint("BOTTOMRIGHT", bg, -2, 2)
+        end
 
-                Icon:ClearAllPoints()
-                Icon:SetPoint("TOPLEFT", bg, 2, -2)
-                Icon:SetPoint("BOTTOMRIGHT", bg, -2, 2)
-            end
-            ReapplySquare()
-            if Button.SetTabSelected then
-                _G.hooksecurefunc(Button, "SetTabSelected", ReapplySquare)
-            end
+        if Button.SetTabSelected then
+            _G.hooksecurefunc(Button, "SetTabSelected", ApplySquareMode)
+        end
 
-            -- UpdateTabWidth gives an icon tab Icon:GetWidth() + 8, so 44 wide
-            -- against a 32 tall button. Blizzard gets away with it because the
-            -- 36x35 icon keeps its own size and sits centred inside; filling an
-            -- Aurora backdrop with it instead stretched every icon sideways.
-            -- Square the tab off -- which is the look wanted here anyway -- and
-            -- take it down from Blizzard's 32: the icon fills an Aurora tab
-            -- edge to edge, so the same box reads much heavier than it does
-            -- with a 36x35 icon floating in it.
-            if Button.UpdateTabWidth then
-                _G.hooksecurefunc(Button, "UpdateTabWidth", function(self)
+        -- UpdateTabWidth gives an icon tab Icon:GetWidth() + 8, so 44 wide
+        -- against a 32 tall button. Blizzard gets away with it because the
+        -- 36x35 icon keeps its own size and sits centred inside; filling an
+        -- Aurora backdrop with it instead stretched every icon sideways.
+        -- Square the tab off -- which is the look wanted here anyway -- at
+        -- Blizzard's own 32 height, which sits right next to the 36px spell
+        -- icons in the list below. A text tab keeps Blizzard's computed width.
+        if Button.UpdateTabWidth then
+            _G.hooksecurefunc(Button, "UpdateTabWidth", function(self)
+                if self.tabIcon then
                     self:SetSize(ICON_TAB_SIZE, ICON_TAB_SIZE)
-                end)
-                Button:UpdateTabWidth()
-            end
+                end
+            end)
+        end
+
+        -- Catch a tab that Init already ran on before the skin got here.
+        if Button.tabIcon then
+            if Button.UpdateTabWidth then Button:UpdateTabWidth() end
+            ApplySquareMode(Button)
         end
 
         Button.Text:ClearAllPoints()
