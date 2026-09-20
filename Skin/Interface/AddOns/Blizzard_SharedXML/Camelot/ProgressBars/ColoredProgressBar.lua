@@ -26,9 +26,18 @@ do --[[ SharedXML\ProgressBars\ColoredProgressBar.xml ]]
 
         -- The background is the unnamed common-stat-bar-BG texture; Fill and
         -- Mask carry parentKeys, so anything without one is chrome.
+        --
+        -- The status bar texture is spared as well: some templates inheriting
+        -- this one are declared <StatusBar> rather than <Frame> (Camelot's
+        -- SkillsBarTemplate), and on those the bar texture is a region that
+        -- would otherwise be swept up with the chrome.
+        local barTexture = Frame.GetStatusBarTexture and Frame:GetStatusBarTexture()
+
         for _, region in next, {Frame:GetRegions()} do
             if region:IsObjectType("Texture")
-                and region ~= Frame.Fill and region ~= Frame.Mask then
+                and region ~= Frame.Fill
+                and region ~= Frame.Mask
+                and region ~= barTexture then
                 region:Hide()
             end
         end
