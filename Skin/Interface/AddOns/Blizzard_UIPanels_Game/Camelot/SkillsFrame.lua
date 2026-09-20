@@ -124,6 +124,11 @@ function private.FrameXML.SkillsFrame()
     local SkillDetailFrame = SkillsFrame.SkillDetailFrame
     if SkillDetailFrame then
         SkinSkillsBar(SkillDetailFrame.RankBar)
+
+        -- Pooled category/icon rows, shared with every other Camelot side pane.
+        if Skin.CharacterFrameSidePaneTemplate then
+            Skin.CharacterFrameSidePaneTemplate(SkillDetailFrame)
+        end
     end
 
     -- Rows are pooled and re-Initialize'd on every refresh, so skin once per

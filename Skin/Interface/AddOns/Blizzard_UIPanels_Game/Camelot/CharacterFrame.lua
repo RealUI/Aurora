@@ -45,6 +45,57 @@ do --[[ FrameXML\CharacterFrame.xml ]]
         bg:SetColorTexture(1, 1, 1, 0.2) -- static: not a theme color
     end
 
+    -- The side-pane row set. Every CharacterFrameSidePaneTemplate builds its
+    -- contents from one FramePoolCollection of four row templates, so skinning
+    -- them here covers **every** Camelot detail pane at once: reputation,
+    -- skills, currency and the PvP rank pane.
+    --
+    -- Only two of the four carry art. CharacterFrameSidePaneRowTemplate and
+    -- ...WrappedRowTemplate are FontStrings alone and need nothing.
+    function Skin.CharacterFrameSidePaneCategoryTemplate(Frame)
+        -- UI-Character-Info-Title, the brown header plate.
+        if Frame.Background then
+            Frame.Background:SetAlpha(0)
+        end
+        Base.SetBackdrop(Frame, Color.button)
+    end
+
+    function Skin.CharacterFrameSidePaneIconRowTemplate(Frame)
+        -- IconSlot is UI-Character-Info-GearSlot -- the same gold slot art the
+        -- paperdoll sweeps by atlas. Here it has a parentKey, so it is direct.
+        if Frame.IconSlot then
+            Frame.IconSlot:SetAlpha(0)
+        end
+        Base.CropIcon(Frame.Icon, Frame)
+    end
+
+    -- Rows are pooled and recycled, and AcquireRow is the single point they all
+    -- come through. hooksecurefunc cannot see the return value, so the hook
+    -- re-sweeps the active set instead; the IsSkinned guard absorbs the repeat.
+    -- Swept once up front too, because a pane may already be populated.
+    function Skin.CharacterFrameSidePaneTemplate(Frame)
+        if not Frame or not Frame.rowPools then return end
+
+        local function SkinRows()
+            for row in Frame.rowPools:EnumerateActive() do
+                if not private.IsSkinned(row) then
+                    private.SetSkinned(row, true)
+                    if row.Background then
+                        Skin.CharacterFrameSidePaneCategoryTemplate(row)
+                    elseif row.IconSlot then
+                        Skin.CharacterFrameSidePaneIconRowTemplate(row)
+                    end
+                end
+            end
+        end
+
+        SkinRows()
+        if Frame.AcquireRow and not Frame._auroraRowsHooked then
+            Frame._auroraRowsHooked = true
+            _G.hooksecurefunc(Frame, "AcquireRow", SkinRows)
+        end
+    end
+
     -- CharacterFrameModeSideTabTemplate adds only a fillToInterior KeyValue and
     -- an OnLoad on top of LargeSideTabButtonTemplate, so the shared side-tab
     -- skin covers it. Camelot's bank page tabs use the same base.

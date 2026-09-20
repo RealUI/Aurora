@@ -62,6 +62,11 @@ function private.FrameXML.ReputationFrame()
         if ReputationDetailFrame.WatchFactionCheckbox then
             Skin.UICheckButtonTemplate(ReputationDetailFrame.WatchFactionCheckbox)
         end
+        -- Pooled category/icon rows, shared with every other Camelot side pane.
+        if Skin.CharacterFrameSidePaneTemplate then
+            Skin.CharacterFrameSidePaneTemplate(ReputationDetailFrame)
+        end
+
         if ReputationDetailFrame.ViewRenownButton then
             Skin.UIPanelButtonTemplate(ReputationDetailFrame.ViewRenownButton)
         end

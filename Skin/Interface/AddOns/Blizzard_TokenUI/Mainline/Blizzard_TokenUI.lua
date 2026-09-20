@@ -140,6 +140,13 @@ function private.FrameXML.Blizzard_TokenUI()
         if TokenDetailFrame.BackpackCheckbox then
             Skin.UICheckButtonTemplate(TokenDetailFrame.BackpackCheckbox)
         end
+        -- Pooled category/icon rows, shared with every other Camelot side pane.
+        -- Registered by Blizzard_UIPanels_Game\Camelot\CharacterFrame.lua, which
+        -- is not LoadOnDemand, so it is always defined before this runs.
+        if Skin.CharacterFrameSidePaneTemplate then
+            Skin.CharacterFrameSidePaneTemplate(TokenDetailFrame)
+        end
+
         if TokenDetailFrame.CurrencyTransferToggleButton then
             Skin.UIPanelButtonTemplate(TokenDetailFrame.CurrencyTransferToggleButton)
         end

@@ -53,5 +53,10 @@ function private.FrameXML.PVPRankFrame()
 
     -- DetailFrame is a CharacterFrameSidePaneTemplate, as on the Reputation and
     -- Skills tabs: it slides into the right pane, so it has no border or close
-    -- button of its own to skin.
+    -- button of its own. Its *contents* do need skinning though -- the
+    -- "Next Rewards at Rank N" header and the reward icon rows are pooled
+    -- CharacterFrameSidePane rows, added at runtime by AddNextRewardRows.
+    if Skin.CharacterFrameSidePaneTemplate then
+        Skin.CharacterFrameSidePaneTemplate(PVPRankFrame.DetailFrame)
+    end
 end
