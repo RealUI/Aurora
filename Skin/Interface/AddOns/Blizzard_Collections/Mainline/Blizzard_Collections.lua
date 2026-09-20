@@ -151,6 +151,19 @@ end
 do --[[ AddOns\Blizzard_Collections.xml ]]
     do --[[ Blizzard_CollectionTemplates ]]
         function Skin.CollectionsProgressBarTemplate(StatusBar)
+            if not StatusBar then return end
+
+            -- Camelot's toy box tracker is not a bar. Its
+            -- Blizzard_ToyBoxProgressTracker.xml re-declares ToyProgressTracker
+            -- on CollectionsCountTemplate -- an InsetFrameTemplate3 Frame with
+            -- Count and Label FontStrings -- where retail has it on
+            -- CollectionsProgressBarTemplate. Dispatch on structure: no border
+            -- region means no bar.
+            if not StatusBar.border then
+                Skin.InsetFrameTemplate3(StatusBar)
+                return
+            end
+
             Skin.FrameTypeStatusBar(StatusBar)
 
             StatusBar.border:Hide()
@@ -460,24 +473,44 @@ function private.AddOns.Blizzard_Collections()
     local CollectionsJournal = _G.CollectionsJournal
     Skin.PortraitFrameTemplate(CollectionsJournal)
 
-    Skin.CollectionsJournalTab(_G.CollectionsJournalTab1)
-    Skin.CollectionsJournalTab(_G.CollectionsJournalTab2)
-    Skin.CollectionsJournalTab(_G.CollectionsJournalTab3)
-    Skin.CollectionsJournalTab(_G.CollectionsJournalTab4)
-    if _G.CollectionsJournalTab5 then
-        Skin.CollectionsJournalTab(_G.CollectionsJournalTab5)
+    -- Camelot replaces Blizzard_CollectionsTabs.xml wholesale
+    -- ([ExcludeLoadGameType camelot] on the Shared copy). The bottom
+    -- CollectionsJournalTab1..6 buttons are gone; in their place
+    -- CollectionsJournal.TabContainer holds five side tabs
+    -- (MountsTab/PetsTab/ToysTab/HeirloomsTab/WardrobeTab), and
+    -- CollectionsJournalTab is now a *virtual template* inheriting
+    -- LargeSideTabButtonTemplate rather than a frame name.
+    --
+    -- Skin.CollectionsJournalTab(_G.CollectionsJournalTab1) therefore ran with
+    -- nil and threw, which killed the entire Collections skin -- the whole
+    -- journal, Appearances included, came up as raw parchment.
+    local TabContainer = CollectionsJournal.TabContainer
+    if TabContainer then
+        for _, tab in next, (TabContainer.Tabs or {}) do
+            Skin.LargeSideTabButtonTemplate(tab)
+        end
+        -- Not re-anchored: the container positions itself off the journal's
+        -- right edge, the same arrangement as the character panel mode tabs.
+    else
+        Skin.CollectionsJournalTab(_G.CollectionsJournalTab1)
+        Skin.CollectionsJournalTab(_G.CollectionsJournalTab2)
+        Skin.CollectionsJournalTab(_G.CollectionsJournalTab3)
+        Skin.CollectionsJournalTab(_G.CollectionsJournalTab4)
+        if _G.CollectionsJournalTab5 then
+            Skin.CollectionsJournalTab(_G.CollectionsJournalTab5)
+        end
+        if _G.CollectionsJournalTab6 then
+            Skin.CollectionsJournalTab(_G.CollectionsJournalTab6)
+        end
+        Util.PositionRelative("TOPLEFT", CollectionsJournal, "BOTTOMLEFT", 20, -1, 1, "Right", {
+            _G.CollectionsJournalTab1,
+            _G.CollectionsJournalTab2,
+            _G.CollectionsJournalTab3,
+            _G.CollectionsJournalTab4,
+            _G.CollectionsJournalTab5,
+            _G.CollectionsJournalTab6,
+        })
     end
-    if _G.CollectionsJournalTab6 then
-        Skin.CollectionsJournalTab(_G.CollectionsJournalTab6)
-    end
-    Util.PositionRelative("TOPLEFT", CollectionsJournal, "BOTTOMLEFT", 20, -1, 1, "Right", {
-        _G.CollectionsJournalTab1,
-        _G.CollectionsJournalTab2,
-        _G.CollectionsJournalTab3,
-        _G.CollectionsJournalTab4,
-        _G.CollectionsJournalTab5,
-        _G.CollectionsJournalTab6,
-    })
     ----====####################====----
     --    Blizzard_MountCollection    --
     ----====####################====----
@@ -632,7 +665,10 @@ function private.AddOns.Blizzard_Collections()
     ----====#####################====----
     local ToyBox = _G.ToyBox
 
-    Skin.CollectionsProgressBarTemplate(ToyBox.progressBar)
+    -- Retail names it progressBar; Camelot's Blizzard_ToyBox.xml names it
+    -- ProgressTracker, so the retail key alone was nil there and the nil
+    -- reached Skin.FrameTypeStatusBar.
+    Skin.CollectionsProgressBarTemplate(ToyBox.progressBar or ToyBox.ProgressTracker)
     Skin.SearchBoxTemplate(ToyBox.searchBox)
     Skin.FilterButton(ToyBox.FilterDropdown)
 
