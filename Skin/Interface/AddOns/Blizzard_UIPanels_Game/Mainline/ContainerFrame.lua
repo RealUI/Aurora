@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals
+-- luacheck: globals ipairs
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -17,6 +17,23 @@ do --[[ FrameXML\ContainerFrame.lua ]]
 
     local NUM_BAG_SLOTS = _G.NUM_TOTAL_EQUIPPED_BAG_SLOTS or _G.NUM_BAG_SLOTS
     function Hook.ContainerFrame_GenerateFrame(frame, size, id)
+        -- Only ContainerFrame1 is skinned at load. ContainerFrame2..N and
+        -- ContainerFrameCombinedBags are generated lazily, and this hook is
+        -- where they first exist -- Blizzard routes all three through it
+        -- (ContainerFrame.lua:207, :277, :290). Without this they were never
+        -- skinned at all, and the recolour below then called GetBackdropColor
+        -- on a frame with no Aurora backdrop: nil, which is the error Forever
+        -- hit on the keyring (KEYRING_CONTAINER is Enum.BagIndex.Keyring there,
+        -- so that branch is reachable, where on retail it is not).
+        if not private.IsSkinned(frame) then
+            private.SetSkinned(frame, true)
+            Skin.ContainerFrameTemplate(frame)
+        else
+            private.SkinContainerItems(frame)
+        end
+
+        if not frame.GetBackdropColor then return end
+
         if id > NUM_BAG_SLOTS then
             -- bank bags
             local _, _, _, a = frame:GetBackdropColor()
@@ -100,6 +117,17 @@ do --[[ FrameXML\ContainerFrame.xml ]]
             ItemButton._questTexture:SetTexture(_G.TEXTURE_ITEM_QUEST_BORDER)
         end
     end
+    -- Item buttons come from frame.itemButtonPool and frame.Items grows as the
+    -- bag does, so this runs on every GenerateFrame rather than once per frame.
+    function private.SkinContainerItems(Frame)
+        for _, itemButton in ipairs(Frame.Items or {}) do
+            if not private.IsSkinned(itemButton) then
+                private.SetSkinned(itemButton, true)
+                Skin.ContainerFrameItemButtonTemplate(itemButton)
+            end
+        end
+    end
+
     function Skin.ContainerFrameTemplate(Frame)
         local bg
 
@@ -112,19 +140,31 @@ do --[[ FrameXML\ContainerFrame.xml ]]
         Skin.PortraitFrameFlatTemplate(Frame)
         bg = Frame.NineSlice:GetBackdropTexture("bg")
 
-        for _, itemButton in ipairs(Frame.Items) do
-            Skin.ContainerFrameItemButtonTemplate(itemButton)
+        private.SkinContainerItems(Frame)
+
+        -- PortraitButton is a DropdownButton -- the "Click for Bag Settings"
+        -- affordance -- not decoration. Hiding it leaves the tooltip working
+        -- (ContainerFramePortraitButtonRouterTemplate still catches the mouse)
+        -- while the click does nothing, which is what Forever was showing.
+        -- Left alone there; retail's look is long-settled and unverified, so
+        -- this is deliberately not changed for it. See the note in tasks.md.
+        if not private.isForever then
+            Frame.PortraitButton:Hide()
         end
 
-        _G.hooksecurefunc(Frame.FilterIcon.Icon, "SetAtlas", Hook.ContainerFrameFilterIcon_SetAtlas)
+        -- ContainerFrameCombinedBags inherits PortraitFrameFlatTemplate rather
+        -- than ContainerFrameTemplate and declares no FilterIcon.
+        local FilterIcon = Frame.FilterIcon
+        if FilterIcon then
+            _G.hooksecurefunc(FilterIcon.Icon, "SetAtlas", Hook.ContainerFrameFilterIcon_SetAtlas)
 
-        Frame.PortraitButton:Hide()
-        Frame.FilterIcon:ClearAllPoints()
-        Frame.FilterIcon:SetPoint("TOPLEFT", bg, 5, -5)
-        Frame.FilterIcon:SetSize(17, 17)
-        Frame.FilterIcon.Icon:SetAllPoints()
+            FilterIcon:ClearAllPoints()
+            FilterIcon:SetPoint("TOPLEFT", bg, 5, -5)
+            FilterIcon:SetSize(17, 17)
+            FilterIcon.Icon:SetAllPoints()
 
-        Base.CropIcon(Frame.FilterIcon.Icon, Frame.FilterIcon)
+            Base.CropIcon(FilterIcon.Icon, FilterIcon)
+        end
 
         -- ClickableTitleFrame was removed from ContainerFrameTemplate and has
         -- been throwing here -- silently, behind the skin pcall -- which cost
