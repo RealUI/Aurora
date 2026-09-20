@@ -30,19 +30,15 @@ local Color, Util = Aurora.Color, Aurora.Util
 local function SkinSkillsBar(bar)
     if not bar then return end
 
-    -- SkillsBarTemplate is a StatusBar that inherits ColoredProgressBarTemplate,
-    -- so it takes the normal status bar path but still carries that template's
-    -- own common-stat-bar-BG chrome underneath. Matched by atlas so Aurora's
-    -- freshly created backdrop textures are never caught by the sweep.
-    Skin.FrameTypeStatusBar(bar)
-
-    for _, region in next, {bar:GetRegions()} do
-        if region:IsObjectType("Texture") then
-            local atlas = region:GetAtlas()
-            if atlas and atlas:find("common%-stat%-bar%-BG") then
-                region:Hide()
-            end
-        end
+    -- SkillsBarTemplate is declared <StatusBar> but inherits
+    -- ColoredProgressBarTemplate, and ColoredProgressBarMixin drives its Fill
+    -- texture directly -- it never sets a status bar texture. So the element
+    -- type says StatusBar while the behaviour is a progress bar, and
+    -- Skin.FrameTypeStatusBar is the wrong treatment: it assigns WHITE8x8 as
+    -- the bar texture and then logs "Missing color for status bar asset"
+    -- because no colour is registered for it. Route by behaviour.
+    if Skin.ColoredProgressBarTemplate then
+        Skin.ColoredProgressBarTemplate(bar)
     end
 end
 
