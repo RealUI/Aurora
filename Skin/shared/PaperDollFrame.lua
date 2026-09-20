@@ -175,6 +175,15 @@ do --[[ FrameXML\PaperDollFrame.xml ]]
                 Button.Icon:ClearAllPoints()
                 Button.Icon:SetPoint("TOPLEFT", 1, -1)
                 Button.Icon:SetPoint("BOTTOMRIGHT", -1, 1)
+
+                -- Forever only: Camelot leaves these icons at Blizzard's
+                -- shallow 0.03125 crop, so each one's own bevelled edge shows
+                -- and reads as a gold border. Crop them square like the mode
+                -- tabs. Not applied on retail, where the existing look is
+                -- long-settled and this is unverified.
+                if private.isForever then
+                    Base.CropIcon(Button.Icon, Button)
+                end
             end
 
             Base.SetBackdrop(Button, Color.button)
@@ -214,5 +223,20 @@ function private.SharedSkins.PaperDollPanes()
         if tab then
             Skin.PaperDollSidebarTabTemplate(tab)
         end
+    end
+
+    -- PaperDollFrame_OnEvent calls SetPortraitTexture on the first sidebar
+    -- tab's Icon for PLAYER_ENTERING_WORLD, PORTRAITS_UPDATED and
+    -- UNIT_PORTRAIT_UPDATE, which resets its texcoords and undoes the crop
+    -- above. Re-apply after Blizzard's handler. Forever only, matching where
+    -- the crop is applied.
+    if private.isForever and not private.SharedSkins._paperDollPortraitHooked then
+        private.SharedSkins._paperDollPortraitHooked = true
+        _G.hooksecurefunc("PaperDollFrame_OnEvent", function()
+            local tab = _G.PaperDollSidebarTab1
+            if tab and tab.Icon then
+                tab.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+            end
+        end)
     end
 end
