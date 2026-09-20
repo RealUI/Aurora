@@ -42,6 +42,7 @@ do --[[ SharedXML\ModelSceneTemplates.xml ]]
         end
     end
     function Skin.ModelSceneControlFrameTemplateLeftButtonTemplate(Button)
+        if not Button then return end
         Skin.ModifyModelSceneControlFrameBaseButtonTemplate(Button)
 
         local bg = Button:GetBackdropTexture("bg")
@@ -53,6 +54,7 @@ do --[[ SharedXML\ModelSceneTemplates.xml ]]
         Button._auroraTextures = {arrow}
     end
     function Skin.ModelSceneControlFrameTemplateRightButtonTemplate(Button)
+        if not Button then return end
         Skin.ModifyModelSceneControlFrameBaseButtonTemplate(Button)
 
         local bg = Button:GetBackdropTexture("bg")
