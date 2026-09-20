@@ -640,7 +640,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_StaticPopup_Game\Mainline\GameDialog.lua"/>
     <Script file="Blizzard_StaticPopup_Game\Mainline\StaticPopupSpecial.lua"/>
     <!-- End of section added for Blizzard_StaticPopup_Game by the Aurora XML Updater -->
-    <!--Script file="Blizzard_Statistics\Blizzard_Statistics.lua"/-->
+    <Script file="Blizzard_Statistics\Blizzard_Statistics.lua"/>
     <!--Script file="Blizzard_StatusTrackingBar\Blizzard_StatusTrackingBar.lua"/-->
     <!--Script file="Blizzard_StatusTrayManager\Blizzard_StatusTrayManager.lua"/-->
     <!--Script file="Blizzard_StatusUI\Blizzard_StatusUI.lua"/-->
