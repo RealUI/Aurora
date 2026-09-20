@@ -22,6 +22,25 @@ do --[[ SharedXML\ModelSceneTemplates.xml ]]
             bottom = 5,
         })
     end
+    -- The zoom/rotate/reset bar above a model scene. Camelot shows it on the
+    -- character panel, where retail does not, so it went unskinned there and
+    -- sat as five common-button-square-gray buttons over the model. The Icon
+    -- on each is the glyph (magnifier, arrows) and is left alone; only the
+    -- button art is replaced.
+    function Skin.ModelSceneControlFrameTemplate(Frame)
+        if not Frame then return end
+
+        for _, key in _G.next, {
+            "zoomInButton", "zoomOutButton",
+            "rotateLeftButton", "rotateRightButton",
+            "resetButton",
+        } do
+            local Button = Frame[key]
+            if Button then
+                Skin.ModifyModelSceneControlFrameBaseButtonTemplate(Button)
+            end
+        end
+    end
     function Skin.ModelSceneControlFrameTemplateLeftButtonTemplate(Button)
         Skin.ModifyModelSceneControlFrameBaseButtonTemplate(Button)
 
