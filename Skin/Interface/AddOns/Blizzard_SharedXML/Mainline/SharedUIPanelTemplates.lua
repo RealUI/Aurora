@@ -869,31 +869,55 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
             Util.SetHighlightColor(Frame.HighlightTexture, 0.2)
         end
 
+        Base.SetBackdrop(Frame, Color.button)
+        local bg = Frame:GetBackdropTexture("bg")
+
         -- The Icon is masked into the tab silhouette by common-sidetab-mask.
         -- Base.CropIcon drops every mask before cropping, which is exactly what
-        -- is wanted here: a plain square icon like every other Aurora one.
+        -- is wanted here: a plain square icon like every other Aurora one. It
+        -- also lays a black border texture behind the icon at frame size.
         Base.CropIcon(Frame.Icon, Frame)
 
-        -- ...but the crop does not stay applied. SidePanelTabButtonMixin's
-        -- UpdateIconInterior re-sets the texcoords to 0.03125/0.96875 whenever
-        -- fillToInterior is on, and SetChecked calls it last on every state
-        -- change. That shallower crop leaves each icon's own bevelled edge
-        -- showing, which reads as a gold border around every tab. Re-apply
-        -- Aurora's crop after Blizzard's.
+        -- ...but neither the crop nor the fit stays applied, and the fit is the
+        -- bigger problem. Measured on CharacterFrameModeTab1, build 69913:
+        -- the tab is 55 wide and the Icon 50, and SidePanelTabButtonMixin
+        -- centres it at an x offset of -4 (Camelot's own override of
+        -- GetIconAnchorOffsetsForTabArt, because its tab art has more space on
+        -- the right). So the icon overhangs the left edge by ~1.5px and leaves
+        -- ~6.5px of bare backdrop on the right -- which is what read as tabs
+        -- that were "strangely skinned" rather than unskinned.
         --
-        -- Hooked per frame, not on the mixin table: Mixin() copies the method
+        -- Aurora squares the tab off, so the art those offsets compensate for
+        -- is gone: fill the backdrop instead, like every other Aurora icon.
+        local function FitIcon(self)
+            local Icon = self.Icon
+            if not Icon then return end
+
+            Icon:ClearAllPoints()
+            Icon:SetPoint("TOPLEFT", bg, 1, -1)
+            Icon:SetPoint("BOTTOMRIGHT", bg, -1, 1)
+            Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        end
+        FitIcon(Frame)
+
+        -- Four mixin methods undo it, so all four are hooked:
+        --   UpdateIconInterior   SetSize(extent, extent) + a shallower 0.03125
+        --                        texcoord; SetChecked calls it last every time
+        --   InitializeIconAnchoring  ClearAllPoints + SetPoint("CENTER", -4, 0)
+        --   OnMouseDown/OnMouseUp    shift the icon 1px for press feedback
+        --
+        -- Hooked per frame, not on the mixin table: Mixin() copies the methods
         -- onto each frame at creation, so a table hook would never be seen by
         -- frames that already exist.
-        if Frame.UpdateIconInterior and not Frame._auroraIconCropHooked then
+        if not Frame._auroraIconCropHooked then
             Frame._auroraIconCropHooked = true
-            _G.hooksecurefunc(Frame, "UpdateIconInterior", function(self)
-                if self.fillToInterior and self.Icon then
-                    self.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+            for _, method in next, {"UpdateIconInterior", "InitializeIconAnchoring",
+                                    "OnMouseDown", "OnMouseUp"} do
+                if Frame[method] then
+                    _G.hooksecurefunc(Frame, method, FitIcon)
                 end
-            end)
+            end
         end
-
-        Base.SetBackdrop(Frame, Color.button)
     end
 
     function Skin.ButtonFrameTemplate(Frame)
