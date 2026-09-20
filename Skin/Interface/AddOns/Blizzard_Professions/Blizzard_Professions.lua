@@ -264,6 +264,20 @@ function private.AddOns.Blizzard_Professions()
         local function HideSchematicBg(self)
             if self.Background then self.Background:SetAlpha(0) end
             if self.MinimalBackground then self.MinimalBackground:SetAlpha(0) end
+
+            -- Camelot's SchematicFormCraftingTemplate is Mainline's plus a
+            -- resize and one unnamed BORDER texture: a common-insideframe
+            -- parchment panel with ornate corners. It carries no parentKey, so
+            -- it has to be matched by atlas -- and the loop is confined to the
+            -- form's own regions, since its children are the recipe content.
+            for _, region in next, {self:GetRegions()} do
+                if region:IsObjectType("Texture") then
+                    local atlas = region:GetAtlas()
+                    if atlas and atlas:find("common%-insideframe") then
+                        region:SetAlpha(0)
+                    end
+                end
+            end
             if self.NineSlice then
                 for _, region in pairs({self.NineSlice:GetRegions()}) do
                     if region:IsObjectType("Texture") then region:SetAlpha(0) end
