@@ -139,8 +139,12 @@ do --[[ FrameXML\ContainerFrame.xml ]]
             local function SetEmpty(isEmpty)
                 icon:SetAlpha(isEmpty and 0 or 1)
                 if isEmpty then
-                    ItemButton:SetBackdropColor(Color.black.r, Color.black.g,
-                                                Color.black.b, Color.frame.a)
+                    -- Color.button, not Color.black: the slot has to stay
+                    -- legible against the panel behind it. Black made the
+                    -- empty half of a bag disappear entirely -- no grid, no
+                    -- sense of how many slots were free.
+                    ItemButton:SetBackdropColor(Color.button.r, Color.button.g,
+                                                Color.button.b, Color.frame.a)
                 else
                     ItemButton:SetBackdropColor(1, 1, 1, 0.75) -- static: matches the unskinned icon tint
                 end
