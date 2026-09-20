@@ -781,13 +781,19 @@ function private.AddOns.Blizzard_PlayerSpells()
     -- skill lines plus pet and transmog, so the count varies -- a mage shows
     -- four, and the fourth was left unskinned. Walk the children instead, and
     -- re-walk when the tab system adds more.
+    --
+    -- SpellBookCategoryTabTemplate inherits TabSystemButtonTemplate, not a
+    -- panel tab, and Init() puts it in square mode with an icon. Routing it
+    -- through Skin.PanelTabButtonTemplate skinned only the three-slice text
+    -- art, leaving the spellbook-Tab-Frame-C60 gold plate on top -- which is
+    -- what these tabs still showed. Same template on retail, same bug.
     local CategoryTabSystem = SpellBookFrame.CategoryTabSystem
     if CategoryTabSystem then
         local function SkinCategoryTabs(self)
             for _, tab in next, {self:GetChildren()} do
                 if not private.IsSkinned(tab) then
                     private.SetSkinned(tab, true)
-                    Skin.PlayerSpellsFrameTabTemplate(tab)
+                    Skin.TabSystemButtonTemplate(tab)
                 end
             end
         end

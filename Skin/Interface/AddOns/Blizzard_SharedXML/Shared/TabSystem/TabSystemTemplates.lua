@@ -2,10 +2,11 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals
+-- luacheck: globals next
 
 --[[ Core ]]
 local Aurora = private.Aurora
+local Base = Aurora.Base
 local Skin = Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
@@ -39,6 +40,39 @@ do --[[ Blizzard_SharedXML\Mainline\TabSystem\TabSystemTemplates.lua ]]
         Button.MiddleHighlight:SetAlpha(0)
 
         local bg = Button:GetBackdropTexture("bg")
+
+        -- TabSystemButtonArtTemplate carries *two* looks and shows whichever
+        -- Init() selects: the three-slice above for a text tab, and this square
+        -- set for an icon tab. Only the text half was handled, which is why the
+        -- spellbook's category tabs kept their gold plate -- they are icon tabs.
+        for _, key in next, {"SquareBackground", "SquareBackgroundActive",
+                             "SquareBackgroundActiveGlow"} do
+            local region = Button[key]
+            if region then region:SetAlpha(0) end
+        end
+
+        -- The icon is masked square by IconMask; Base.CropIcon drops masks
+        -- before cropping, which is what is wanted. Only fit it to the backdrop
+        -- when there actually is one -- a text tab's Icon is unused and sizing
+        -- it would give the tab a phantom square.
+        local Icon = Button.Icon
+        if Icon and Icon:GetTexture() then
+            Base.CropIcon(Icon)
+
+            -- TabSystemButtonArtMixin:SetTabSelected re-adds a CENTER point to
+            -- Icon on every select *and* deselect, which conflicts with a
+            -- TOPLEFT/BOTTOMRIGHT fit set once. Re-apply the fit after it.
+            local function FitIcon()
+                Icon:ClearAllPoints()
+                Icon:SetPoint("TOPLEFT", bg, 2, -2)
+                Icon:SetPoint("BOTTOMRIGHT", bg, -2, 2)
+            end
+            FitIcon()
+            if Button.SetTabSelected then
+                _G.hooksecurefunc(Button, "SetTabSelected", FitIcon)
+            end
+        end
+
         Button.Text:ClearAllPoints()
         Button.Text:SetAllPoints(bg)
         Button._auroraTabResize = true
