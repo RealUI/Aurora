@@ -284,6 +284,58 @@ do --[[ AddOns\Blizzard_Collections.xml ]]
             Texture:SetColorTexture(Color.button:GetRGB())
             Texture:SetSize(1, 11)
         end
+        -- Camelot's classic pet list row. Same template *name* as retail's
+        -- mount list row, different contents: no levelBG/level, and a
+        -- petTypeIcon that retail has no equivalent for. Kept separate rather
+        -- than guarded into the one above, because that one is written for a
+        -- frame tree this client never builds.
+        function Skin.CamelotCompanionListButtonTemplate(Button)
+            if not Button or private.IsSkinned(Button) then return end
+            private.SetSkinned(Button, true)
+
+            -- PetList-ButtonBackground; Aurora's backdrop replaces it.
+            if Button.background then Button.background:Hide() end
+
+            Base.SetBackdrop(Button, Color.frame)
+            Button:SetBackdropOption("offsets", {
+                left = 0,
+                right = 0,
+                top = 1,
+                bottom = 1,
+            })
+            local bg = Button:GetBackdropTexture("bg")
+
+            Button._auroraIconBorder = Base.CropIcon(Button.icon, Button)
+            -- WhiteIconFrame, shown and tinted by quality. Aurora colours the
+            -- backdrop border instead, so the frame art goes.
+            if Button.iconBorder then Button.iconBorder:SetAlpha(0) end
+
+            -- petTypeIcon is the pet family badge -- meaningful, kept, like the
+            -- PVPRankFrame badges and the stable happiness face.
+
+            for _, key in next, {"selectedTexture", "newGlow"} do
+                local region = Button[key]
+                if region then
+                    region:ClearAllPoints()
+                    region:SetPoint("TOPLEFT", bg, 1, -1)
+                    region:SetPoint("BOTTOMRIGHT", bg, -1, 1)
+                end
+            end
+
+            local dragButton = Button.dragButton
+            if dragButton then
+                Base.CropIcon(dragButton.ActiveTexture)
+                Base.CropIcon(dragButton:GetHighlightTexture())
+            end
+
+            local highlight = Button:GetHighlightTexture()
+            if highlight then
+                highlight:ClearAllPoints()
+                highlight:SetPoint("TOPLEFT", bg, 1, -1)
+                highlight:SetPoint("BOTTOMRIGHT", bg, -1, 1)
+            end
+        end
+
         function Skin.CompanionListButtonTemplate(Button)
             Button.background:Hide()
             Base.SetBackdrop(Button, Color.frame)
@@ -672,6 +724,52 @@ function private.AddOns.Blizzard_Collections()
         if not private.disabled.tooltips then
             Skin.SharedPetBattleAbilityTooltipTemplate(_G.PetJournalPrimaryAbilityTooltip)
             Skin.SharedPetBattleAbilityTooltipTemplate(_G.PetJournalSecondaryAbilityTooltip)
+        end
+    else
+        -- Camelot's classic pet journal (Classic\Blizzard_PetCollection.xml).
+        -- Much smaller than retail's: one list, one pet card, no loadout slots,
+        -- no ability tooltips, no spell select.
+        Skin.InsetFrameTemplate3(PetJournal.PetCount)
+        Skin.InsetFrameTemplate(PetJournal.LeftInset)
+        Skin.InsetFrameTemplate(PetJournal.RightInset)
+        Skin.SearchBoxTemplate(PetJournal.searchBox)
+        Skin.FilterButton(PetJournal.FilterDropdown)
+        Skin.WowScrollBoxList(PetJournal.ScrollBox)
+        Skin.MinimalScrollBar(PetJournal.ScrollBar)
+        Skin.MagicButtonTemplate(PetJournal.SummonButton)
+
+        local SummonRandom = PetJournal.SummonRandomPetSpellFrame
+        if SummonRandom and SummonRandom.Button then
+            Skin.UIPanelSpellButtonFrameTemplate(SummonRandom.Button)
+        end
+
+        local PetCard = PetJournal.PetCard
+        if PetCard then
+            -- PetBattles\MountJournal-BG behind the model, plus the
+            -- ShadowOverlayTemplate vignette over it.
+            if PetCard.PetBackground then PetCard.PetBackground:SetAlpha(0) end
+            if PetCard.ShadowOverlay then
+                Util.HideFrameTextures(PetCard.ShadowOverlay, true)
+            end
+
+            local PetInfo = PetCard.PetInfo
+            if PetInfo and PetInfo.icon then
+                PetInfo._auroraIconBorder = Base.CropIcon(PetInfo.icon, PetInfo)
+            end
+
+            local modelScene = PetCard.modelScene
+            if modelScene then
+                Skin.ModelSceneControlFrameTemplateLeftButtonTemplate(modelScene.RotateLeftButton)
+                Skin.ModelSceneControlFrameTemplateRightButtonTemplate(modelScene.RotateRightButton)
+            end
+        end
+
+        -- Rows come from a ScrollBox element initializer, so they appear after
+        -- this runs and are recycled. PetJournal_InitPetButton is the per-row
+        -- entry point and a global, so hook it by name; the IsSkinned guard in
+        -- the row skin absorbs the repeats.
+        if type(_G.PetJournal_InitPetButton) == "function" then
+            _G.hooksecurefunc("PetJournal_InitPetButton", Skin.CamelotCompanionListButtonTemplate)
         end
     end
 
