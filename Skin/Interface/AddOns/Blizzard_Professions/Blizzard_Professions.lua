@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals CreateFrame
+-- luacheck: globals CreateFrame next
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -109,6 +109,70 @@ do --[[ AddOns\Blizzard_Professions ]]
     end
 end
 
+function Skin.ProfessionsRankBarTemplate(Frame)
+    if Frame and Skin.ColoredProgressBarTemplate then
+        Skin.ColoredProgressBarTemplate(Frame)
+    end
+end
+
+-- Camelot folds the professions book into ProfessionsFrame as a page
+-- (Blizzard_ProfessionsCrafting.xml's ProfessionsBookPageTemplate inherits
+-- ProfessionsBookFrameTemplate, and Camelot's ProfessionsFrame.xml instantiates
+-- it as parentKey="BookPage"). Retail keeps it as the standalone
+-- ProfessionsBookFrame, which Camelot's TOC excludes -- so
+-- Blizzard_ProfessionsBook's own skin bails there (T1.5) and the cards inside
+-- this page were left stock: a tan Background per card with the panel already
+-- dark around them.
+--
+-- The card templates keep their retail *names* and change shape, as usual:
+-- Camelot adds Background and Overlay, drops IconBorder / Rank / $parentIcon,
+-- and swaps ProfessionStatusBarTemplate for the Frame-based
+-- ProfessionsRankBarTemplate.
+local function SkinProfessionCard(Frame)
+    if not Frame or private.IsSkinned(Frame) then return end
+    private.SetSkinned(Frame, true)
+
+    -- The card art. Background is the parchment plate; Overlay is the faded
+    -- illustration on the secondary cards.
+    if Frame.Background then Frame.Background:SetAlpha(0) end
+    if Frame.Overlay then Frame.Overlay:SetAlpha(0) end
+
+    Base.SetBackdrop(Frame, Color.button)
+
+    if Frame.missingHeader then
+        Frame.missingHeader:SetTextColor(Color.white:GetRGB())
+    end
+    if Frame.missingText then
+        Frame.missingText:SetTextColor(Color.grayLight:GetRGB())
+    end
+
+    -- Primary cards carry two spell buttons, secondary cards up to four.
+    for i = 1, 4 do
+        local SpellButton = Frame["SpellButton" .. i]
+        if SpellButton and Skin.ProfessionButtonTemplate then
+            Skin.ProfessionButtonTemplate(SpellButton)
+        end
+    end
+
+    -- ProfessionsRankBarTemplate is a Frame with a masked Fill, not a
+    -- StatusBar -- the same shape as Camelot's ColoredProgressBarTemplate, and
+    -- the same trap: Skin.FrameTypeStatusBar would throw on it.
+    if Frame.StatusBar then
+        Skin.ProfessionsRankBarTemplate(Frame.StatusBar)
+    end
+end
+
+local function SkinCamelotBookPage(BookPage)
+    local Content = BookPage and BookPage.ProfessionsContentFrame
+    if not Content then return end
+
+    SkinProfessionCard(Content.PrimaryProfession1)
+    SkinProfessionCard(Content.PrimaryProfession2)
+    for i = 1, 3 do
+        SkinProfessionCard(Content["SecondaryProfession" .. i])
+    end
+end
+
 function private.AddOns.Blizzard_Professions()
     local ProfessionsFrame = _G.ProfessionsFrame
 
@@ -139,6 +203,21 @@ function private.AddOns.Blizzard_Professions()
             end
         end
     end
+
+    -- Camelot's replacement for that TabSystem: a column of side tabs down the
+    -- right edge -- ProfessionsOverviewTab plus up to seven rightProfessionTabs.
+    -- Both are LargeSideTabButtonTemplate underneath (the Wrapper adds only a
+    -- fillToInterior KeyValue), so they take the same skin as the character
+    -- panel's mode tabs, including its UpdateIconInterior hook -- fillToInterior
+    -- is exactly what re-crops the icon and undoes Base.CropIcon without it.
+    if ProfessionsFrame.ProfessionsOverviewTab then
+        Skin.LargeSideTabButtonTemplate(ProfessionsFrame.ProfessionsOverviewTab)
+    end
+    for _, tab in next, (ProfessionsFrame.rightProfessionTabs or {}) do
+        Skin.LargeSideTabButtonTemplate(tab)
+    end
+
+    SkinCamelotBookPage(ProfessionsFrame.BookPage)
 
     -- CraftingPage (Recipes tab) -----------------------------------------
     local CraftingPage = ProfessionsFrame.CraftingPage
