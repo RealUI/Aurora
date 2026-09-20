@@ -96,12 +96,23 @@ do --[[ FrameXML\ContainerFrame.xml ]]
         Skin.FrameTypeItemButton(ItemButton)
         ItemButton:SetBackdropColor(1, 1, 1, 0.75)
 
+        -- Prefer the parentKey. Only ContainerFrame1's item buttons are
+        -- declared in XML and named; every other bag builds its buttons from
+        -- frame.itemButtonPool (ContainerFrame.lua:1052) with no name at all,
+        -- so GetName() is nil there and the $parent lookup threw. The buttons
+        -- carry IconQuestTexture directly either way. The global form is kept
+        -- as a fallback for the classic templates, which do name it.
         local name = ItemButton:GetName()
-        ItemButton._questTexture = _G[name.."IconQuestTexture"]
+        ItemButton._questTexture = ItemButton.IconQuestTexture
+            or (name and _G[name.."IconQuestTexture"])
         Base.CropIcon(ItemButton._questTexture)
         Base.CropIcon(ItemButton.NewItemTexture)
-        ItemButton.BattlepayItemTexture:SetTexCoord(0.203125, 0.78125, 0.203125, 0.78125)
-        ItemButton.BattlepayItemTexture:SetAllPoints()
+
+        local BattlepayItemTexture = ItemButton.BattlepayItemTexture
+        if BattlepayItemTexture then
+            BattlepayItemTexture:SetTexCoord(0.203125, 0.78125, 0.203125, 0.78125)
+            BattlepayItemTexture:SetAllPoints()
+        end
 
         if private.isRetail then
             Base.CropIcon(ItemButton.icon)
@@ -122,8 +133,11 @@ do --[[ FrameXML\ContainerFrame.xml ]]
     function private.SkinContainerItems(Frame)
         for _, itemButton in ipairs(Frame.Items or {}) do
             if not private.IsSkinned(itemButton) then
-                private.SetSkinned(itemButton, true)
                 Skin.ContainerFrameItemButtonTemplate(itemButton)
+                -- Marked only after the skin completes. Setting it first meant
+                -- a throw part-way left the button half-skinned and then
+                -- permanently skipped on every later pass.
+                private.SetSkinned(itemButton, true)
             end
         end
     end
