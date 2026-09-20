@@ -568,95 +568,111 @@ function private.AddOns.Blizzard_Collections()
     --     Blizzard_PetCollection     --
     ----====####################====----
     local PetJournal = _G.PetJournal
-    _G.hooksecurefunc("PetJournal_UpdatePetLoadOut", Hook.PetJournal_UpdatePetLoadOut)
-    _G.hooksecurefunc("PetJournal_UpdatePetCard", Hook.PetJournal_UpdatePetCard)
 
-    Skin.InsetFrameTemplate3(PetJournal.PetCount)
-    Skin.MainHelpPlateButton(PetJournal.MainHelpButton)
-    PetJournal.MainHelpButton:SetPoint("TOPLEFT", PetJournal, "TOPLEFT", -15, 15)
+    -- Camelot does not use the retail pet journal. Its TOC marks
+    -- Shared\Blizzard_PetCollection.xml [ExcludeLoadGameType camelot] and loads
+    -- Classic\Blizzard_PetCollection.xml instead -- a different frame tree with
+    -- 142 declared names the Shared one does not have, 38 of which the block
+    -- below touches. The first of them (PetJournal.MainHelpButton, which the
+    -- classic XML has no equivalent for) reached Skin.MainHelpPlateButton as nil
+    -- and threw, which cost every section after this one: heirlooms, the
+    -- wardrobe (Appearances came up as raw parchment) and the warband scenes.
+    --
+    -- Gated on Loadout rather than on the flavor: it is the retail journal's own
+    -- container and absent from the classic one, so this stays correct if another
+    -- flavor ever swaps the same way. Skinning the classic journal is separate
+    -- work -- Aurora has no skin for it on any flavor today.
+    if PetJournal.Loadout then
+        _G.hooksecurefunc("PetJournal_UpdatePetLoadOut", Hook.PetJournal_UpdatePetLoadOut)
+        _G.hooksecurefunc("PetJournal_UpdatePetCard", Hook.PetJournal_UpdatePetCard)
 
-    Skin.UIPanelSpellButtonFrameTemplate(PetJournal.HealPetSpellFrame.Button)
-    Skin.UIPanelSpellButtonFrameTemplate(PetJournal.SummonRandomPetSpellFrame.Button)
+        Skin.InsetFrameTemplate3(PetJournal.PetCount)
+        Skin.MainHelpPlateButton(PetJournal.MainHelpButton)
+        PetJournal.MainHelpButton:SetPoint("TOPLEFT", PetJournal, "TOPLEFT", -15, 15)
 
-    Skin.InsetFrameTemplate(PetJournal.LeftInset)
-    Skin.InsetFrameTemplate(PetJournal.PetCardInset)
-    Skin.InsetFrameTemplate(PetJournal.RightInset)
-    Skin.SearchBoxTemplate(PetJournal.searchBox)
-    Skin.FilterButton(PetJournal.FilterDropdown)
-    Skin.WowScrollBoxList(PetJournal.ScrollBox)
-    Skin.MinimalScrollBar(PetJournal.ScrollBar)
+        Skin.UIPanelSpellButtonFrameTemplate(PetJournal.HealPetSpellFrame.Button)
+        Skin.UIPanelSpellButtonFrameTemplate(PetJournal.SummonRandomPetSpellFrame.Button)
 
-    PetJournal.loadoutBorder:DisableDrawLayer("ARTWORK")
-    _G.PetJournalLoadoutBorderSlotHeaderBG:Hide()
-    _G.PetJournalLoadoutBorderSlotHeaderF:Hide()
-    _G.PetJournalLoadoutBorderSlotHeaderLeft:Hide()
-    _G.PetJournalLoadoutBorderSlotHeaderRight:Hide()
+        Skin.InsetFrameTemplate(PetJournal.LeftInset)
+        Skin.InsetFrameTemplate(PetJournal.PetCardInset)
+        Skin.InsetFrameTemplate(PetJournal.RightInset)
+        Skin.SearchBoxTemplate(PetJournal.searchBox)
+        Skin.FilterButton(PetJournal.FilterDropdown)
+        Skin.WowScrollBoxList(PetJournal.ScrollBox)
+        Skin.MinimalScrollBar(PetJournal.ScrollBar)
 
-    Skin.CompanionLoadOutTemplate(PetJournal.Loadout.Pet1)
-    Skin.CompanionLoadOutTemplate(PetJournal.Loadout.Pet2)
-    Skin.CompanionLoadOutTemplate(PetJournal.Loadout.Pet3)
+        PetJournal.loadoutBorder:DisableDrawLayer("ARTWORK")
+        _G.PetJournalLoadoutBorderSlotHeaderBG:Hide()
+        _G.PetJournalLoadoutBorderSlotHeaderF:Hide()
+        _G.PetJournalLoadoutBorderSlotHeaderLeft:Hide()
+        _G.PetJournalLoadoutBorderSlotHeaderRight:Hide()
 
-    local PetCard = PetJournal.PetCard
-    _G.PetJournalPetCardBG:Hide()
-    PetCard.AbilitiesBG1:SetAlpha(0)
-    PetCard.AbilitiesBG2:SetAlpha(0)
-    PetCard.AbilitiesBG3:SetAlpha(0)
+        Skin.CompanionLoadOutTemplate(PetJournal.Loadout.Pet1)
+        Skin.CompanionLoadOutTemplate(PetJournal.Loadout.Pet2)
+        Skin.CompanionLoadOutTemplate(PetJournal.Loadout.Pet3)
 
-    local PetInfo = PetCard.PetInfo
-    PetInfo._auroraIconBorder = Base.CropIcon(PetInfo.icon, PetInfo)
-    PetInfo.qualityBorder:SetAlpha(0)
+        local PetCard = PetJournal.PetCard
+        _G.PetJournalPetCardBG:Hide()
+        PetCard.AbilitiesBG1:SetAlpha(0)
+        PetCard.AbilitiesBG2:SetAlpha(0)
+        PetCard.AbilitiesBG3:SetAlpha(0)
 
-    PetInfo.levelBG:SetColorTexture(0, 0, 0, 0.5) -- static: not a theme color
-    PetInfo.levelBG:SetPoint("TOPLEFT", PetInfo.icon, "BOTTOMLEFT", 0, 12)
-    PetInfo.levelBG:SetPoint("BOTTOMRIGHT", PetInfo.icon)
+        local PetInfo = PetCard.PetInfo
+        PetInfo._auroraIconBorder = Base.CropIcon(PetInfo.icon, PetInfo)
+        PetInfo.qualityBorder:SetAlpha(0)
 
-    Base.CropIcon(PetCard.TypeInfo.typeIcon, PetCard.TypeInfo)
+        PetInfo.levelBG:SetColorTexture(0, 0, 0, 0.5) -- static: not a theme color
+        PetInfo.levelBG:SetPoint("TOPLEFT", PetInfo.icon, "BOTTOMLEFT", 0, 12)
+        PetInfo.levelBG:SetPoint("BOTTOMRIGHT", PetInfo.icon)
 
-    local healthBar = PetCard.HealthFrame.healthBar
-    Skin.FrameTypeStatusBar(healthBar)
-    local left, right, mid, bg = healthBar:GetRegions()
-    left:Hide()
-    right:Hide()
-    mid:Hide()
-    bg:Hide()
+        Base.CropIcon(PetCard.TypeInfo.typeIcon, PetCard.TypeInfo)
 
-    for i = 1, 6 do
-        Skin.PetCardSpellButtonTemplate(PetCard["spell"..i])
-    end
+        local healthBar = PetCard.HealthFrame.healthBar
+        Skin.FrameTypeStatusBar(healthBar)
+        local left, right, mid, bg = healthBar:GetRegions()
+        left:Hide()
+        right:Hide()
+        mid:Hide()
+        bg:Hide()
 
-    local xpBar = PetCard.xpBar
-    Skin.FrameTypeStatusBar(xpBar)
-    local regions = {xpBar:GetRegions()}
-    regions[2]:Hide() -- Left
-    regions[3]:Hide() -- Right
-    regions[4]:Hide() -- Middle
+        for i = 1, 6 do
+            Skin.PetCardSpellButtonTemplate(PetCard["spell"..i])
+        end
 
-    for i = 5, 11 do
-        Skin["ExpBar-Divider"](regions[i])
-    end
+        local xpBar = PetCard.xpBar
+        Skin.FrameTypeStatusBar(xpBar)
+        local regions = {xpBar:GetRegions()}
+        regions[2]:Hide() -- Left
+        regions[3]:Hide() -- Right
+        regions[4]:Hide() -- Middle
 
-    regions[12]:Hide() -- BGMiddle
+        for i = 5, 11 do
+            Skin["ExpBar-Divider"](regions[i])
+        end
+
+        regions[12]:Hide() -- BGMiddle
 
 
-    Skin.MagicButtonTemplate(PetJournal.FindBattleButton)
-    Skin.MagicButtonTemplate(PetJournal.SummonButton)
+        Skin.MagicButtonTemplate(PetJournal.FindBattleButton)
+        Skin.MagicButtonTemplate(PetJournal.SummonButton)
 
-    local spellSelect = PetJournal.SpellSelect
-    spellSelect.BgEnd:Hide()
-    spellSelect.BgTiled:Hide()
-    Skin.FrameTypeFrame(spellSelect)
-    spellSelect:SetBackdropOption("offsets", {
-        left = -3,
-        right = -3,
-        top = 1,
-        bottom = 1,
-    })
-    Skin.PetSpellSelectButtonTemplate(spellSelect.Spell1)
-    Skin.PetSpellSelectButtonTemplate(spellSelect.Spell2)
+        local spellSelect = PetJournal.SpellSelect
+        spellSelect.BgEnd:Hide()
+        spellSelect.BgTiled:Hide()
+        Skin.FrameTypeFrame(spellSelect)
+        spellSelect:SetBackdropOption("offsets", {
+            left = -3,
+            right = -3,
+            top = 1,
+            bottom = 1,
+        })
+        Skin.PetSpellSelectButtonTemplate(spellSelect.Spell1)
+        Skin.PetSpellSelectButtonTemplate(spellSelect.Spell2)
 
-    if not private.disabled.tooltips then
-        Skin.SharedPetBattleAbilityTooltipTemplate(_G.PetJournalPrimaryAbilityTooltip)
-        Skin.SharedPetBattleAbilityTooltipTemplate(_G.PetJournalSecondaryAbilityTooltip)
+        if not private.disabled.tooltips then
+            Skin.SharedPetBattleAbilityTooltipTemplate(_G.PetJournalPrimaryAbilityTooltip)
+            Skin.SharedPetBattleAbilityTooltipTemplate(_G.PetJournalSecondaryAbilityTooltip)
+        end
     end
 
 
