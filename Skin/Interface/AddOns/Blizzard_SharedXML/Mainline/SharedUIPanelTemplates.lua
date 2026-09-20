@@ -837,6 +837,27 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         Skin.UIPanelCloseButtonDefaultAnchors(Frame.CloseButton)
     end
 
+    -- A Frame (SidePanelTabButtonMixin), not a Button, so it takes a backdrop
+    -- rather than Skin.FrameTypeButton. Its chrome is the common-sidetab atlas
+    -- set; the Icon carries meaning and is kept.
+    --
+    -- Shared because WoW Forever uses it for two unrelated surfaces: the six
+    -- CharacterFrameModeTab side tabs and the pooled BankPageTabTemplate tabs.
+    function Skin.LargeSideTabButtonTemplate(Frame)
+        if not Frame then return end
+
+        if Frame.Background then Frame.Background:SetAlpha(0) end
+        if Frame.TabGlow then Frame.TabGlow:SetAlpha(0) end
+        if Frame.SelectedTexture then
+            Util.SetHighlightColor(Frame.SelectedTexture, 0.5)
+        end
+        if Frame.HighlightTexture then
+            Util.SetHighlightColor(Frame.HighlightTexture, 0.2)
+        end
+
+        Base.SetBackdrop(Frame, Color.button)
+    end
+
     function Skin.ButtonFrameTemplate(Frame)
         if private.isRetail then
             Frame.NineSlice.Center = Frame.Bg

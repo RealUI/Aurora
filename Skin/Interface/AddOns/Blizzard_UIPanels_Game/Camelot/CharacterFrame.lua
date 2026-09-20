@@ -6,8 +6,8 @@ if private.shouldSkip() then return end
 
 --[[ Core ]]
 local Aurora = private.Aurora
-local Base, Skin = Aurora.Base, Aurora.Skin
-local Color, Util = Aurora.Color, Aurora.Util
+local Skin = Aurora.Skin
+local Color = Aurora.Color
 
 -- Camelot's character panel is a different shape from retail's (T2.0.1):
 --
@@ -44,21 +44,11 @@ do --[[ FrameXML\CharacterFrame.xml ]]
         bg:SetColorTexture(1, 1, 1, 0.2) -- static: not a theme color
     end
 
-    -- CharacterFrameModeSideTabTemplate inherits LargeSideTabButtonTemplate,
-    -- which is a Frame (SidePanelTabButtonMixin), not a Button -- so it takes a
-    -- backdrop rather than Skin.FrameTypeButton. Its art is the common-sidetab
-    -- atlas set; the Icon is meaningful and kept.
+    -- CharacterFrameModeSideTabTemplate adds only a fillToInterior KeyValue and
+    -- an OnLoad on top of LargeSideTabButtonTemplate, so the shared side-tab
+    -- skin covers it. Camelot's bank page tabs use the same base.
     function Skin.CharacterFrameModeSideTabTemplate(Frame)
-        if Frame.Background then Frame.Background:SetAlpha(0) end
-        if Frame.TabGlow then Frame.TabGlow:SetAlpha(0) end
-        if Frame.SelectedTexture then
-            Util.SetHighlightColor(Frame.SelectedTexture, 0.5)
-        end
-        if Frame.HighlightTexture then
-            Util.SetHighlightColor(Frame.HighlightTexture, 0.2)
-        end
-
-        Base.SetBackdrop(Frame, Color.button)
+        Skin.LargeSideTabButtonTemplate(Frame)
     end
 end
 
