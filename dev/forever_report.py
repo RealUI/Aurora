@@ -256,8 +256,15 @@ def section_3(fv):
     print(f"  does not, so no skin covers them (a name {family} also has is skinned by")
     print("  the addon's single skin file, and section 5 catches what the overlay drops):")
     for addon, rel, added in hidden:
-        mark = f"  <-- new: {', '.join(added)}" if added else ""
-        print(f"    {addon}\\{rel}{mark}")
+        mark = ""
+        if added:
+            # An addon Aurora does not skin on any flavor has nothing to
+            # extend: the new names are a new surface (phase 4), not a gap
+            # in an existing skin.
+            _entry, found = uxm.resolve_skin(addon, f"{addon}.lua", cfg['skin_dirs'])
+            mark = ("  <-- new: " + ", ".join(added) if found
+                    else "  <-- new, but NO AURORA SKIN for this addon: " + ", ".join(added))
+        print("    " + addon + chr(92) + rel + mark)
 
 
 def section_4(ml, fv):
