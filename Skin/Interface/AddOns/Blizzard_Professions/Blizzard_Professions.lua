@@ -156,9 +156,17 @@ local function SkinProfessionCard(Frame)
 
     -- ProfessionsRankBarTemplate is a Frame with a masked Fill, not a
     -- StatusBar -- the same shape as Camelot's ColoredProgressBarTemplate, and
-    -- the same trap: Skin.FrameTypeStatusBar would throw on it.
+    -- the same trap: Skin.FrameTypeStatusBar would throw on it. The green Fill
+    -- is left alone: it is skill progress, not chrome.
     if Frame.StatusBar then
         Skin.ProfessionsRankBarTemplate(Frame.StatusBar)
+    end
+
+    -- The unlearn button sits bare next to the rank bar: a 20x20 Button whose
+    -- only art is the Profession-button-red-crossmark atlas. The crossmark is
+    -- the affordance and is kept; it just needs a frame under it.
+    if Frame.UnlearnButton then
+        Skin.FrameTypeButton(Frame.UnlearnButton)
     end
 end
 
