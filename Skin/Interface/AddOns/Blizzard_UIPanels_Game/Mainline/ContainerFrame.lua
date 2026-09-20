@@ -114,6 +114,53 @@ do --[[ FrameXML\ContainerFrame.xml ]]
             BattlepayItemTexture:SetAllPoints()
         end
 
+        -- An empty slot draws its background *through the icon*:
+        -- SetItemButtonTexture_Base falls back to emptyBackgroundAtlas
+        -- (bags-item-slot64, a rounded tile) and calls icon:SetAtlas, which
+        -- carries its own texcoords and so undoes Base.CropIcon. That is what
+        -- left the bag grid looking round-cornered. A filled slot takes
+        -- icon:SetTexture instead, which does not touch texcoords, so only the
+        -- atlas path needs handling.
+        --
+        -- Hide it rather than crop it: the rounding is inside the atlas art, so
+        -- cropping only trims it, and Aurora's own backdrop already *is* the
+        -- empty slot. Alpha rather than Hide, because Blizzard drives the
+        -- icon's shown state itself (icon:SetShown(texture ~= nil)).
+        --
+        -- Hiding the icon also exposes the backdrop, and the white above was
+        -- only ever safe because a filled icon covered it completely. So the
+        -- empty state has to drive the backdrop colour as well: black at the
+        -- frame alpha when empty (what Skin.FrameTypeItemButton starts with),
+        -- white when an item is in the slot.
+        local icon = ItemButton.icon
+        if icon and not ItemButton._auroraEmptySlotHooked then
+            ItemButton._auroraEmptySlotHooked = true
+
+            local function SetEmpty(isEmpty)
+                icon:SetAlpha(isEmpty and 0 or 1)
+                if isEmpty then
+                    ItemButton:SetBackdropColor(Color.black.r, Color.black.g,
+                                                Color.black.b, Color.frame.a)
+                else
+                    ItemButton:SetBackdropColor(1, 1, 1, 0.75) -- static: matches the unskinned icon tint
+                end
+            end
+
+            _G.hooksecurefunc(icon, "SetAtlas", function()
+                SetEmpty(true)
+            end)
+            _G.hooksecurefunc(icon, "SetTexture", function(self, texture)
+                SetEmpty(not texture)
+                if texture then
+                    Base.CropIcon(self)
+                end
+            end)
+
+            -- Slots that were already empty when this ran will not see either
+            -- hook until their next update, so settle the current state too.
+            SetEmpty(icon:GetAtlas() ~= nil or icon:GetTexture() == nil)
+        end
+
         if private.isRetail then
             Base.CropIcon(ItemButton.icon)
         else
@@ -155,6 +202,17 @@ do --[[ FrameXML\ContainerFrame.xml ]]
         bg = Frame.NineSlice:GetBackdropTexture("bg")
 
         private.SkinContainerItems(Frame)
+
+        -- ContainerFrameMixin:UpdateItemSlots clears and re-acquires every
+        -- button from itemButtonPool, and it runs on bag changes without
+        -- ContainerFrame_GenerateFrame being called again -- which is why the
+        -- combined bag kept showing unskinned slots while the individual bags
+        -- came out right. Hook it per frame (Mixin() copies the method at
+        -- creation, so the mixin table is the wrong target).
+        if Frame.UpdateItemSlots and not Frame._auroraItemSlotsHooked then
+            Frame._auroraItemSlotsHooked = true
+            _G.hooksecurefunc(Frame, "UpdateItemSlots", private.SkinContainerItems)
+        end
 
         -- PortraitButton is a DropdownButton -- the "Click for Bag Settings"
         -- affordance -- not decoration. Hiding it leaves the tooltip working
