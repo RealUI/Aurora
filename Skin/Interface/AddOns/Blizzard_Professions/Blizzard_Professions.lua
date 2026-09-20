@@ -43,9 +43,25 @@ do --[[ AddOns\Blizzard_Professions ]]
     Hook.ProfessionsRecipeListCategoryMixin = {}
     function Hook.ProfessionsRecipeListCategoryMixin:Init(node)
         if not private.IsSkinned(self) then
-            if self.LeftPiece then self.LeftPiece:SetAlpha(0) end
-            if self.RightPiece then self.RightPiece:SetAlpha(0) end
-            if self.CenterPiece then self.CenterPiece:SetAlpha(0) end
+            -- ProfessionsRecipeListCategoryTemplate inherits
+            -- ListHeaderVisualTemplate, whose three-slice is Left/Middle/Right
+            -- (Options_ListExpand_*) with a HighlightLeft/Middle/Right set over
+            -- it. The old keys here -- LeftPiece/RightPiece/CenterPiece --
+            -- exist nowhere in that template, so these headers were never
+            -- actually skinned. **Not a Camelot difference: the template is
+            -- byte-identical in both trees, so this was equally broken on
+            -- retail.**
+            for _, key in next, {"Left", "Middle", "Right"} do
+                local region = self[key]
+                if region then region:SetAlpha(0) end
+            end
+
+            -- The highlight trio keeps its job and loses Blizzard's art.
+            for _, key in next, {"HighlightLeft", "HighlightMiddle", "HighlightRight"} do
+                local region = self[key]
+                if region then Util.SetHighlightColor(region, 0.2) end
+            end
+
             private.SetSkinned(self, true)
         end
     end
@@ -360,9 +376,19 @@ function private.AddOns.Blizzard_Professions()
         Util.Mixin(_G.ProfessionsFlyoutCurrencyButtonMixin, Hook.ProfessionsFlyoutButtonMixin)
     end
 
-    -- Camelot's ProfessionsCraftingPageTemplate drops both create buttons in
-    -- favour of a GamepadCreateMultiple input prompt, so these are nil on
-    -- Forever. Guarded like every other optional member in this function.
+    -- Correction: these are **not** dropped on Camelot -- both buttons are
+    -- visible in the crafting view. They are built in Lua by
+    -- ProfessionsCraftingPageMixin:CreateControls (Blizzard_ProfessionsCrafting.lua:258)
+    -- from GetButtonTemplate(), which runs *after* this skin, so the guards
+    -- below simply found nil and skipped them. Hook the creation point as well;
+    -- the sweep below still covers the case where controls already exist.
+    if CraftingPage.CreateControls then
+        _G.hooksecurefunc(CraftingPage, "CreateControls", function(self)
+            Skin.UIPanelButtonTemplate(self.CreateButton)
+            Skin.UIPanelButtonTemplate(self.CreateAllButton)
+        end)
+    end
+
     if CraftingPage.CreateButton then
         Skin.UIPanelButtonTemplate(CraftingPage.CreateButton)
     end
