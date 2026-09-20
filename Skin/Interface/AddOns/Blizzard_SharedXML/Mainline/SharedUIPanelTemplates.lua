@@ -846,14 +846,33 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
     function Skin.LargeSideTabButtonTemplate(Frame)
         if not Frame then return end
 
+        -- common-sidetab is a tab silhouette. Aurora squares the frame off, so
+        -- the backing art goes entirely rather than showing through.
         if Frame.Background then Frame.Background:SetAlpha(0) end
+
+        -- TabGlowAnimation loops TabGlow's alpha 0 -> 1 -> 0, so SetAlpha on
+        -- its own does not stick -- the animation just paints it back.
+        if Frame.TabGlowAnimation then Frame.TabGlowAnimation:Stop() end
         if Frame.TabGlow then Frame.TabGlow:SetAlpha(0) end
+
+        -- Selected and hover keep their role but lose their shape: recoloured
+        -- and stretched to the backdrop, instead of a tab-shaped atlas sitting
+        -- on a square frame.
         if Frame.SelectedTexture then
+            Frame.SelectedTexture:ClearAllPoints()
+            Frame.SelectedTexture:SetAllPoints(Frame)
             Util.SetHighlightColor(Frame.SelectedTexture, 0.5)
         end
         if Frame.HighlightTexture then
+            Frame.HighlightTexture:ClearAllPoints()
+            Frame.HighlightTexture:SetAllPoints(Frame)
             Util.SetHighlightColor(Frame.HighlightTexture, 0.2)
         end
+
+        -- The Icon is masked into the tab silhouette by common-sidetab-mask.
+        -- Base.CropIcon drops every mask before cropping, which is exactly what
+        -- is wanted here: a plain square icon like every other Aurora one.
+        Base.CropIcon(Frame.Icon, Frame)
 
         Base.SetBackdrop(Frame, Color.button)
     end
