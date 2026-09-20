@@ -14,8 +14,14 @@ do --[[ AddOns\Blizzard_ProfessionsBook ]]
     function Skin.ProfessionButtonTemplate(CheckButton)
         Base.CropIcon(CheckButton.IconTexture, CheckButton)
 
-        local nameFrame = _G[CheckButton:GetName().."NameFrame"]
-        nameFrame:Hide()
+        -- $parentNameFrame only resolves for a named button. Camelot's
+        -- profession cards declare their spell buttons with a parentKey and no
+        -- name, so GetName() is nil there and the concat below threw.
+        local name = CheckButton:GetName()
+        local nameFrame = name and _G[name.."NameFrame"]
+        if nameFrame then
+            nameFrame:Hide()
+        end
 
         Base.CropIcon(CheckButton:GetPushedTexture())
         Base.CropIcon(CheckButton:GetHighlightTexture())
