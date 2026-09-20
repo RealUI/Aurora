@@ -11,7 +11,7 @@ local _, private = ...
 -- NOTE: no private.shouldSkip() guard -- see Skin\shared\ReputationFrame.lua.
 
 --[[ Lua Globals ]]
--- luacheck: globals next
+-- luacheck: globals next unpack
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -242,6 +242,20 @@ function private.SharedSkins.PaperDollPanes()
         local tab = _G["PaperDollSidebarTab" .. i]
         if tab then
             Skin.PaperDollSidebarTabTemplate(tab)
+
+            -- Only tab 1 gets a real square icon (SetPortraitTexture on the
+            -- player). The rest are slices of one sprite sheet --
+            -- PaperDollInfoFrame\PaperDollSidebarTabs -- selected by the
+            -- texCoords on their PAPERDOLL_SIDEBARS entry. Base.CropIcon in the
+            -- template overwrites those with 0.08/0.92, which picks a different
+            -- part of the sheet entirely: that is why the equipment manager tab
+            -- came up blank. Put Blizzard's slice back for the sheet tabs; the
+            -- bevel the crop exists to remove is a property of portrait and
+            -- spell icons, not of flat sheet art.
+            local coords = _G.PAPERDOLL_SIDEBARS[i].texCoords
+            if coords and tab.Icon then
+                tab.Icon:SetTexCoord(unpack(coords))
+            end
         end
     end
 
