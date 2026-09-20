@@ -685,7 +685,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\Cata\PaperDollFrameStats.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Camelot\PaperDollFrameStats.lua"/--><!-- additive -->
     <Script file="Blizzard_UIPanels_Game\Camelot\ReputationFrame.lua"/><!-- replacement -->
-    <!--Script file="Blizzard_UIPanels_Game\Camelot\SkillsFrame.lua"/--><!-- replacement -->
+    <Script file="Blizzard_UIPanels_Game\Camelot\SkillsFrame.lua"/><!-- replacement -->
     <!--Script file="Blizzard_UIPanels_Game\Mainline\FriendshipStatusBar.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Camelot\QuestFrameTemplates.lua"/--><!-- replacement -->
     <!--Script file="Blizzard_UIPanels_Game\Mainline\QuestFrameTemplates.lua"/-->
@@ -734,7 +734,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_UIPanels_Game\Mainline\GossipFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Shared\VehicleSeatIndicator.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Mainline\PVPBanner.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\Camelot\PVPRankFrame.lua"/--><!-- replacement -->
+    <Script file="Blizzard_UIPanels_Game\Camelot\PVPRankFrame.lua"/><!-- replacement -->
     <!--Script file="Blizzard_UIPanels_Game\Mainline\Localization.lua"/-->
     <!-- End of section added for Blizzard_UIPanels_Game by the Aurora XML Updater -->
     <!-- This section is added for Blizzard_UIPanelTemplates by the Aurora XML Updater -->
