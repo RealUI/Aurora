@@ -770,13 +770,32 @@ function private.AddOns.Blizzard_PlayerSpells()
     if SpellBookFrame.HelpPlateButton then SpellBookFrame.HelpPlateButton:Hide() end
 
     Skin.SearchBoxTemplate(SpellBookFrame.SearchBox)
+    -- SpellBookSettingsDropdownTemplate inherits UIPanelArrowDropdownButtonTemplate,
+    -- not WowStyle1DropdownTemplate, so Skin.DropdownButton was the wrong skin
+    -- and left the gold arrow in place.
     if SpellBookFrame.SettingsDropdown then
-        Skin.DropdownButton(SpellBookFrame.SettingsDropdown)
+        Skin.UIPanelArrowDropdownButtonTemplate(SpellBookFrame.SettingsDropdown)
     end
 
-    for i = 1, 3 do
-        local tab = select(i, SpellBookFrame.CategoryTabSystem:GetChildren())
-        Skin.PlayerSpellsFrameTabTemplate(tab)
+    -- Not a fixed 1..3: Camelot builds the category tabs from the character's
+    -- skill lines plus pet and transmog, so the count varies -- a mage shows
+    -- four, and the fourth was left unskinned. Walk the children instead, and
+    -- re-walk when the tab system adds more.
+    local CategoryTabSystem = SpellBookFrame.CategoryTabSystem
+    if CategoryTabSystem then
+        local function SkinCategoryTabs(self)
+            for _, tab in next, {self:GetChildren()} do
+                if not private.IsSkinned(tab) then
+                    private.SetSkinned(tab, true)
+                    Skin.PlayerSpellsFrameTabTemplate(tab)
+                end
+            end
+        end
+
+        SkinCategoryTabs(CategoryTabSystem)
+        if CategoryTabSystem.AddTab then
+            _G.hooksecurefunc(CategoryTabSystem, "AddTab", SkinCategoryTabs)
+        end
     end
 
     Skin.PlayerSpellsButtonTemplate(SpellBookFrame.AssistedCombatRotationSpellFrame.Button)
