@@ -843,6 +843,38 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
     --
     -- Shared because WoW Forever uses it for two unrelated surfaces: the six
     -- CharacterFrameModeTab side tabs and the pooled BankPageTabTemplate tabs.
+    -- A 15x16 arrow dropdown whose entire look is one common-dropdown-a-button
+    -- atlas (gold), plus an ADD-blended copy of it on HIGHLIGHT. Aurora had no
+    -- skin for it, so callers were reaching for Skin.DropdownButton, which is
+    -- written against WowStyle1DropdownTemplate and leaves this one's gold
+    -- arrow untouched -- the yellow button beside the spellbook search box.
+    function Skin.UIPanelArrowDropdownButtonTemplate(Frame)
+        if not Frame or private.IsSkinned(Frame) then return end
+        private.SetSkinned(Frame, true)
+
+        if Frame.Icon then
+            Frame.Icon:SetAlpha(0)
+        end
+        -- The highlight copy is unnamed, so it goes by atlas.
+        for _, region in next, {Frame:GetRegions()} do
+            if region:IsObjectType("Texture") then
+                local atlas = region:GetAtlas()
+                if atlas and atlas:find("common%-dropdown%-a%-button") then
+                    region:SetAlpha(0)
+                end
+            end
+        end
+
+        Skin.FrameTypeButton(Frame)
+
+        local bg = Frame:GetBackdropTexture("bg")
+        local arrow = Frame:CreateTexture(nil, "ARTWORK")
+        arrow:SetPoint("TOPLEFT", bg, 3, -4)
+        arrow:SetPoint("BOTTOMRIGHT", bg, -3, 4)
+        Base.SetTexture(arrow, "arrowDown")
+        Frame._auroraTextures = {arrow}
+    end
+
     function Skin.LargeSideTabButtonTemplate(Frame)
         if not Frame then return end
 
