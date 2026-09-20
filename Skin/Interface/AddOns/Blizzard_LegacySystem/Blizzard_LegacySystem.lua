@@ -42,11 +42,14 @@ do --[[ AddOns\Blizzard_LegacySystemTemplates.xml ]]
 
     -- The points readout: a UI-Legacy-Points-icon-c60 shield with the number on
     -- top. The shield is the affordance and is kept, in line with the
-    -- PVPRankFrame badges and the stable happiness face.
-    function Skin.LegacyPointShield(Button)
-        if not Button then return end
-        Base.SetHighlight(Button)
-    end
+    -- PVPRankFrame badges and the stable happiness face -- which means there is
+    -- nothing here to skin.
+    --
+    -- It previously called Base.SetHighlight, which threw
+    -- "api.lua:250: attempt to call a nil value": SetHighlight reads
+    -- GetBackdropColor to work out the colour to return to, so it only works on
+    -- a frame that already has an Aurora backdrop. This button has none, and
+    -- should not get one.
 
     function Skin.LegacyChallengePointSummaryTemplate(Frame)
         if not Frame then return end
@@ -58,9 +61,7 @@ do --[[ AddOns\Blizzard_LegacySystemTemplates.xml ]]
 
         Skin.LegacyProgressBarTemplate(Frame.PointsBar)
 
-        if Frame.Shield then
-            Skin.LegacyPointShield(Frame.Shield)
-        end
+        -- Frame.Shield is left stock; see the note above.
     end
 end
 
