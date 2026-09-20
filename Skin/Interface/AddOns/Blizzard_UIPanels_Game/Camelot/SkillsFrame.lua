@@ -8,7 +8,7 @@ if private.shouldSkip() then return end
 local Aurora = private.Aurora
 local Base = Aurora.Base
 local Skin = Aurora.Skin
-local Color = Aurora.Color
+local Color, Util = Aurora.Color, Aurora.Util
 
 -- Camelot-only surface: the Skills tab (mode tab 3 of the character panel).
 -- Retail has no SkillsFrame at all, so there is nothing to port -- but Camelot
@@ -48,12 +48,24 @@ end
 
 do --[[ FrameXML\SkillsFrame.xml ]]
     function Skin.SkillsHeaderTemplate(Button)
-        -- StateIcon is the common-button-list-collapseExpand glyph; Aurora has
-        -- a skin for that shape already.
-        if Button.StateIcon and Skin.ExpandOrCollapse then
-            if not private.IsSkinned(Button.StateIcon) then
-                private.SetSkinned(Button.StateIcon, true)
-                Skin.ExpandOrCollapse(Button.StateIcon)
+        -- The header's own art is two common-button-list-collapseExpand
+        -- textures: one on BACKGROUND (the bar) and one on HIGHLIGHT (hover).
+        -- Hide the first, recolour the second so hover feedback survives.
+        --
+        -- StateIcon is deliberately left alone. It is the collapse/expand
+        -- glyph and, despite the name, a **Texture** -- passing it to
+        -- Skin.ExpandOrCollapse, which expects a Button, is what threw
+        -- "attempt to call a nil value" here.
+        for _, region in next, {Button:GetRegions()} do
+            if region:IsObjectType("Texture") and region ~= Button.StateIcon then
+                local atlas = region:GetAtlas()
+                if atlas and atlas:find("common%-button%-list%-collapseExpand") then
+                    if region:GetDrawLayer() == "HIGHLIGHT" then
+                        Util.SetHighlightColor(region, 0.2)
+                    else
+                        region:SetAlpha(0)
+                    end
+                end
             end
         end
 
