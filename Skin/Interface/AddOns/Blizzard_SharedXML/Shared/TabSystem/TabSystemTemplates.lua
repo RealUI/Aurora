@@ -71,6 +71,18 @@ do --[[ Blizzard_SharedXML\Mainline\TabSystem\TabSystemTemplates.lua ]]
             if Button.SetTabSelected then
                 _G.hooksecurefunc(Button, "SetTabSelected", FitIcon)
             end
+
+            -- UpdateTabWidth gives an icon tab Icon:GetWidth() + 8, so 44 wide
+            -- against a 32 tall button. Blizzard gets away with it because the
+            -- 36x35 icon keeps its own size and sits centred inside; filling an
+            -- Aurora backdrop with it instead stretched every icon sideways.
+            -- Square the tab off -- which is the look wanted here anyway.
+            if Button.UpdateTabWidth then
+                _G.hooksecurefunc(Button, "UpdateTabWidth", function(self)
+                    self:SetWidth(self:GetHeight())
+                end)
+                Button:UpdateTabWidth()
+            end
         end
 
         Button.Text:ClearAllPoints()
