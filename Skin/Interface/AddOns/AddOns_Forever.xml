@@ -702,7 +702,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_UIPanels_Game\Mainline\ItemTextFrame.lua"/>
     <Script file="Blizzard_UIPanels_Game\Shared\TaxiFrame.lua"/>
     <!--Script file="Blizzard_UIPanels_Game\Mainline\BankFrameTemplates.lua"/-->
-    <!--Script file="Blizzard_UIPanels_Game\Camelot\BankFrame.lua"/--><!-- replacement -->
+    <Script file="Blizzard_UIPanels_Game\Camelot\BankFrame.lua"/><!-- replacement -->
     <!--Script file="Blizzard_UIPanels_Game\BankFrameRegistration.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Mainline\RoleSelectionTemplate.lua"/-->
     <Script file="Blizzard_UIPanels_Game\Mainline\ItemRef.lua"/>
