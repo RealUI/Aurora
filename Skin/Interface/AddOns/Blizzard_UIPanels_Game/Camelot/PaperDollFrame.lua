@@ -96,10 +96,26 @@ function private.FrameXML.PaperDollFrame()
         end
     end
 
-    for _, name in next, {"CharacterMainHandSlot", "CharacterSecondaryHandSlot"} do
+    -- The bottom row. Camelot restores the classic ranged and ammo slots, which
+    -- retail does not have -- hence their absence from the Mainline skin's list.
+    -- CharacterAmmoSlot is a bare <ItemButton> with no inherits, so it has no
+    -- popoutButton and no RankFrame; both are guarded in the shared template.
+    for _, name in next, {
+        "CharacterMainHandSlot",
+        "CharacterSecondaryHandSlot",
+        "CharacterRangedSlot",
+        "CharacterAmmoSlot",
+    } do
         local button = _G[name]
         if button then
             Skin.PaperDollItemSlotButtonBottomTemplate(button)
         end
+    end
+
+    -- Camelot puts a zoom/rotate/reset bar above the model that retail has no
+    -- equivalent for on this panel.
+    local ModelScene = _G.CharacterModelScene
+    if ModelScene and ModelScene.ControlFrame then
+        Skin.ModelSceneControlFrameTemplate(ModelScene.ControlFrame)
     end
 end
