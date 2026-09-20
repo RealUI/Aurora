@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals select
+-- luacheck: globals select next
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -73,13 +73,45 @@ do --[[ AddOns\Blizzard_InspectUI.xml ]]
         function Skin.InspectPaperDollItemSlotButtonTemplate(ItemButton)
             Skin.FrameTypeItemButton(ItemButton)
             ItemButton:ClearNormalTexture()
+
+            -- Camelot draws the slot border as a parentKey="BorderFrame" child
+            -- holding a UI-Character-Info-GearSlot texture, exactly as its
+            -- CharacterFrame slots do. Retail has no BorderFrame and no such
+            -- atlas, so both guards are inert there. Kept in step with
+            -- Skin\shared\PaperDollFrame.lua -- the same two idioms.
+            if ItemButton.BorderFrame then
+                ItemButton.BorderFrame:Hide()
+            end
+
+            for _, region in next, {ItemButton:GetRegions()} do
+                if region:IsObjectType("Texture") then
+                    local atlas = region:GetAtlas()
+                    if atlas and atlas:find("UI%-Character%-Info%-GearSlot") then
+                        region:Hide()
+                    end
+                end
+            end
         end
         function Skin.InspectPaperDollItemSlotButtonLeftTemplate(ItemButton)
             Skin.InspectPaperDollItemSlotButtonTemplate(ItemButton)
-            _G[ItemButton:GetName().."Frame"]:Hide()
+
+            -- $parentFrame is the Char-LeftSlot/RightSlot/BottomSlot art from
+            -- Mainline\InspectPaperDollFrame.xml, which Camelot excludes.
+            local slotFrame = _G[ItemButton:GetName().."Frame"]
+            if slotFrame then
+                slotFrame:Hide()
+            end
         end
         Skin.InspectPaperDollItemSlotButtonRightTemplate = Skin.InspectPaperDollItemSlotButtonLeftTemplate
         Skin.InspectPaperDollItemSlotButtonBottomTemplate = Skin.InspectPaperDollItemSlotButtonLeftTemplate
+
+        -- InspectFrameModeSideTabTemplate adds a fillToInterior KeyValue and an
+        -- OnLoad on top of LargeSideTabButtonTemplate -- the same shape as
+        -- CharacterFrameModeSideTabTemplate, so the shared side-tab skin covers
+        -- it. Camelot only; retail's InspectFrame has no mode tabs.
+        function Skin.InspectFrameModeSideTabTemplate(Frame)
+            Skin.LargeSideTabButtonTemplate(Frame)
+        end
     end
     do --[[ InspectPVPFrame.xml ]]
         function Skin.InspectPvpTalentSlotTemplate(Button)
@@ -119,6 +151,17 @@ function private.AddOns.Blizzard_InspectUI()
     end
     Util.PositionRelative("TOPLEFT", InspectFrame, "BOTTOMLEFT", 20, -1, 1, "Right", tabs)
 
+    -- Camelot moves navigation to side tabs, as it does on the character panel:
+    -- InspectUITabs (InspectFrame.ModeTabs) holding InspectFrameModeTab1-2,
+    -- Character and Guild. The two PanelTabButtons above still exist but are
+    -- declared hidden. Built from what exists rather than a fixed count.
+    for i = 1, 2 do
+        local modeTab = _G["InspectFrameModeTab" .. i]
+        if modeTab then
+            Skin.InspectFrameModeSideTabTemplate(modeTab)
+        end
+    end
+
     ----====#####################====----
     --      InspectPaperDollFrame      --
     ----====#####################====----
@@ -130,7 +173,10 @@ function private.AddOns.Blizzard_InspectUI()
     Skin.UIPanelButtonTemplate(InspectPaperDollFrame.ViewButton)
 
     local InspectPaperDollItemsFrame = _G.InspectPaperDollItemsFrame
-    Skin.UIPanelButtonTemplate(InspectPaperDollItemsFrame.InspectTalents)
+    -- Camelot reparents InspectTalents from InspectPaperDollItemsFrame up to
+    -- InspectPaperDollFrame. Same button, same template, different owner.
+    Skin.UIPanelButtonTemplate(InspectPaperDollItemsFrame.InspectTalents
+        or InspectPaperDollFrame.InspectTalents)
 
     local bg = InspectFrame.NineSlice:GetBackdropTexture("bg")
     local classBG = InspectPaperDollFrame:CreateTexture(nil, "BORDER")
@@ -152,24 +198,31 @@ function private.AddOns.Blizzard_InspectUI()
         "InspectHeadSlot", "InspectNeckSlot", "InspectShoulderSlot", "InspectBackSlot", "InspectChestSlot", "InspectShirtSlot", "InspectTabardSlot", "InspectWristSlot",
         "InspectHandsSlot", "InspectWaistSlot", "InspectLegsSlot", "InspectFeetSlot", "InspectFinger0Slot", "InspectFinger1Slot", "InspectTrinket0Slot", "InspectTrinket1Slot"
     }
+    -- Camelot restores the ranged slot, as it does on the character panel.
     local WeaponSlots = {
-        "InspectMainHandSlot", "InspectSecondaryHandSlot"
+        "InspectMainHandSlot", "InspectSecondaryHandSlot", "InspectRangedSlot"
     }
 
     local slotsPerSide, prevSlot = 8
     for i = 1, #EquipmentSlots do
         local button = _G[EquipmentSlots[i]]
-        button:ClearAllPoints()
         local isLeftSide = button.IsLeftSide or i <= slotsPerSide
 
-        if i % slotsPerSide == 1 then
-            if isLeftSide then
-                button:SetPoint("TOPLEFT", InspectFrame.Inset, 4, 22)
+        -- The retail layout below rebuilds both columns against
+        -- InspectFrame.Inset. Camelot lays the panel out itself and gets the
+        -- same treatment the character sheet does: skin in place, re-anchor
+        -- nothing. See Skin\shared\PaperDollFrame.lua.
+        if not private.isForever then
+            button:ClearAllPoints()
+            if i % slotsPerSide == 1 then
+                if isLeftSide then
+                    button:SetPoint("TOPLEFT", InspectFrame.Inset, 4, 22)
+                else
+                    button:SetPoint("TOPRIGHT", InspectFrame.Inset, -4, 22)
+                end
             else
-                button:SetPoint("TOPRIGHT", InspectFrame.Inset, -4, 22)
+                button:SetPoint("TOPLEFT", prevSlot, "BOTTOMLEFT", 0, -6)
             end
-        else
-            button:SetPoint("TOPLEFT", prevSlot, "BOTTOMLEFT", 0, -6)
         end
 
         if isLeftSide then
@@ -183,14 +236,22 @@ function private.AddOns.Blizzard_InspectUI()
 
     for i = 1, #WeaponSlots do
         local button = _G[WeaponSlots[i]]
+        if button then
+            if i == 1 and not private.isForever then
+                -- main hand
+                button:SetPoint("BOTTOMLEFT", 130, 8)
+            end
 
-        if i == 1 then
-            -- main hand
-            button:SetPoint("BOTTOMLEFT", 130, 8)
+            -- Retail's last region is the Char-Slot-Bottom-Left backing art,
+            -- which Camelot's template does not carry; picking by index there
+            -- would hide whichever region happens to be last instead. The
+            -- Camelot border is handled by atlas in the slot skin.
+            if not private.isForever then
+                _G.select(button:GetNumRegions(), button:GetRegions()):Hide()
+            end
+
+            Skin.InspectPaperDollItemSlotButtonBottomTemplate(button)
         end
-
-        _G.select(button:GetNumRegions(), button:GetRegions()):Hide()
-        Skin.InspectPaperDollItemSlotButtonBottomTemplate(button)
     end
 
     ----====#####################====----
