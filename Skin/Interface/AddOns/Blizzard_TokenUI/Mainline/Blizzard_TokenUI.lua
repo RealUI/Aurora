@@ -124,6 +124,27 @@ function private.FrameXML.Blizzard_TokenUI()
         Skin.UIPanelCloseButton(TokenFramePopup["$parent.CloseButton"])
     end
 
+    -- Camelot replaces the popup with TokenDetailFrame, a
+    -- CharacterFrameSidePaneTemplate that slides into the character frame's
+    -- right pane -- the same shape as its ReputationDetailFrame and
+    -- SkillDetailFrame. No border, no title, no close button, and nothing to
+    -- re-anchor: the pane owns its own geometry.
+    local TokenDetailFrame = _G.TokenDetailFrame
+    if TokenDetailFrame then
+        -- Both are bare CheckButtons carrying checkbox-minimal /
+        -- checkmark-minimal atlases, byte-for-byte the shape
+        -- Skin.UICheckButtonTemplate already handles on the reputation pane.
+        if TokenDetailFrame.InactiveCheckbox then
+            Skin.UICheckButtonTemplate(TokenDetailFrame.InactiveCheckbox)
+        end
+        if TokenDetailFrame.BackpackCheckbox then
+            Skin.UICheckButtonTemplate(TokenDetailFrame.BackpackCheckbox)
+        end
+        if TokenDetailFrame.CurrencyTransferToggleButton then
+            Skin.UIPanelButtonTemplate(TokenDetailFrame.CurrencyTransferToggleButton)
+        end
+    end
+
     local CurrencyTransferMenu = _G.CurrencyTransferMenu
     Skin.DialogBorderNoCenterTemplate(CurrencyTransferMenu.NineSlice)
     Skin.UIPanelButtonTemplate(CurrencyTransferMenu.Content.AmountSelector.MaxQuantityButton)
