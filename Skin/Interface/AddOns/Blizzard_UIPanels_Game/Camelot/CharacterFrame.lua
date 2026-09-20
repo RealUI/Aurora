@@ -127,6 +127,37 @@ function private.FrameXML.CharacterFrame()
         end
     end
 
+    -- The live stats UI ---------------------------------------------------
+    -- On Camelot the visible stats are pooled elements in
+    -- CharacterStatsPaneScrollBox, not the CharacterStatsPane block below --
+    -- that frame is hidden="true" here, the legacy path. The element templates
+    -- reuse the same Background/Title/Value keys the two template functions
+    -- above already handle, so the work is getting them applied as the
+    -- ScrollBox creates elements, the same way the reputation rows are done.
+    --
+    -- Hooking the mixin tables works because the ScrollBox creates elements
+    -- lazily, after this runs. Only two hooks are needed:
+    -- CharacterStatFrameScrollBoxIconElementMixin:Init calls the base mixin's
+    -- Init by table lookup, so Icon and Label elements both come through it.
+    local function HookStatElement(mixin, skinFunc)
+        if not mixin or not mixin.Init or not skinFunc then return end
+
+        _G.hooksecurefunc(mixin, "Init", function(element)
+            if private.IsSkinned(element) then return end
+            private.SetSkinned(element, true)
+            skinFunc(element)
+        end)
+    end
+
+    -- Blizzard's base Init does Background:SetShown(statIndex % 2 == 1) for the
+    -- alternating stripe, and runs before this hook, so it keeps driving which
+    -- rows show a stripe while the skin only changes what the stripe looks like.
+    HookStatElement(_G.CharacterStatFrameCategoryScrollBoxElementMixin,
+        Skin.CharacterStatFrameCategoryTemplate)
+    HookStatElement(_G.CharacterStatFrameScrollBoxBaseElementMixin,
+        Skin.CharacterStatFrameTemplate)
+
+    -- Legacy, kept guarded: hidden on Camelot, but harmless if ever shown.
     local CharacterStatsPane = _G.CharacterStatsPane
     if CharacterStatsPane then
         local ItemLevelFrame = CharacterStatsPane.ItemLevelFrame
