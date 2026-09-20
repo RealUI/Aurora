@@ -140,8 +140,9 @@ function private.FrameXML.BankFrame()
     local function SkinBankPageTab(tab)
         if private.IsSkinned(tab) then return end
         private.SetSkinned(tab, true)
+        -- BankPageTabTemplate adds only KeyValues over LargeSideTabButtonTemplate,
+        -- so the shared side-tab skin covers it -- icon cropping included.
         Skin.LargeSideTabButtonTemplate(tab)
-        if tab.Icon then Base.CropIcon(tab.Icon, tab) end
     end
 
     BankPanel:HookScript("OnShow", function(self)
