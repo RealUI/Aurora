@@ -192,6 +192,48 @@ def section_3(fv):
         print(f"  {entry}")
     print(f"\n  {len(dead)} inactive {game} entries")
 
+    # The list above only covers addons Aurora expands into one skin file per
+    # Blizzard source file. A *collapsed* addon (not in uxm.aurora_addons) gets
+    # a single manifest entry for the whole addon, so its [Game] files never
+    # appear as entries at all and were invisible here. Report them separately:
+    # a collapsed addon's skin does load, but it was written against the
+    # [Family] sources and knows nothing about what the overlay adds.
+    # Only the names the overlay *adds* are worth printing. A [Game] XML that
+    # re-declares the same frames as its [Family] counterpart is covered by the
+    # collapsed addon's existing skin, and by section 5 if it drops anything;
+    # a name that exists nowhere in the [Family] tree has no skin at all.
+    cfg = uxm.flavors[TARGET]
+    base = os.path.join(cfg['tree'], 'Interface', 'AddOns')
+    family = cfg['family']
+    hidden, with_frames = [], 0
+    for addon, (_, files) in sorted(fv.items()):
+        if addon in uxm.aurora_addons:
+            continue
+        known = set()
+        for root, _dirs, names in os.walk(os.path.join(base, addon)):
+            if f"{os.sep}{game}" in f"{os.sep}{os.path.relpath(root, os.path.join(base, addon))}":
+                continue
+            for name in names:
+                if name.lower().endswith('.xml'):
+                    known |= frame_names(os.path.join(root, name))
+        for rel in files:
+            if not rel.lower().startswith(f"{game}\\".lower()):
+                continue
+            added = set()
+            if rel.lower().endswith('.xml'):
+                added = frame_names(os.path.join(base, addon, rel.replace('\\', os.sep))) - known
+            if added:
+                with_frames += 1
+            hidden.append((addon, rel, sorted(added)))
+
+    print(f"\n  ...plus {len(hidden)} {game} file(s) in collapsed addons, which have no")
+    print(f"  manifest entry of their own. {with_frames} declare frames the {family} tree")
+    print(f"  does not, so no skin covers them (a name {family} also has is skinned by")
+    print("  the addon's single skin file, and section 5 catches what the overlay drops):")
+    for addon, rel, added in hidden:
+        mark = f"  <-- new: {', '.join(added)}" if added else ""
+        print(f"    {addon}\\{rel}{mark}")
+
 
 def section_4(ml, fv):
     header(4, 'True regressions (skinned on the baseline, unskinned on the target)')
