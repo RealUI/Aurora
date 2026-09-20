@@ -119,9 +119,16 @@ def tree_words(flavor, loads):
     wall of false positives (AdventureMapMixin, GarrisonLandingPageMixin and
     LandingSoulbind were all flagged this way before this was fixed).
     """
+    words = set()
+    for _path, text in loaded_files(flavor, loads):
+        words.update(re.findall(r'[A-Za-z_][A-Za-z0-9_]*', text))
+    return words
+
+
+def loaded_files(flavor, loads):
+    """Yield (path, text) for every file that flavor's client loads."""
     cfg = uxm.flavors[flavor]
     base = os.path.join(cfg['tree'], 'Interface', 'AddOns')
-    words = set()
     seen = set()
 
     def absorb(path):
@@ -132,15 +139,33 @@ def tree_words(flavor, loads):
         seen.add(key)
         with open(path, 'r', encoding='utf-8', errors='replace') as file:
             text = file.read()
-        words.update(re.findall(r'[A-Za-z_][A-Za-z0-9_]*', text))
+        yield path, text
         if path.lower().endswith('.xml'):
             for ref in xml_include.findall(text):
-                absorb(os.path.join(os.path.dirname(path), ref.replace('\\', os.sep)))
+                for item in absorb(os.path.join(os.path.dirname(path), ref.replace('\\', os.sep))):
+                    yield item
 
     for addon, (_, files) in loads.items():
         for rel in files:
-            absorb(os.path.join(base, addon, rel.replace('\\', os.sep)))
-    return words
+            for item in absorb(os.path.join(base, addon, rel.replace('\\', os.sep))):
+                yield item
+
+
+# A bare `function Name(` or `Name = function(` at the start of a line: the two
+# forms Blizzard uses for a global function. Methods (Mixin:Method, tbl.field)
+# are excluded by requiring no dot or colon in the name.
+global_func_def = re.compile(
+    r'^[ \t]*(?:function[ \t]+([A-Za-z_][A-Za-z0-9_]*)[ \t]*\('
+    r'|([A-Za-z_][A-Za-z0-9_]*)[ \t]*=[ \t]*function[ \t]*\()', re.MULTILINE)
+
+
+def tree_global_funcs(flavor, loads):
+    """Names defined as global Lua functions in what that client loads."""
+    names = set()
+    for _path, text in loaded_files(flavor, loads):
+        for bare, assigned in global_func_def.findall(strip_lua_comments(text)):
+            names.add(bare or assigned)
+    return names
 
 
 def header(number, title):
@@ -302,6 +327,47 @@ def section_6(ml, fv):
         for name in missing:
             print(f"      {name}")
     print(f"\n  {len(rows)} skins, {sum(len(r[1]) for r in rows)} symbols")
+
+    # hooksecurefunc("Name", ...) passes the global as a *string*, so the _G.
+    # scan above cannot see it -- and an absent name does not fail softly:
+    # hooksecurefunc throws "Name is not a function" and takes the rest of the
+    # skin with it. This has now cost two whole surfaces (aurora.lua's
+    # CharacterFrame hook in phase 1, InspectPaperDollFrame_OnShow in T3.1b),
+    # so it gets its own test: the name must be defined as a global function in
+    # what the target actually loads.
+    target_funcs = tree_global_funcs(TARGET, fv)
+    baseline_funcs = tree_global_funcs(BASELINE, ml)
+    hook_rows, guarded_count = [], 0
+    for entry, text in enabled_skin_sources(TARGET).items():
+        body = strip_lua_comments(text)
+        hooked = set(re.findall(r'hooksecurefunc\s*\(\s*["\']([A-Za-z_][A-Za-z0-9_]*)["\']', body))
+        missing = []
+        for name in sorted(n for n in hooked if n not in target_funcs):
+            # Aurora's convention for this is `if type(_G.Name) == "function"`,
+            # as in aurora.lua's five FrameXML hooks. Treat a name tested that
+            # way anywhere in the file as handled, so a fixed call stops
+            # showing up and the list keeps meaning "still to do".
+            if re.search(r'type\s*\(\s*(?:_G\.)?' + re.escape(name) + r'\s*\)', body):
+                guarded_count += 1
+            else:
+                missing.append(name)
+        if missing:
+            hook_rows.append((entry, missing))
+
+    print(f"\n  Named hooksecurefunc targets the {TARGET} tree does not define as")
+    print("  global functions (each one aborts its skin, not just the hook).")
+    print(f"  {guarded_count} more are already behind a type() guard and not listed:")
+    for entry, missing in sorted(hook_rows, key=lambda row: -len(row[1])):
+        print(f"\n    {entry}   ({len(missing)})")
+        for name in missing:
+            note = "" if name in baseline_funcs else f"   (nor on {BASELINE} -- likely already dead)"
+            print(f"        {name}{note}")
+    regressions = sum(1 for _e, names in hook_rows for n in names if n in baseline_funcs)
+    total = sum(len(r[1]) for r in hook_rows)
+    print(f"\n  {len(hook_rows)} skins, {total} hook names, of which {regressions} are")
+    print(f"  defined on {BASELINE} and so are real {TARGET} regressions. The rest are")
+    print(f"  dead on both; check each for a flavor branch (private.isClassic, the")
+    print("  non-retail arm of an isRetail if) before adding a type() guard.")
 
 
 def section_7(ml, fv):
