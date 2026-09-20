@@ -630,7 +630,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_SpellDiminishUI\Blizzard_SpellDiminishUI.lua"/>
     <!--Script file="Blizzard_SpellSearch\Blizzard_SpellSearch.lua"/-->
     <Script file="Blizzard_SplashFrame\Mainline\Blizzard_SplashFrame.lua"/>
-    <Script file="Blizzard_StableUI\Blizzard_StableUI.lua"/>
+    <Script file="Blizzard_StableUI\Camelot\Blizzard_StableUI.lua"/>
     <Script file="Blizzard_StaticPopup\Mainline\Blizzard_StaticPopup.lua"/>
     <!-- This section is added for Blizzard_StaticPopup_Game by the Aurora XML Updater -->
     <!--Script file="Blizzard_StaticPopup_Game\GameDialogDefsUtil.lua"/-->
