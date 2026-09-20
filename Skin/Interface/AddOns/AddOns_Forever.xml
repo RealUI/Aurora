@@ -679,7 +679,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanels_Game\Mainline\AzeritePaperDollItemOverlay.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Mainline\PaperDollFrameConstants.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Camelot\PaperDollFrameConstants.lua"/--><!-- additive -->
-    <!--Script file="Blizzard_UIPanels_Game\Camelot\PaperDollFrame.lua"/--><!-- replacement -->
+    <Script file="Blizzard_UIPanels_Game\Camelot\PaperDollFrame.lua"/><!-- replacement -->
     <!--Script file="Blizzard_UIPanels_Game\Shared\PaperDollFrameStats.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Vanilla\PaperDollFrameStats.lua"/-->
     <!--Script file="Blizzard_UIPanels_Game\Cata\PaperDollFrameStats.lua"/-->
