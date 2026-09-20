@@ -33,14 +33,13 @@ function private.FrameXML.ReputationFrame()
     end
 
     Skin.WowScrollBoxList(ReputationFrame.ScrollBox)
-
-    local leftPane = _G.CharacterFrameLeftPaneHost
-        or (_G.CharacterFrame and _G.CharacterFrame.LeftPaneHost)
-    if leftPane then
-        ReputationFrame.ScrollBox:SetPoint("TOPLEFT", leftPane, 4, -26)
-    end
-
     Skin.MinimalScrollBar(ReputationFrame.ScrollBar)
+
+    -- Not re-anchored. The Mainline skin pins the ScrollBox to
+    -- CharacterFrame.Inset with offsets measured against the frame Aurora
+    -- reshapes there; Camelot keeps Blizzard's own pane geometry, and a
+    -- partial re-anchor onto LeftPaneHost only distorts it. Same rule as the
+    -- Camelot PaperDollFrame skin.
 
     ---------------------------
     -- ReputationDetailFrame --
