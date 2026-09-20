@@ -82,6 +82,15 @@ do --[[ FrameXML\PaperDollFrame.xml ]]
                 slotFrame:Hide()
             end
 
+            -- Camelot puts its slot border in a child Frame instead: a
+            -- parentKey="BorderFrame" holding a UI-Character-Info-GearSlot
+            -- texture. It is not a region of the button, so FrameTypeItemButton
+            -- never touches it and the gold border survived the skin. Retail has
+            -- no BorderFrame at all.
+            if ItemButton.BorderFrame then
+                ItemButton.BorderFrame:Hide()
+            end
+
             if ItemButton.popoutButton then
                 if ItemButton.verticalFlyout then
                     ItemButton.popoutButton:SetPoint("TOP", ItemButton, "BOTTOM")
