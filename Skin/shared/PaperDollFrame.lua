@@ -88,13 +88,27 @@ do --[[ FrameXML\PaperDollFrame.xml ]]
                 slotFrame:Hide()
             end
 
-            -- Camelot puts its slot border in a child Frame instead: a
-            -- parentKey="BorderFrame" holding a UI-Character-Info-GearSlot
-            -- texture. It is not a region of the button, so FrameTypeItemButton
-            -- never touches it and the gold border survived the skin. Retail has
-            -- no BorderFrame at all.
+            -- Camelot draws a gold slot border that FrameTypeItemButton never
+            -- touches, in one of two places depending on the slot:
+            --   * most slots: a parentKey="BorderFrame" child holding a
+            --     UI-Character-Info-GearSlot texture -- not a region of the
+            --     button at all;
+            --   * CharacterAmmoSlot, a bare <ItemButton> with no inherits: an
+            --     unnamed UI-Character-Info-GearSlotSmall texture on the
+            --     button's own BACKGROUND layer.
+            -- Match the atlas rather than the structure, so both are covered
+            -- and neither depends on a parentKey. Retail uses neither atlas.
             if ItemButton.BorderFrame then
                 ItemButton.BorderFrame:Hide()
+            end
+
+            for _, region in next, {ItemButton:GetRegions()} do
+                if region:IsObjectType("Texture") then
+                    local atlas = region:GetAtlas()
+                    if atlas and atlas:find("UI%-Character%-Info%-GearSlot") then
+                        region:Hide()
+                    end
+                end
             end
 
             if ItemButton.popoutButton then
