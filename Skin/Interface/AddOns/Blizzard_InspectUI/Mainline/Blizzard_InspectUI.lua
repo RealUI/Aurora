@@ -165,7 +165,16 @@ function private.AddOns.Blizzard_InspectUI()
     ----====#####################====----
     --      InspectPaperDollFrame      --
     ----====#####################====----
-    _G.hooksecurefunc("InspectPaperDollFrame_OnShow", Hook.InspectPaperDollFrame_OnShow)
+    -- Camelot moved this to InspectPaperDollFrameMixin:OnShow and deleted the
+    -- global, so hooksecurefunc by name throws "is not a function" -- which
+    -- aborted the whole skin before the slot loop, leaving the panel skinned
+    -- and everything inside it stock. Blizzard left three call sites behind
+    -- (Camelot\Blizzard_InspectUI.lua:153 among them), so the global's absence
+    -- is their bug, not a rename Aurora should follow; the HookScript below
+    -- covers Forever on its own.
+    if type(_G.InspectPaperDollFrame_OnShow) == "function" then
+        _G.hooksecurefunc("InspectPaperDollFrame_OnShow", Hook.InspectPaperDollFrame_OnShow)
+    end
 
     local InspectPaperDollFrame = _G.InspectPaperDollFrame
     InspectPaperDollFrame:HookScript("OnShow", Hook.InspectPaperDollFrame_OnShow)
