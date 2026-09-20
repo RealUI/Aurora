@@ -17,18 +17,19 @@ local Hook, Skin = Aurora.Hook, Aurora.Skin
 --    are gone -- Camelot's PaperDollFrame.xml replaces the Mainline one outright.
 --  * PaperDollSidebarTabs has no DecorLeft/DecorRight.
 --
--- Slot positions are deliberately left as Blizzard lays them out. The Mainline
--- skin re-anchors all eighteen to CharacterFrame.Inset because Aurora reshapes
--- that frame; here the panes keep Blizzard's own geometry, and forcing retail
--- offsets onto a 398-wide LeftPaneHost would be guesswork. Revisit once the
--- panel has been looked at in-game.
+-- NOTHING here is re-anchored. The Mainline skin repositions the slots, the
+-- sidebar tabs, the model scene and the level text because Aurora reshapes
+-- CharacterFrame.Inset and measures those offsets against it. Camelot keeps
+-- Blizzard's own pane geometry, so the same offsets land wrong: a first pass
+-- that did re-anchor the sidebar tabs and the model scene pushed the tabs
+-- clean outside the panel. Skin in place; revisit positioning only with the
+-- panel in front of you.
 
 function private.FrameXML.PaperDollFrame()
     _G.hooksecurefunc("PaperDollFrame_SetLevel", Hook.PaperDollFrame_SetLevel)
 
     local CharacterFrame = _G.CharacterFrame
     local leftPane = CharacterFrame.LeftPaneHost
-    local rightPane = CharacterFrame.RightPaneHost
 
     -- Class art behind the model, as on retail but bounded by the left pane.
     local bg = CharacterFrame.NineSlice and CharacterFrame.NineSlice:GetBackdropTexture("bg")
@@ -47,10 +48,8 @@ function private.FrameXML.PaperDollFrame()
 
     local SidebarTabs = _G.PaperDollSidebarTabs
     if SidebarTabs then
-        if rightPane then
-            SidebarTabs:ClearAllPoints()
-            SidebarTabs:SetPoint("BOTTOM", rightPane, "TOP", 0, -3)
-        end
+        -- Not re-anchored: see the header. Pinning these to RightPaneHost's TOP
+        -- put them outside the panel entirely.
         -- Camelot drops the decorative end caps.
         if SidebarTabs.DecorLeft then SidebarTabs.DecorLeft:Hide() end
         if SidebarTabs.DecorRight then SidebarTabs.DecorRight:Hide() end
@@ -58,10 +57,9 @@ function private.FrameXML.PaperDollFrame()
 
     private.SharedSkins.PaperDollPanes()
 
-    if leftPane then
-        _G.CharacterModelScene:SetPoint("TOPLEFT", leftPane, 45, -10)
-        _G.CharacterModelScene:SetPoint("BOTTOMRIGHT", leftPane, -45, 30)
-    end
+    -- CharacterModelScene is not re-anchored either. The retail insets
+    -- (45/-10, -45/30) are measured against CharacterFrame.Inset; applying them
+    -- to the differently proportioned LeftPaneHost just misplaces the model.
 
     -- Corner art around the model: still present on Camelot.
     for _, corner in next, {"TopLeft", "TopRight", "BotLeft", "BotRight"} do
