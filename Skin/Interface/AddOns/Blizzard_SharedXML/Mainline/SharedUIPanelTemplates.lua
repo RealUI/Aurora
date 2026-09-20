@@ -874,6 +874,25 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         -- is wanted here: a plain square icon like every other Aurora one.
         Base.CropIcon(Frame.Icon, Frame)
 
+        -- ...but the crop does not stay applied. SidePanelTabButtonMixin's
+        -- UpdateIconInterior re-sets the texcoords to 0.03125/0.96875 whenever
+        -- fillToInterior is on, and SetChecked calls it last on every state
+        -- change. That shallower crop leaves each icon's own bevelled edge
+        -- showing, which reads as a gold border around every tab. Re-apply
+        -- Aurora's crop after Blizzard's.
+        --
+        -- Hooked per frame, not on the mixin table: Mixin() copies the method
+        -- onto each frame at creation, so a table hook would never be seen by
+        -- frames that already exist.
+        if Frame.UpdateIconInterior and not Frame._auroraIconCropHooked then
+            Frame._auroraIconCropHooked = true
+            _G.hooksecurefunc(Frame, "UpdateIconInterior", function(self)
+                if self.fillToInterior and self.Icon then
+                    self.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+                end
+            end)
+        end
+
         Base.SetBackdrop(Frame, Color.button)
     end
 
