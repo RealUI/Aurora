@@ -3,6 +3,7 @@ if private.shouldSkip() then return end
 
 local Aurora = private.Aurora
 local Base = Aurora.Base
+local Util = Aurora.Util
 
 --------------------------------------------------------------------------------
 -- Helpers
@@ -59,6 +60,40 @@ local function SkinAuras(unitFrame)
 end
 
 -- Skin a single nameplate unit frame (the UnitFrame child of the base nameplate)
+-- The level badge beside the health bar. Camelot replaces
+-- Blizzard_NamePlateLevelFrame.xml wholesale: retail's version is a single
+-- plunderstorm-nameplates-icon-ring behind the level text, while Camelot's is
+-- the classic indicator -- ui-hud-nameplates-levelindicator, plus a
+-- selectedBorder for the current target and a skull for out-of-range levels.
+--
+-- TAINT-SAFE, for the reason at the top of this file: this frame belongs to the
+-- restricted nameplate system, so Base.SetBackdrop must not be used on it. It
+-- writes BackdropMixin methods and _backdropInfo straight onto the frame table,
+-- and that taint resurfaces as "secret number value" errors on the next
+-- nameplate reuse cycle. So no Aurora backdrop here -- widget calls only, the
+-- same constraint SkinBar is nop'd for and that Skin.StatusTrackingBarTemplate
+-- works under. The badge ends up as plain level text rather than a framed one.
+--
+-- Gated on selectedBorder rather than on the flavor: it exists only in the
+-- Camelot copy, so retail's badge is left exactly as it is.
+local function SkinLevelDiff(Frame)
+    if not Frame or not Frame.selectedBorder then return end
+
+    -- No private.SetSkinned here either: that writes to the frame table. The
+    -- calls below are idempotent, so re-running on nameplate reuse is harmless.
+    if Frame.playerLevelDiffIcon then
+        Frame.playerLevelDiffIcon:SetAlpha(0)
+    end
+
+    -- selectedBorder marks the current target, so it keeps its role and only
+    -- loses Blizzard's colour.
+    Util.SetHighlightColor(Frame.selectedBorder, 0.5)
+
+    -- Kept: playerLevelDiffText carries the level and is coloured by
+    -- difficulty, and highLevelTexture is the skull shown when the level is
+    -- unknowable. Both are content, not decoration.
+end
+
 local function SkinUnitFrame(unitFrame)
     if not unitFrame then return end
     if unitFrame.IsForbidden and unitFrame:IsForbidden() then return end
@@ -82,6 +117,8 @@ local function SkinUnitFrame(unitFrame)
 
     -- Aura icons (initial pass — dynamic auras are re-skinned via RefreshAuras hook)
     SkinAuras(unitFrame)
+
+    SkinLevelDiff(unitFrame.PlayerLevelDiffFrame)
 end
 
 --------------------------------------------------------------------------------
