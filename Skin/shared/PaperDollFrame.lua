@@ -66,7 +66,13 @@ do --[[ FrameXML\PaperDollFrame.xml ]]
         -- Loads on Camelot too: its TOC line is [AllowLoadGameType mainline] and
         -- Camelot is mainline-family, so RankFrame is present on both.
         function Skin.PaperDollAzeriteItemOverlayTemplate(Frame)
-            Frame.RankFrame.Label:SetPoint("CENTER", Frame.RankFrame.Texture, 0, 0)
+            -- Guarded: Camelot's CharacterAmmoSlot is a bare <ItemButton> with
+            -- no inherits at all, so it has no RankFrame. Every other slot
+            -- inherits PaperDollAzeriteItemOverlayTemplate and does.
+            local RankFrame = Frame.RankFrame
+            if not RankFrame then return end
+
+            RankFrame.Label:SetPoint("CENTER", RankFrame.Texture, 0, 0)
         end
     end
     do --[[ PaperDollFrame.xml ]]
