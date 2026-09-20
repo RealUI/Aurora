@@ -11,6 +11,9 @@ local Skin = Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
 do --[[ Blizzard_SharedXML\Mainline\TabSystem\TabSystemTemplates.lua ]]
+    -- Side of a square icon tab, replacing Blizzard's 44x32. Tune here.
+    local ICON_TAB_SIZE = 24
+
     function Skin.TabSystemButtonTemplate(Button)
         Skin.FrameTypeButton(Button)
         Button:SetButtonColor(Color.button, Util.GetFrameAlpha(), false)
@@ -61,25 +64,38 @@ do --[[ Blizzard_SharedXML\Mainline\TabSystem\TabSystemTemplates.lua ]]
 
             -- TabSystemButtonArtMixin:SetTabSelected re-adds a CENTER point to
             -- Icon on every select *and* deselect, which conflicts with a
-            -- TOPLEFT/BOTTOMRIGHT fit set once. Re-apply the fit after it.
-            local function FitIcon()
+            -- TOPLEFT/BOTTOMRIGHT fit set once, so the fit has to be re-applied
+            -- after it. The square art is re-zeroed in the same pass: the tab
+            -- pool hands the same button back on RemoveAllTabs/AddTab and Init
+            -- runs SetSquareMode again, so a once-only SetAlpha(0) is not
+            -- enough -- the selected tab kept showing its glow plate.
+            local function ReapplySquare()
+                for _, key in next, {"SquareBackground", "SquareBackgroundActive",
+                                     "SquareBackgroundActiveGlow"} do
+                    local region = Button[key]
+                    if region then region:SetAlpha(0) end
+                end
+
                 Icon:ClearAllPoints()
                 Icon:SetPoint("TOPLEFT", bg, 2, -2)
                 Icon:SetPoint("BOTTOMRIGHT", bg, -2, 2)
             end
-            FitIcon()
+            ReapplySquare()
             if Button.SetTabSelected then
-                _G.hooksecurefunc(Button, "SetTabSelected", FitIcon)
+                _G.hooksecurefunc(Button, "SetTabSelected", ReapplySquare)
             end
 
             -- UpdateTabWidth gives an icon tab Icon:GetWidth() + 8, so 44 wide
             -- against a 32 tall button. Blizzard gets away with it because the
             -- 36x35 icon keeps its own size and sits centred inside; filling an
             -- Aurora backdrop with it instead stretched every icon sideways.
-            -- Square the tab off -- which is the look wanted here anyway.
+            -- Square the tab off -- which is the look wanted here anyway -- and
+            -- take it down from Blizzard's 32: the icon fills an Aurora tab
+            -- edge to edge, so the same box reads much heavier than it does
+            -- with a 36x35 icon floating in it.
             if Button.UpdateTabWidth then
                 _G.hooksecurefunc(Button, "UpdateTabWidth", function(self)
-                    self:SetWidth(self:GetHeight())
+                    self:SetSize(ICON_TAB_SIZE, ICON_TAB_SIZE)
                 end)
                 Button:UpdateTabWidth()
             end
