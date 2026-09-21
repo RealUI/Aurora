@@ -8,7 +8,7 @@ if private.shouldSkip() then return end
 local Aurora = private.Aurora
 local Base = Aurora.Base
 local Skin = Aurora.Skin
-local Color, Util = Aurora.Color, Aurora.Util
+local Color = Aurora.Color
 
 -- Forever-only addon (## AllowLoadGameType: camelot), LoadOnDemand: the Legacy
 -- system -- the "Progress Track" window. Three pages behind side tabs: a reward
