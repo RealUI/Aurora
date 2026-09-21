@@ -25,6 +25,23 @@ local function SkinScrollBar(ScrollBar)
     end
 end
 
+-- LFGVanillaTabButtonTemplate has a different base per flavor: the classic
+-- clients load Classic\LFGVanillaTabTemplates.xml, where it inherits
+-- CharacterFrameTabButtonTemplate, while Forever loads Mainline\Templates.xml,
+-- where it inherits PanelTabButtonTemplate. Aurora's
+-- Skin.CharacterFrameTabButtonTemplate is also only registered by the
+-- Cata/Classic FrameXML skins, which the Forever manifest does not include.
+-- Kept out of the addon function: inlined, the and/or pick tipped it over the
+-- cyclomatic complexity limit.
+local function SkinTab(Tab)
+    if not Tab then return end
+    if private.isForever then
+        Skin.PanelTabButtonTemplate(Tab)
+    else
+        Skin.CharacterFrameTabButtonTemplate(Tab)
+    end
+end
+
 --[[ Vanilla-style Group Finder (era-only addon).
     Evidence: wow-ui-source-era/Interface/AddOns/Blizzard_GroupFinder_VanillaStyle/
     Blizzard_LFGVanilla_{ParentFrame,Browse,Listing}.xml — LFGParentFrame is a
@@ -131,14 +148,6 @@ function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
         bottom = 74,
     })
 
-    -- LFGVanillaTabButtonTemplate has a different base per flavor: the classic
-    -- clients load Classic\LFGVanillaTabTemplates.xml, where it inherits
-    -- CharacterFrameTabButtonTemplate, while Forever loads Mainline\Templates.xml,
-    -- where it inherits PanelTabButtonTemplate. Aurora's
-    -- Skin.CharacterFrameTabButtonTemplate is also only registered by the
-    -- Cata/Classic FrameXML skins, which the Forever manifest does not include.
-    local SkinTab = private.isForever and Skin.PanelTabButtonTemplate
-        or Skin.CharacterFrameTabButtonTemplate
     SkinTab(_G.LFGParentFrameTab1)
     SkinTab(_G.LFGParentFrameTab2)
 
