@@ -25,6 +25,10 @@ private.isMists = _G.WOW_PROJECT_ID == (_G.WOW_PROJECT_MISTS_CLASSIC or 19)
 private.isClassic = not private.isRetail
 private.isMidnight = private.isRetail and interfaceVersion >= 120000
 private.isBetaBuild = private.isRetail and interfaceVersion >= 130000
+-- Forever's UI is 12.1-derived but reports interface 16001, so isMidnight is
+-- false there. Gate "the 12.x code path exists" on isTwelveAPI; keep
+-- isMidnight for Midnight content that Forever does not have.
+private.isTwelveAPI = private.isMidnight or private.isForever
 
 
 local debugProjectID = {

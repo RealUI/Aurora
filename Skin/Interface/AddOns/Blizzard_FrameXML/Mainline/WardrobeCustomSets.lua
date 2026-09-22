@@ -54,7 +54,9 @@ do --[[ FrameXML\WardrobeCustomSets.xml ]]
 end
 
 function private.FrameXML.WardrobeCustomSets()
-    if not private.isMidnight then
+    -- Forever ships the same 12.x WardrobeCustomSets as live, so the skip
+    -- applies there too.
+    if not private.isTwelveAPI then
         local WardrobeCustomSetEditFrame = _G.WardrobeCustomSetEditFrame
         if WardrobeCustomSetEditFrame then
             Skin.DialogBorderTemplate(WardrobeCustomSetEditFrame.Border)
