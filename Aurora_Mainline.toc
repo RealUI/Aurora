@@ -4,7 +4,7 @@
 ## IconAtlas: callings-backhighlight-full
 ## Notes: Minimalistic window theme.
 ## Author: Haleth/Lightsword, Gethe, Hanshi/arnvid
-## Version: 12.1.0.9
+## Version: 12.1.0.10
 ## RequiredDeps: Blizzard_Deprecated, Blizzard_DeprecatedCurrencyScript, Blizzard_DeprecatedGuildScript, Blizzard_DeprecatedItemScript, Blizzard_DeprecatedPvpScript, Blizzard_DeprecatedSoundScript, Blizzard_DeprecatedSpellScript [AllowLoadGameType standard]
 ## OptionalDeps: Ace3, LibTextDump-1.0, BugSack, WagoAnalytics
 ## LoadWith: Blizzard_EncounterJournal [AllowLoadGameType standard]
