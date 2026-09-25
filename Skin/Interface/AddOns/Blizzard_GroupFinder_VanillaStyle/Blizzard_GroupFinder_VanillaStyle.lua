@@ -156,6 +156,25 @@ local function SkinWhoButton(Button)
     SkinSquareIconButton(Button.InviteButton)
 end
 
+-- Forever 70009 restyled the Mainline variant (LFGVANILLA_SETTING_MODERN_STYLE):
+-- each panel is now a PortraitFrameTemplateNoCloseButton filling the parent,
+-- whose NineSlice (frame level 500) drew Blizzard's metal border over Aurora's
+-- backdrop. Strip each panel's chrome so the parent's backdrop is the frame.
+-- SetAlpha, not Hide: NineSlice layouts re-show their pieces.
+local function StripPanel(Panel)
+    if not Panel then return end
+    for _, key in ipairs({"NineSlice", "Bg", "TopTileStreaks", "PortraitContainer", "BarTop", "BarMiddle"}) do
+        if Panel[key] then
+            Panel[key]:SetAlpha(0)
+        end
+    end
+    local Inset = Panel.Inset
+    if Inset then
+        if Inset.Border then Inset.Border:SetAlpha(0) end
+        if Inset.CustomBG then Inset.CustomBG:SetAlpha(0) end
+    end
+end
+
 -- Who tab (Tab3). Forever loads [Family]\WhoList.xml, where the Who list that
 -- Camelot cut from FriendsFrame lives now; restyled with a filter dropdown and
 -- per-row invite buttons in 1.60.1.70009. Kept out of the addon function for
@@ -165,6 +184,7 @@ local function SkinWhoList()
     if not Who then return end
 
     SkinTab(_G.LFGParentFrameTab3)
+    StripPanel(Who)
 
     for _, key in ipairs({"BackgroundArt", "headerBackground", "insideFrame", "BarTop", "BarMiddle"}) do
         if Who[key] then
@@ -186,6 +206,51 @@ local function SkinWhoList()
         _G.hooksecurefunc(Who.ScrollBox, "Update", function(self)
             self:ForEachFrame(SkinWhoButton)
         end)
+    end
+end
+
+-- Modern style only (Forever): the parts of the 70009 restyle outside the
+-- three panels' chrome. Kept out of the addon function for the complexity limit.
+local function SkinModernStyle(LFGParentFrame)
+    if not LFGParentFrame.ListingTab then return end
+
+    -- The panels fill the whole 458x535 frame now; the classic sheet's
+    -- art-bound offsets no longer apply.
+    LFGParentFrame:SetBackdropOption("offsets", {
+        left = 0,
+        right = 0,
+        top = 0,
+        bottom = 0,
+    })
+
+    -- Named now ($parentCloseButton), so the unnamed-child sweep misses it.
+    if _G.LFGParentFrameCloseButton then
+        Skin.UIPanelCloseButton(_G.LFGParentFrameCloseButton)
+    end
+
+    -- The bottom Tab1-3 are hidden in modern style; these right-side tabs
+    -- replace them.
+    Skin.LargeSideTabButtonTemplate(LFGParentFrame.ListingTab)
+    Skin.LargeSideTabButtonTemplate(LFGParentFrame.BrowsingTab)
+    Skin.LargeSideTabButtonTemplate(LFGParentFrame.WhoListingTab)
+
+    StripPanel(_G.LFGBrowseFrame)
+
+    local Listing = _G.LFGListingFrame
+    StripPanel(Listing)
+    if _G.LFGListingFrameRoleBackground then
+        _G.LFGListingFrameRoleBackground:SetAlpha(0) -- groupfinder-roles-background
+    end
+    if Listing.DividerFrame then
+        Listing.DividerFrame:SetAlpha(0) -- common-framedivider, metal
+    end
+    local ActivityView = Listing.ActivityView
+    if ActivityView then
+        if ActivityView.BarTop then ActivityView.BarTop:SetAlpha(0) end
+        local levelRanges = ActivityView.LevelRangesCheckbox
+        if levelRanges and levelRanges.Checkbox then
+            Skin.UICheckButtonTemplate(levelRanges.Checkbox)
+        end
     end
 end
 
@@ -343,4 +408,5 @@ function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
     end
 
     SkinWhoList()
+    SkinModernStyle(LFGParentFrame)
 end
