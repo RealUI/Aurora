@@ -100,6 +100,14 @@ local function SkinSearchEntry(Button)
     if not Button or private.IsSkinned(Button) then return end
     private.SetSkinned(Button, true)
 
+    -- Forever 70009 rows (entry, nested entry and grouping header) carry a
+    -- ResultBG list-button atlas; Aurora draws its own flat row instead.
+    if Button.ResultBG then
+        Button.ResultBG:SetAlpha(0)
+        -- list-row idiom, as the Communities roster rows
+        Base.SetBackdrop(Button, Aurora.Color.button, Aurora.Color.frame.a)
+    end
+
     -- groupfinder-highlightbar-yellow / -blue
     SkinHighlight(Button.Selected, 0.5)
     SkinHighlight(Button.Highlight, 0.2)
@@ -150,6 +158,12 @@ local function SkinWhoButton(Button)
     if not Button or private.IsSkinned(Button) then return end
     private.SetSkinned(Button, true)
 
+    -- Flat row like the Browse results (common-button-list-large art out)
+    if Button.Background then
+        Button.Background:SetAlpha(0)
+        Base.SetBackdrop(Button, Aurora.Color.button, Aurora.Color.frame.a)
+    end
+
     -- common-button-list-large-selected / -hover
     SkinHighlight(Button.Selected, 0.5)
     SkinHighlight(Button:GetHighlightTexture(), 0.2)
@@ -166,6 +180,15 @@ local function StripPanel(Panel)
     for _, key in ipairs({"NineSlice", "Bg", "TopTileStreaks", "PortraitContainer", "BarTop", "BarMiddle"}) do
         if Panel[key] then
             Panel[key]:SetAlpha(0)
+        end
+    end
+    -- LFGBrowseFrame redefines `Bg` (the header stone) under the template's
+    -- own name, $parentBg, which orphans the template's full-panel background:
+    -- neither .Bg nor the global points at it any more. Every BACKGROUND
+    -- texture the panel itself owns is art Aurora replaces, so sweep them.
+    for _, region in ipairs({Panel:GetRegions()}) do
+        if region:IsObjectType("Texture") and region:GetDrawLayer() == "BACKGROUND" then
+            region:SetAlpha(0)
         end
     end
     local Inset = Panel.Inset
