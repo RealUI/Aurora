@@ -100,7 +100,16 @@ function private.AddOns.Blizzard_MawBuffs()
     -- NOTE: this only silences the throw. It does NOT undo the tracker layout
     -- state poisoning that objective-tracker-taint.md describes; that is still
     -- what the Blizzard_ObjectiveTracker skin gate is waiting on.
-    if _G.C_Secrets and _G.C_Secrets.ShouldAurasBeSecret and _G.ShouldShowMawBuffs then
+    --
+    -- /aurora mawbuffs flips devRestoreMawBuffs to leave the global alone, so
+    -- LFR and delves can be run to see whether the tracker error still comes
+    -- back without the wrapper (Roadmap: the MawBuffs global write).
+    local restoreOriginal = _G.AuroraConfig and _G.AuroraConfig.devRestoreMawBuffs
+    if restoreOriginal then
+        _G.print("|cffffcc00Aurora:|r ShouldShowMawBuffs wrapper DISABLED (/aurora mawbuffs).")
+    end
+
+    if not restoreOriginal and _G.C_Secrets and _G.C_Secrets.ShouldAurasBeSecret and _G.ShouldShowMawBuffs then
         local origShouldShowMawBuffs = _G.ShouldShowMawBuffs
         _G.ShouldShowMawBuffs = function()
             if _G.C_Secrets.ShouldAurasBeSecret() then return false end

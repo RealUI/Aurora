@@ -64,6 +64,11 @@ Config.defaults = {
     -- reader, which blocks C_ItemUpgrade.UpgradeItem().  Toggle with
     -- /aurora insertframe to A/B whether the replacement is still needed.
     devRestoreInsertFrame = false,
+
+    -- DEV: leave Blizzard's ShouldShowMawBuffs alone instead of wrapping it.
+    -- Aurora owning that global taints it on the tracker's UNIT_AURA path.
+    -- Toggle with /aurora mawbuffs to A/B whether the wrapper is still needed.
+    devRestoreMawBuffs = false,
 }
 
 -- Deprecated settings mapping for migration

@@ -33,6 +33,7 @@ Aurora provides one base slash command with subcommands:
   * `/aurora debug` - show debug output (requires LibTextDump).
   * `/aurora reset` - reset Aurora configuration to defaults.
   * `/aurora insertframe` - diagnostic; see Developer Notes below.
+  * `/aurora mawbuffs` - diagnostic; see Developer Notes below.
 
 Slash commands live in `gui.lua`, which is only loaded when Aurora runs
 standalone. Hosts that embed Aurora typically include just the skin XML, so
@@ -70,6 +71,24 @@ notice at load so test runs are not misattributed.
 Under RealUI, `RealUI_Skins` embeds Aurora and mirrors this toggle as
 `/auroraInsertFrame`, writing to the same `AuroraConfig` key via its own
 profile store.
+
+**`ShouldShowMawBuffs`** — Aurora wraps this global to answer `false` while
+`C_Secrets.ShouldAurasBeSecret()` is true. Blizzard's version reads
+`C_UnitAuras.GetAuraDataByIndex("player", 1, "MAW")` unguarded, and under WoW
+12's secret-aura rules that read throws once addon code is in the execution.
+All three callers sit inside the objective tracker's update and layout, so the
+throw took the delve and LFR stage block down mid-layout.
+
+The cost is the same as above, on a hotter path: the global is read from the
+scenario tracker's `UNIT_AURA` handler, so every aura update carries Aurora's
+taint. A 4.0.1 field log measured it at a quarter of all taint-log lines.
+
+`/aurora mawbuffs` toggles `AuroraConfig.devRestoreMawBuffs` to leave
+Blizzard's original in place, so it can be measured whether the wrapper is
+still required. Exercise an LFR wing and a delve with the objective tracker
+visible, then compare the error count and a taint log against a run with the
+wrapper on. Requires `/reload`; Aurora prints a notice at load while the
+wrapper is off. Under RealUI the mirror is `/auroraMawBuffs`.
 
 
 Bug Reports

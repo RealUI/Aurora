@@ -985,6 +985,28 @@ end
 -- easy slash command
 private.commands = {}
 _G.SLASH_AURORA1 = "/aurora"
+-- DEV A/B: Aurora wraps the global ShouldShowMawBuffs, which taints it on the
+-- objective tracker's UNIT_AURA path. Toggle it off to test whether the
+-- tracker error in LFR and delves comes back without it. Kept out of the slash
+-- handler, which sits at the cyclomatic complexity limit.
+local function ToggleMawBuffs()
+    local config = _G.AuroraConfig
+    if not config then
+        _G.print("|cffff0000Aurora:|r Configuration not loaded.")
+        return
+    end
+
+    config.devRestoreMawBuffs = not config.devRestoreMawBuffs
+
+    if config.devRestoreMawBuffs then
+        _G.print("|cff00a0ffAurora:|r ShouldShowMawBuffs — using |cff00ff00Blizzard's original|r (global untainted).")
+        _G.print("  Exercise: an LFR wing and a delve, with the objective tracker visible.")
+    else
+        _G.print("|cff00a0ffAurora:|r ShouldShowMawBuffs — using |cffffcc00Aurora's wrapper|r (global tainted).")
+    end
+    _G.print("|cffffcc00Please type |r|cffffffff/reload|r|cffffcc00 to apply changes.|r")
+end
+
 _G.SlashCmdList.AURORA = function(msg, editBox)
     private.debug("/aurora", msg)
 
@@ -1041,6 +1063,7 @@ _G.SlashCmdList.AURORA = function(msg, editBox)
         _G.print("  |cffffffff/aurora status|r - Show system status")
         _G.print("  |cffffffff/aurora reset|r - Reset configuration to defaults and reload UI")
         _G.print("  |cffffffff/aurora insertframe|r - DEV: toggle the GameTooltip_InsertFrame replacement")
+        _G.print("  |cffffffff/aurora mawbuffs|r - DEV: toggle the ShouldShowMawBuffs wrapper")
     elseif msg == "insertframe" then
         -- DEV A/B: Aurora replaces the global GameTooltip_InsertFrame, which
         -- taints it for every secure reader and blocks C_ItemUpgrade.UpgradeItem().
@@ -1061,6 +1084,8 @@ _G.SlashCmdList.AURORA = function(msg, editBox)
             _G.print("|cff00a0ffAurora:|r GameTooltip_InsertFrame — using |cffffcc00Aurora's replacement|r (global tainted).")
         end
         _G.print("|cffffcc00Please type |r|cffffffff/reload|r|cffffcc00 to apply changes.|r")
+    elseif msg == "mawbuffs" then
+        ToggleMawBuffs()
     elseif msg == "reset" then
         -- Reset configuration to defaults and reload UI
         _G.print("|cff00a0ffAurora:|r Resetting configuration to defaults...")
