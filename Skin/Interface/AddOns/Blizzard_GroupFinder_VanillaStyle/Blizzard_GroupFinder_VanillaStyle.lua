@@ -136,6 +136,59 @@ local function SkinCategoryButton(Button)
     SkinHighlight(Button.HighlightTexture or Button:GetHighlightTexture(), 0.2)
 end
 
+-- Square icon buttons (common-button-tertiary-square-*): strip the frame
+-- states, keep the Icon. Same treatment as Browse's refresh button.
+local function SkinSquareIconButton(Button)
+    if not Button then return end
+    Button:SetNormalTexture("")
+    Button:SetPushedTexture("")
+    Button:ClearHighlightTexture()
+    Skin.FrameTypeButton(Button)
+end
+
+local function SkinWhoButton(Button)
+    if not Button or private.IsSkinned(Button) then return end
+    private.SetSkinned(Button, true)
+
+    -- common-button-list-large-selected / -hover
+    SkinHighlight(Button.Selected, 0.5)
+    SkinHighlight(Button:GetHighlightTexture(), 0.2)
+    SkinSquareIconButton(Button.InviteButton)
+end
+
+-- Who tab (Tab3). Forever loads [Family]\WhoList.xml, where the Who list that
+-- Camelot cut from FriendsFrame lives now; restyled with a filter dropdown and
+-- per-row invite buttons in 1.60.1.70009. Kept out of the addon function for
+-- the same complexity reason as SkinTab.
+local function SkinWhoList()
+    local Who = _G.LFGWhoListFrame
+    if not Who then return end
+
+    SkinTab(_G.LFGParentFrameTab3)
+
+    for _, key in ipairs({"BackgroundArt", "headerBackground", "insideFrame", "BarTop", "BarMiddle"}) do
+        if Who[key] then
+            Who[key]:SetAlpha(0)
+        end
+    end
+
+    if Who.EditBox then
+        Skin.SearchBoxTemplate(Who.EditBox)
+    end
+    SkinSquareIconButton(Who.WhoSearch)
+    if Who.FilterDropdown then
+        Skin.FilterButton(Who.FilterDropdown)
+    end
+
+    SkinScrollBar(Who.ScrollBar)
+    if Who.ScrollBox then
+        Skin.WowScrollBoxList(Who.ScrollBox)
+        _G.hooksecurefunc(Who.ScrollBox, "Update", function(self)
+            self:ForEachFrame(SkinWhoButton)
+        end)
+    end
+end
+
 function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
     local LFGParentFrame = _G.LFGParentFrame
 
@@ -288,4 +341,6 @@ function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
             SkinCategoryButton(button)
         end
     end
+
+    SkinWhoList()
 end
