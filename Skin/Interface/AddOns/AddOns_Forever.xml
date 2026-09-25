@@ -742,6 +742,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_UIPanelTemplates\Shared\UIPanelSpellButtonFrame.lua"/-->
     <!--Script file="Blizzard_UIPanelTemplates\Shared\UIPanelTemplatesShared.lua"/-->
     <Script file="Blizzard_UIPanelTemplates\Mainline\UIPanelTemplates.lua"/>
+    <!--Script file="Blizzard_UIPanelTemplates\Camelot\UIPanelTemplatesOverrides.lua"/--><!-- replacement -->
     <!-- End of section added for Blizzard_UIPanelTemplates by the Aurora XML Updater -->
     <!-- This section is added for Blizzard_UIParent by the Aurora XML Updater -->
     <Script file="Blizzard_UIParent\Mainline\UIParent.lua"/>
