@@ -9,19 +9,21 @@ It runs on its own, or embedded inside another addon. RealUI embeds it through `
 Supported Clients
 -----------------
 
-One package covers five clients:
+One package and one TOC, `Aurora.toc`, cover five clients. Each client loads only its own skin manifest, chosen line by line with a load directive:
 
-| Client | Interface | TOC | Skin manifest |
-| ------ | --------- | --- | ------------- |
-| Retail (Midnight 12.1.x) | `120100` | `Aurora_Mainline.toc` | `AddOns_Mainline.xml` |
-| WoW Forever (1.60.x beta) | `16001` | `Aurora_Mainline.toc` | `AddOns_Forever.xml` |
-| Mists of Pandaria Classic | `50504` | `Aurora_Mists.toc` | `AddOns_Mists.xml` |
-| Burning Crusade Classic | `20506` | `Aurora_TBC.toc` | `AddOns_TBC.xml` |
-| Classic Era (1.15.x) | `11509` | `Aurora_Vanilla.toc` | `AddOns_Vanilla.xml` |
+| Client | Interface | Load directive | Skin manifest |
+| ------ | --------- | -------------- | ------------- |
+| Retail (Midnight 12.1.x) | `120100` | `[AllowLoadGameType standard]` | `AddOns_Mainline.xml` |
+| WoW Forever (1.60.x beta) | `16001` | `[AllowLoadGameType camelot]` | `AddOns_Forever.xml` |
+| Mists of Pandaria Classic | `50504` | `[AllowLoadGameType mists]` | `AddOns_Mists.xml` |
+| Burning Crusade Classic | `20506` | `[AllowLoadGameType tbc]` | `AddOns_TBC.xml` |
+| Classic Era (1.15.x) | `11509` | `[AllowLoadGameType vanilla]` | `AddOns_Vanilla.xml` |
 
 Retail is the main development target.
 
-WoW Forever is built on the Mainline UI with a `Camelot` game overlay, so Aurora treats it as a Mainline-family flavor, not as a classic port. The Forever client also loads `Aurora_Mainline.toc`, which is why Forever has no TOC of its own. That TOC picks the manifest line by line, with `[AllowLoadGameType standard]` for retail and `[AllowLoadGameType camelot]` for Forever. Skins that only Camelot needs live in `Blizzard_X\Camelot\`, beside `Mainline\`.
+WoW Forever is built on the Mainline UI with a `Camelot` game overlay, so Aurora treats it as a Mainline-family flavor, not as a classic port. The other clients don't know the `camelot` token, and a client treats an unknown token as a match. The Forever line therefore also carries `[ExcludeLoadGameType standard, classic]`. Skins that only Camelot needs live in `Blizzard_X\Camelot\`, beside `Mainline\`.
+
+Don't add a suffixed TOC (`Aurora_Mainline.toc` and so on) back. On its own client, a suffixed TOC takes priority over `Aurora.toc`. The same applies when upgrading from 12.1.0.10 or older: delete the Aurora folder first rather than unzipping over it, or the old `Aurora_*.toc` files stay behind and keep loading.
 
 
 Quick Start
