@@ -65,10 +65,9 @@ flavors = {
     # overlay ([Family] = Mainline, [Game] = Camelot, gametype tokens
     # 'mainline' + 'camelot' where retail has 'mainline' + 'standard').
     # Camelot-specific skins live in Blizzard_X\Camelot\ next to Mainline\.
-    # The Forever client also matches _Mainline.toc (beta 69913 does not
-    # prefer a _Camelot.toc), so Aurora has no TOC of its own for this
-    # flavor: Aurora_Mainline.toc includes AddOns_Forever.xml behind an
-    # [AllowLoadGameType camelot] line directive.
+    # Aurora ships one suffix-less Aurora.toc for every flavor, which
+    # includes AddOns_Forever.xml behind an [AllowLoadGameType camelot] line
+    # directive (beta 69913 does not prefer a _Camelot.toc anyway).
     'Forever': {
         'tree': os.path.join(_trees_root, 'wow-ui-source-forever'),
         'toc_order': ['Camelot', 'Mainline', ''],
