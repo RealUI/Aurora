@@ -1,7 +1,7 @@
 # Copilot instructions for Aurora
 
 ## Architecture (how Aurora loads)
-- Entry point is Aurora_Mainline.toc; it loads libs, Skin/skin.xml, then aurora.lua and gui.lua. Saved variables live in AuroraConfig.
+- Entry point is Aurora.toc, one TOC for every client; it loads libs, Skin/skin.xml, the flavor's manifest (picked per line with [AllowLoadGameType] directives), then aurora.lua and gui.lua. Saved variables live in AuroraConfig.
 - The core boot flow is in aurora.lua: it builds the Aurora API tables, registers ADDON_LOADED, then runs functions in private.fileOrder (set in Skin/init.lua) before skinning already-loaded addons.
 - Skin module order is defined by Skin/skin.xml (init, color, util, api, backdrop, texture, skin, deprecated). Add new core skin helpers in Skin/ and add to that file.
 - Addon-specific skins live under Skin/Interface/AddOns/ and are wired via XML include lists (e.g., Skin/Interface/AddOns/AddOns_Mainline.xml).
@@ -21,5 +21,5 @@
 - Lua linting uses .luacheckrc (Lua 5.1, libs excluded).
 
 ## Integration points
-- Optional dependencies are declared in Aurora_Mainline.toc (Ace3, LibTextDump-1.0, BugSack, WagoAnalytics). Guard usage when those libraries are absent.
+- Optional dependencies are declared in Aurora.toc (Ace3, LibTextDump-1.0, BugSack, WagoAnalytics). Guard usage when those libraries are absent.
 - WagoAnalytics is wired in aurora.lua; keep telemetry changes behind the existing config flags.
