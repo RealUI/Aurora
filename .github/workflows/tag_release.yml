@@ -47,7 +47,7 @@ jobs:
           const fs = require("fs")
           const path = require("path")
 
-          const sourceFile = path.join(process.env.GITHUB_WORKSPACE, "Aurora_Mainline.toc")
+          const sourceFile = path.join(process.env.GITHUB_WORKSPACE, "Aurora.toc")
           const source = fs.readFileSync(sourceFile, "utf8")
           const match = source.match(/##\s*Version\s*:\s*(\d+\.\d+\.\d+\.\d+)/)
 

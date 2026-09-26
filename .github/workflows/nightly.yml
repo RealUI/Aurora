@@ -39,11 +39,11 @@ jobs:
               return
             }
 
-            const sourceFile = path.join(process.env.GITHUB_WORKSPACE, "Aurora_Mainline.toc")
+            const sourceFile = path.join(process.env.GITHUB_WORKSPACE, "Aurora.toc")
             const source = fs.readFileSync(sourceFile, "utf8")
             const match = source.match(/##\s*Version\s*:\s*(\d+\.\d+\.\d+\.\d+)/)
             if (!match) {
-              core.setFailed("Unable to find addon version in Aurora_Mainline.toc")
+              core.setFailed("Unable to find addon version in Aurora.toc")
               return
             }
 
