@@ -1,0 +1,47 @@
+## Interface: 120100, 16001, 50504, 20506, 11509
+## X-Min-Interface: 120100, 16001, 50504, 20506, 11509
+## Title: Aurora
+## IconAtlas: callings-backhighlight-full
+## Notes: Minimalistic window theme.
+## Author: Haleth/Lightsword, Gethe, Hanshi/arnvid
+## Version: 12.1.0.10
+## RequiredDeps: Blizzard_Deprecated, Blizzard_DeprecatedCurrencyScript, Blizzard_DeprecatedGuildScript, Blizzard_DeprecatedItemScript, Blizzard_DeprecatedPvpScript, Blizzard_DeprecatedSoundScript, Blizzard_DeprecatedSpellScript [AllowLoadGameType standard, classic]
+## OptionalDeps: Ace3, LibTextDump-1.0, BugSack, WagoAnalytics
+## LoadWith: Blizzard_EncounterJournal [AllowLoadGameType standard]
+## SavedVariables: AuroraConfig
+## X-Website: http://www.wowinterface.com/downloads/info18589.html
+## X-Curse-Project-ID: 278735
+## X-WoWI-ID: 18589
+## X-Wago-ID: JZKbRK19
+
+# One TOC for every client: retail (game type "standard"), WoW Forever
+# ("camelot"), Mists, TBC Anniversary and Classic Era. Each client loads only
+# its own skin manifest, picked per line with load directives, the same way
+# Blizzard's own TOCs split per flavor.
+#
+# The Forever line carries the extra Exclude because clients that do not know
+# the camelot token treat an unknown AllowLoadGameType as a match. The other
+# tokens (standard, classic, mists, tbc, vanilla) are known to every client.
+#
+# RequiredDeps skips Forever, which lacks several of the Blizzard_Deprecated*
+# shims. LoadWith is retail-only: Blizzard_EncounterJournal never loads on
+# Forever, and the classic flavors never had the line.
+
+libs\Libs.xml
+Skin\skin.xml
+Skin\Interface\AddOns\AddOns_Mainline.xml [AllowLoadGameType standard]
+Skin\Interface\AddOns\AddOns_Forever.xml [AllowLoadGameType camelot][ExcludeLoadGameType standard, classic]
+Skin\Interface\AddOns\AddOns_Mists.xml [AllowLoadGameType mists]
+Skin\Interface\AddOns\AddOns_TBC.xml [AllowLoadGameType tbc]
+Skin\Interface\AddOns\AddOns_Vanilla.xml [AllowLoadGameType vanilla]
+
+config.lua
+analytics.lua
+compatibility.lua
+integration.lua
+aurora.lua
+gui.lua
+
+#@do-not-package@
+dev\test.lua
+#@end-do-not-package@
