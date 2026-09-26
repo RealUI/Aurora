@@ -1,4 +1,32 @@
-﻿## [12.1.0.10] ##
+﻿## [12.1.0.11] ##
+### Added ###
+
+  * add: **the group finder Who tab on Forever.** Camelot cut the Who list from `FriendsFrame` and moved it into the group finder as `LFGWhoListFrame` (tab 3), restyled in 1.60.1.70009 with a filter dropdown and per-row invite buttons. The tab, search box, search button, filter dropdown, scroll bar and list are skinned; rows are recycled by the scroll box, so they are skinned from its `Update` hook, each getting a flat Aurora row in place of the `common-button-list-large` art, recoloured selected and hover highlights, and a stripped invite button that keeps its icon [forever]
+  * add: **`/aurora mawbuffs`**, a dev toggle for the `ShouldShowMawBuffs` wrapper added in 12.1.0.8. It flips `AuroraConfig.devRestoreMawBuffs` so Blizzard's original is left in place after a `/reload`, and Aurora prints a notice at load while the wrapper is off. It exists to measure whether the wrapper is still needed: run an LFR wing and a delve with the objective tracker visible, once each way, and compare the error count and a taint log. The default is unchanged — the wrapper stays on [mainline/forever]
+
+### Fixed ###
+
+  * fix: **the group finder showed Blizzard's metal border over Aurora's frame on Forever build 70009.** That build restyles the group finder (`LFGVANILLA_SETTING_MODERN_STYLE`): each of the three panels is now a `PortraitFrameTemplateNoCloseButton` filling the parent, and its `NineSlice` at frame level 500 drew over the parent's backdrop. Each panel's chrome — `NineSlice`, background, streaks, portrait, header bars and inset border — is set to alpha 0 rather than hidden, because NineSlice layouts re-show their pieces. The parent's backdrop offsets drop to zero now that the panels fill the whole frame; the close button, which is named in this build and so missed by the unnamed-child sweep, is skinned explicitly; the three right-hand side tabs that replace the hidden bottom tabs take `Skin.LargeSideTabButtonTemplate`; and the listing panel's role background, divider and level-range checkbox are handled [forever]
+  * fix: **the Browse panel kept a full-panel background, and its result rows kept Blizzard's list-button art.** `LFGBrowseFrame` redefines `Bg` under the template's own name, which orphans the template's full-panel background — neither `.Bg` nor the global reaches it — so every `BACKGROUND` texture the panel owns is now swept. Result rows (entry, nested entry and grouping header) hide their `ResultBG` atlas and take a flat Aurora row, the same treatment as the Who rows [forever]
+
+### Changed ###
+
+  * chg: **Aurora now ships a single `Aurora.toc` for every client** in place of `Aurora_Mainline.toc`, `Aurora_Mists.toc`, `Aurora_TBC.toc` and `Aurora_Vanilla.toc`. It declares all five interface versions (`120100, 16001, 50504, 20506, 11509`), and each client loads only its own skin manifest, chosen per line with `AllowLoadGameType` — the way Blizzard's own TOCs split per flavor. The Forever line keeps its extra `ExcludeLoadGameType standard, classic`, because a client that does not know the `camelot` token treats an unknown `AllowLoadGameType` as a match. `RequiredDeps` is limited to `standard, classic`, since Forever lacks several `Blizzard_Deprecated*` shims, and `LoadWith: Blizzard_EncounterJournal` stays retail-only. The classic flavors now also get the `IconAtlas` line [all]
+  * chg: the release and nightly workflows and `dev/updatexmls.py` read the version from `Aurora.toc` [shared]
+  * chg: the Forever manifest was regenerated for build 70009, which adds `Blizzard_UIPanelTemplates\Camelot\UIPanelTemplatesOverrides.lua` as a commented-out `replacement` entry; no skin is loaded for it [forever]
+  * chg: the README was rewritten against the code — the five clients including Forever, the options panel, `/aurora skinaudit`, the file layout and the dev tooling [shared]
+
+### Known Issues ###
+
+  * **Upgrading from 12.1.0.10 or older: delete the `Aurora` folder before installing.** A client prefers a suffixed TOC such as `Aurora_Mainline.toc` over `Aurora.toc`, so if the old files are left behind by unzipping over the folder, they keep loading instead of the new one. Addon managers that replace the folder are not affected [all]
+  * The Forever group finder restyle has had a static pass against build 70009 but only a partial in-game walk-through [forever]
+  * On the 1.60.1 Forever beta (build 69913) the client never restores account-level SavedVariables, so `AuroraConfig` is empty at every load and only the defaults apply; on an affected build `/aurora mawbuffs` does not survive the `/reload` it asks for. Confirmed by the Forever developers; not an Aurora bug [forever]
+  * Camelot's gamepad addons and the Legacy system's tree page are deliberately left unskinned, as described under 12.1.0.10 [forever]
+  * The `ShouldShowMawBuffs` guard still owns a Blizzard global, at the 25%-of-`taintLog` cost measured for 12.1.0.9; `/aurora mawbuffs` above is the means to re-price it [mainline]
+  * The world-event/scenario UI widgets still render with Blizzard's styling while that skin is gated [mainline]
+  * The `GameTooltip_InsertFrame` taint described under 12.1.0.2 is unchanged [mainline]
+
+## [12.1.0.10] ##
 ### Added ###
 
   * add: **WoW Forever support.** Aurora loads and skins on the Forever beta (1.60.x, client folder `_classic_beta_`, interface `16001`). Despite the 1.x version this is **not** a classic port: Blizzard built Forever on the Mainline UI architecture with a `Camelot` game overlay, so it is handled as a Mainline-family flavor. `private.isForever` is gated on the interface range (16000–19999) rather than on `WOW_PROJECT_ID`, which reports Mainline there, and `AURORA_DEBUG_PROJECT = 60` selects it. The Forever client also matches `Aurora_Mainline.toc`, so Aurora has no TOC of its own for the flavor: that one file declares `## Interface: 120100, 16001` and picks `AddOns_Mainline.xml` or the generated `AddOns_Forever.xml` per line, with `[AllowLoadGameType standard]` against `[AllowLoadGameType camelot][ExcludeLoadGameType standard, classic]` — the extra Exclude is needed because a client that does not know the `camelot` token treats an unknown `AllowLoadGameType` as a match. Camelot-only skins live in `Blizzard_X\Camelot\` beside `Mainline\`, mirroring Blizzard's own paths. Nothing here changes retail [forever]
