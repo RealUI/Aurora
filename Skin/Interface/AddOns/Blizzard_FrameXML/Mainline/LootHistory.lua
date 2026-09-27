@@ -2,7 +2,9 @@ local _, private = ...
 
 -- luacheck: globals _G
 
-local Skin = private.Aurora.Skin
+local Aurora = private.Aurora
+local Base, Skin = Aurora.Base, Aurora.Skin
+local Color = Aurora.Color
 
 -- B53: no Init hook here. An earlier one re-ran LootHistoryElementMixin:Init
 -- from an Item:ContinueOnItemLoad callback so uncached drops got their name and
@@ -16,6 +18,16 @@ do --[[ FrameXML\LootHistory.xml ]]
         -- against Aurora's dark frame backdrop.
         self.BackgroundArtFrame.NameFrame:Hide()
         self.BackgroundArtFrame.BorderFrame:Hide()
+
+        -- A card behind each row in place of the hidden art, so rows read as
+        -- separate entries. It lives on a child frame of our own and nothing is
+        -- stored on the row: SetTooltip reads the row's fields on every hover,
+        -- and a tainted one taints the tooltip (B53; same cure as B72).
+        local card = _G.CreateFrame("Frame", nil, self)
+        card:SetPoint("TOPLEFT", 2, -2)
+        card:SetPoint("BOTTOMRIGHT", -2, 2)
+        card:SetFrameLevel(self.BackgroundArtFrame:GetFrameLevel())
+        Base.SetBackdrop(card, Color.button, 0.3)
     end
 end
 
