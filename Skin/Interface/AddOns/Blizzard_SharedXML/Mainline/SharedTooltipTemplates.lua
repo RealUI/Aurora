@@ -116,7 +116,7 @@ function private.SharedXML.SharedTooltipTemplates()
     -- it back: a stale `true` reproduces the error above and looks like a bug.
     local restoreOriginal = _G.AuroraConfig and _G.AuroraConfig.devRestoreInsertFrame
     if restoreOriginal then
-        _G.print("|cffffcc00Aurora:|r GameTooltip_InsertFrame replacement DISABLED (/aurora insertframe).")
+        _G.print("|cffffcc00Aurora:|r GameTooltip_InsertFrame replacement DISABLED (/aurora insertframe, or /auroraInsertFrame under RealUI).")
     end
 
     if _G.GameTooltip_InsertFrame and not restoreOriginal then
