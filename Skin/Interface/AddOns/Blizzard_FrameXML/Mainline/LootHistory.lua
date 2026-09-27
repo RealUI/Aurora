@@ -11,6 +11,12 @@ local Color = Aurora.Color
 -- icon. Init writes self.dropInfo, which SetTooltip reads on every hover, so the
 -- re-run left each fresh LFR row tainted. Blizzard re-inits rows securely on
 -- LOOT_HISTORY_UPDATE_DROP; a briefly blank row is the lesser cost.
+--
+-- Nor a Layout override on LootHistoryRollTooltipLineMixin. Writing into that
+-- Blizzard mixin tainted every roll-line frame built from it: the mixin copy
+-- reads the tainted Layout and writes the keys after it (Init included) tainted,
+-- so every loot tooltip ran tainted from its first line. The override only
+-- existed to swallow the secret-arithmetic that taint caused.
 
 do --[[ FrameXML\LootHistory.xml ]]
     function Skin.LootHistoryElementTemplate(self)
@@ -33,14 +39,4 @@ end
 
 function private.FrameXML.LootHistory()
     _G.hooksecurefunc(_G.LootHistoryElementMixin, "OnLoad", Skin.LootHistoryElementTemplate)
-    local origLayout = _G.ResizeLayoutMixin.Layout
-    _G.LootHistoryRollTooltipLineMixin.Layout = function(self)
-        local ok = _G.pcall(origLayout, self)
-        if not ok then
-            self:SetSize(200, 14)
-        end
-        if self.MarkClean then
-            self:MarkClean()
-        end
-    end
 end
