@@ -69,9 +69,8 @@ Slash Commands
   * `/aurora skinaudit` - list the skins that failed to apply this session, with the client build and interface version.
   * `/aurora reset` - reset the configuration to defaults (then `/reload`).
   * `/aurora insertframe` - dev A/B toggle; see Developer Notes.
-  * `/aurora mawbuffs` - dev A/B toggle; see Developer Notes.
 
-The options panel and slash commands live in `gui.lua`. An embedding host usually includes only `Skin\skin.xml` and a flavor manifest, so `/aurora` does not exist there and the host supplies its own options UI. Under RealUI, `RealUI_Skins` stores `AuroraConfig` per profile and mirrors the dev toggles as `/auroraInsertFrame` and `/auroraMawBuffs`.
+The options panel and slash commands live in `gui.lua`. An embedding host usually includes only `Skin\skin.xml` and a flavor manifest, so `/aurora` does not exist there and the host supplies its own options UI. Under RealUI, `RealUI_Skins` stores `AuroraConfig` per profile and mirrors the dev toggle as `/auroraInsertFrame`.
 
 
 Layout
@@ -114,16 +113,7 @@ Replacing a global has a cost: the global is then tainted for every secure calle
 
 The toggle takes effect after `/reload`. While the replacement is off, Aurora prints a notice at load, so test runs are not misread.
 
-**`ShouldShowMawBuffs`**: Aurora wraps this global so that it returns `false` while `C_Secrets.ShouldAurasBeSecret()` is true. Blizzard's version calls `C_UnitAuras.GetAuraDataByIndex("player", 1, "MAW")` without a guard. Under WoW 12's secret-aura rules, that call throws once addon code is running in the same execution. All three callers are inside the objective tracker's update and layout code, so the throw broke the delve and LFR stage blocks partway through layout.
-
-This wrapper has the same taint cost, on a more frequently called path. The scenario tracker's `UNIT_AURA` handler reads the global, so every aura update carries Aurora's taint. In one 4.0.1 field log, this taint made up a quarter of all taint-log lines.
-
-`/aurora mawbuffs` toggles `AuroraConfig.devRestoreMawBuffs`. With it on, Aurora leaves Blizzard's original in place, so you can measure whether the wrapper is still needed. To test:
-
-  1. Run an LFR wing and a delve with the objective tracker visible, once with the wrapper off and once with it on.
-  2. Compare the error counts and taint logs from the two runs.
-
-The toggle takes effect after `/reload`. While the wrapper is off, Aurora prints a notice at load.
+**`ShouldShowMawBuffs`**: Aurora no longer wraps this global. From 12.1.0.8 it returned `false` while `C_Secrets.ShouldAurasBeSecret()` was true, to stop Blizzard's unguarded `GetAuraDataByIndex` from throwing inside the objective tracker. Owning the global tainted the scenario tracker's `UNIT_AURA` path, which made up a quarter of one 4.0.1 taint log. It was removed after a delve and two LFR wings ran without the error. If the tracker error returns, find the taint that reaches the tracker rather than wrapping the global again.
 
 
 Bug Reports
