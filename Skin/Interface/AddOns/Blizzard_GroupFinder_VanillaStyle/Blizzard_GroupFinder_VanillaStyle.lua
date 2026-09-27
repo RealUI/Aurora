@@ -88,7 +88,8 @@ end
 local function SkinRoleCount(Frame)
     -- RoleCountNoScriptsTemplate. Skin.RoleCountNoScriptsTemplate is Mainline-only,
     -- so the three swaps are inlined; the parentKeys match the era template at
-    -- Blizzard_UIPanelTemplates/Classic/UIPanelTemplates.xml:323. Base.SetTexture
+    -- Blizzard_UIPanelTemplates/Classic/UIPanelTemplates.xml:323 and Forever's
+    -- RoleCountLargeNoScriptsTemplate (large role atlases, same keys). Base.SetTexture
     -- is safe to repeat on a recycled frame (texture.lua tracks what it built).
     if not Frame then return end
     if Frame.TankIcon then Base.SetTexture(Frame.TankIcon, "iconTANK") end
