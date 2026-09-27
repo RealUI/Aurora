@@ -3,7 +3,7 @@ if private.shouldSkip() then return end
 
 local Aurora = private.Aurora
 local Base, Hook, Skin = Aurora.Base, Aurora.Hook, Aurora.Skin
-local Color, Util = Aurora.Color, Aurora.Util
+local Color = Aurora.Color
 
 do --[[ AddOns\Blizzard_PerksProgram.lua ]]
     -- Skin a product button acquired from the ScrollBox element factory.
@@ -86,9 +86,11 @@ function private.AddOns.Blizzard_PerksProgram()
 
         local scrollContainer = ProductsFrame.ProductsScrollBoxContainer
         if scrollContainer then
-            -- Strip the NineSlice border on the product list
+            -- Strip the NineSlice border on the product list. Here the
+            -- NineSlicePanelTemplate is the `Border` child, not a `NineSlice`
+            -- key, so Util.HideNineSlice does not apply (it printed "Report: No
+            -- NineSlice for nil" for all three Trading Post panels).
             if scrollContainer.Border then
-                Util.HideNineSlice(scrollContainer)
                 Base.StripBlizzardTextures(scrollContainer.Border)
             end
 
@@ -126,7 +128,6 @@ function private.AddOns.Blizzard_PerksProgram()
         local detailsContainer = ProductsFrame.PerksProgramProductDetailsContainerFrame
         if detailsContainer then
             if detailsContainer.Border then
-                Util.HideNineSlice(detailsContainer)
                 Base.StripBlizzardTextures(detailsContainer.Border)
             end
         end
@@ -137,7 +138,6 @@ function private.AddOns.Blizzard_PerksProgram()
         local cartFrame = ProductsFrame.PerksProgramShoppingCartFrame
         if cartFrame then
             if cartFrame.Background then
-                Util.HideNineSlice(cartFrame)
                 Base.StripBlizzardTextures(cartFrame.Background)
             end
             -- Skin the cart purchase button
