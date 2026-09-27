@@ -1,4 +1,20 @@
-﻿## [12.1.0.11] ##
+﻿## [12.1.0.12] ##
+A hotfix for how 12.1.0.11 was published. The addon files are unchanged.
+
+### Fixed ###
+
+  * fix: **Forever releases are tagged for Forever on CurseForge.** The release workflows pinned BigWigs packager v2.5.1, which predates WoW Forever. It read `1.60.1` from `Aurora.toc` but looked it up among CurseForge's retail versions, found nothing, and fell back: 12.1.0.11 was uploaded as retail `1.0.0` on CurseForge and `9.2.7` on WoWInterface and Wago, with no Forever tag. The workflows now pin packager v2.6.1, which looks `1.60.1` up under CurseForge's Forever version type. WoWInterface has no Forever category, so the packager skips Forever there rather than mislabel it [forever]
+
+### Known Issues ###
+
+  * **Upgrading from 12.1.0.10 or older: delete the `Aurora` folder before installing.** A client prefers a suffixed TOC such as `Aurora_Mainline.toc` over `Aurora.toc`, so if the old files are left behind by unzipping over the folder, they keep loading instead of the new one. Addon managers that replace the folder are not affected [all]
+  * On the 1.60.1 Forever beta the client does not keep SavedVariables across a reload, so `AuroraConfig` is empty at every load and only the defaults apply. Confirmed by the Forever developers; not an Aurora bug [forever]
+  * Camelot's gamepad addons and the Legacy system's tree page are deliberately left unskinned, as described under 12.1.0.10 [forever]
+  * The `ShouldShowMawBuffs` guard still owns a Blizzard global; `/aurora mawbuffs` (12.1.0.11) is the means to re-price it [mainline]
+  * The world-event/scenario UI widgets still render with Blizzard's styling while that skin is gated [mainline]
+  * The `GameTooltip_InsertFrame` taint described under 12.1.0.2 is unchanged [mainline]
+
+## [12.1.0.11] ##
 ### Added ###
 
   * add: **the group finder Who tab on Forever.** Camelot cut the Who list from `FriendsFrame` and moved it into the group finder as `LFGWhoListFrame` (tab 3), restyled in 1.60.1.70009 with a filter dropdown and per-row invite buttons. The tab, search box, search button, filter dropdown, scroll bar and list are skinned; rows are recycled by the scroll box, so they are skinned from its `Update` hook, each getting a flat Aurora row in place of the `common-button-list-large` art, recoloured selected and hover highlights, and a stripped invite button that keeps its icon [forever]
@@ -927,7 +943,9 @@
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/Gethe/Aurora/compare/12.1.0.10...develop
+[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.0.12...develop
+[12.1.0.12]: https://github.com/RealUI/Aurora/compare/12.1.0.11...12.1.0.12
+[12.1.0.11]: https://github.com/RealUI/Aurora/compare/12.1.0.10...12.1.0.11
 [12.1.0.10]: https://github.com/Gethe/Aurora/compare/12.1.0.9...12.1.0.10
 [12.1.0.9]: https://github.com/Gethe/Aurora/compare/12.1.0.8...12.1.0.9
 [12.1.0.8]: https://github.com/Gethe/Aurora/compare/12.1.0.7...12.1.0.8
