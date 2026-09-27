@@ -106,7 +106,7 @@ function private.AddOns.Blizzard_MawBuffs()
     -- back without the wrapper (Roadmap: the MawBuffs global write).
     local restoreOriginal = _G.AuroraConfig and _G.AuroraConfig.devRestoreMawBuffs
     if restoreOriginal then
-        _G.print("|cffffcc00Aurora:|r ShouldShowMawBuffs wrapper DISABLED (/aurora mawbuffs).")
+        _G.print("|cffffcc00Aurora:|r ShouldShowMawBuffs wrapper DISABLED (/aurora mawbuffs, or /auroraMawBuffs under RealUI).")
     end
 
     if not restoreOriginal and _G.C_Secrets and _G.C_Secrets.ShouldAurasBeSecret and _G.ShouldShowMawBuffs then
