@@ -26,7 +26,7 @@ jobs:
         run: rm -f CHANGELOG.md
 
       - name: Create Nightly Package
-        uses: BigWigsMods/packager@842112a80d0d8faec9f61295c5e89944311d8a5d # v2.5.1
+        uses: BigWigsMods/packager@e50a250f8705041e40f2fa1ddcb280a686d65aa0 # v2.6.1
         # No CF_API_KEY or WAGO_API_TOKEN — GitHub release only
 
       - name: Mark as pre-release

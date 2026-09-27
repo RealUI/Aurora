@@ -53,7 +53,7 @@ jobs:
         fi
 
     - name: Create Mainline Package
-      uses: BigWigsMods/packager@842112a80d0d8faec9f61295c5e89944311d8a5d # v2.5.1
+      uses: BigWigsMods/packager@e50a250f8705041e40f2fa1ddcb280a686d65aa0 # v2.6.1
 
   # wrath:
   #   needs: is_release
@@ -63,7 +63,7 @@ jobs:
   #   - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
   #   - name: Create Wrath Package
-  #     uses: BigWigsMods/packager@842112a80d0d8faec9f61295c5e89944311d8a5d # v2.5.1
+  #     uses: BigWigsMods/packager@e50a250f8705041e40f2fa1ddcb280a686d65aa0 # v2.6.1
   #     with:
   #       args: -g wrath -m .pkgmeta-wrath
 
@@ -75,6 +75,6 @@ jobs:
   #   - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
   #   - name: Create Vanilla Package
-  #     uses: BigWigsMods/packager@842112a80d0d8faec9f61295c5e89944311d8a5d # v2.5.1
+  #     uses: BigWigsMods/packager@e50a250f8705041e40f2fa1ddcb280a686d65aa0 # v2.6.1
   #     with:
   #       args: -g classic -m .pkgmeta-vanilla 
