@@ -308,10 +308,11 @@ function private.AddOns.Blizzard_ObjectiveTracker()
     --     with the shared widget system
     --   * no addon code in click/dispatch paths
     -- UNGATED 2026-08-29 by owner decision, behind a C_Secrets wrapper on
-    -- ShouldShowMawBuffs that silenced the aura read that was throwing. The
-    -- wrapper was removed 2026-09-27 after a delve and two LFR wings stayed
-    -- clean without it (see Blizzard_MawBuffs\Blizzard_MawBuffs.lua). It only
-    -- ever hid the symptom, never the poisoning: the writes below still
+    -- ShouldShowMawBuffs that silences the aura read that was throwing (see
+    -- Blizzard_MawBuffs\Blizzard_MawBuffs.lua). The wrapper was removed once,
+    -- 2026-09-27, and the throw returned in the next delve: this skin still
+    -- taints LayoutContents. The wrapper hides the symptom, never the
+    -- poisoning: the writes below still
     -- violate the rules above, notably the ScenarioStageBlock
     -- CreateFrame/SetPoint/CreateTexture work (rules 2/3/4). Treat any new
     -- tracker-side secret-value or layout fault as this gate, and reach for the

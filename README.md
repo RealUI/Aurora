@@ -113,7 +113,7 @@ Replacing a global has a cost: the global is then tainted for every secure calle
 
 The toggle takes effect after `/reload`. While the replacement is off, Aurora prints a notice at load, so test runs are not misread.
 
-**`ShouldShowMawBuffs`**: Aurora no longer wraps this global. From 12.1.0.8 it returned `false` while `C_Secrets.ShouldAurasBeSecret()` was true, to stop Blizzard's unguarded `GetAuraDataByIndex` from throwing inside the objective tracker. Owning the global tainted the scenario tracker's `UNIT_AURA` path, which made up a quarter of one 4.0.1 taint log. It was removed after a delve and two LFR wings ran without the error. If the tracker error returns, find the taint that reaches the tracker rather than wrapping the global again.
+**`ShouldShowMawBuffs`**: Aurora wraps this global so that it returns `false` while `C_Secrets.ShouldAurasBeSecret()` is true. Blizzard's version calls `C_UnitAuras.GetAuraDataByIndex("player", 1, "MAW")` without a guard, and that call throws when auras are secret and the execution is tainted. Its callers are inside the objective tracker's update and layout code, so the throw breaks the delve and LFR stage blocks partway through layout. Owning the global has a taint cost on the scenario tracker's `UNIT_AURA` path. The wrapper was removed once after several clean runs, and the error returned in the next delve, so clean runs do not show it is unneeded. It can go once the objective tracker skin stops tainting that layout code.
 
 
 Bug Reports
