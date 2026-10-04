@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals ipairs
+-- luacheck: globals
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -10,74 +10,39 @@ local Base = Aurora.Base
 local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Util = Aurora.Util
 
+-- Aurora role icon keys; anything else keeps Blizzard's atlas.
+local ROLE_ICONS = {
+    TANK = "iconTANK",
+    HEALER = "iconHEALER",
+    DAMAGER = "iconDAMAGER",
+}
+
 do --[[ FrameXML\PvpPopup.lua ]]
-    local ROLE_BUTTON_BASE_XOFFSET = 15
-    local ROLE_BUTTON_WIDTH = 55
-    local centerOffset
-
-    Hook.PVPReadyPopupMixin = {}
-    function Hook.PVPReadyPopupMixin:GetCenterOffsetBasedOffNumRoles(roles)
-        local countRoles = 0
-        for _, roleInfo in ipairs(roles) do
-            if(roleInfo.totalRole > 0) then
-                countRoles = countRoles + 1
-            end
-        end
-
-        local totalWidth = self:GetWidth()
-        local widthOfRoles = ROLE_BUTTON_WIDTH * countRoles
-        local usedRoleWidth = (ROLE_BUTTON_BASE_XOFFSET * (countRoles - 1)) + widthOfRoles --The total used space of the roles buttons (Including paddng in between)
-        centerOffset = (totalWidth - usedRoleWidth) / (2) --Trying to get the offset for just one side.
-    end
-
+    -- Art only. The earlier version also re-did Blizzard's role-button layout
+    -- (its own centre offset and a stale 15px gap; Blizzard uses 22) and
+    -- replaced RolePool.Acquire with an addon function. Blizzard lays the
+    -- buttons out itself, so only the icon is swapped here.
     Hook.PvpRoleButtonWithCountMixin = {}
     function Hook.PvpRoleButtonWithCountMixin:Setup(roleInfo)
-        Base.SetTexture(self.Texture, "icon"..roleInfo.role)
-
-        if not _G.PVPReadyPopup.lastRole then
-            self:SetPoint("LEFT", centerOffset, 40)
-        else
-            self:SetPoint("LEFT", _G.PVPReadyPopup.lastRole, "RIGHT", ROLE_BUTTON_BASE_XOFFSET, 0)
+        local icon = roleInfo and ROLE_ICONS[roleInfo.role]
+        if icon then
+            Base.SetTexture(self.Texture, icon)
         end
     end
 end
 
-do --[[ FrameXML\PvpPopup.xml ]]
-    function Skin.PvpRoleStatusTemplate(Frame)
-        Frame.StatusIcon:SetPoint("BOTTOMLEFT", -5, -5)
-    end
-    function Skin.PvpRoleButtonWithCountTemplate(Frame)
-        Skin.PvpRoleStatusTemplate(Frame)
-        Frame.Count:SetPoint("TOP", Frame, "BOTTOM", 0, -6)
-    end
-end
+--do --[[ FrameXML\PvpPopup.xml ]]
+--end
 
-function private.AddOns.PvpPopup()
-    ----====####################====----
-    --              PvpPopup              --
-    ----====####################====----
+-- FrameXML, not AddOns: "PvpPopup" is a file in Blizzard_GroupFinder, not an
+-- addon, so as private.AddOns.PvpPopup (2c5d1d78 until 2026-10-04) it never
+-- ran (B158).
+function private.FrameXML.PvpPopup()
+    -- Pooled role buttons are created after this runs, so they copy the
+    -- hooked Setup from the mixin table.
     Util.Mixin(_G.PvpRoleButtonWithCountMixin, Hook.PvpRoleButtonWithCountMixin)
-
-    local PVPReadyPopup = _G.PVPReadyPopup
-    Util.Mixin(PVPReadyPopup, Hook.PVPReadyPopupMixin)
-    -- Hook.ObjectPoolMixin removed in 11.0.0 (private API).
-    -- Wrap the pool's Acquire method to skin frames when first created.
-    do
-        local poolAcquire = PVPReadyPopup.RolePool.Acquire
-        PVPReadyPopup.RolePool.Acquire = function(pool, ...)
-            local frame, isNew = poolAcquire(pool, ...)
-            if isNew then
-                Skin.PvpRoleButtonWithCountTemplate(frame)
-            end
-            return frame, isNew
-        end
-    end
 
     local ReadyStatus = _G.ReadyStatus
     Skin.DialogBorderTemplate(ReadyStatus.Border)
     Skin.MinimizeButton(ReadyStatus.CloseButton)
-
-    -------------
-    -- Section --
-    -------------
 end
