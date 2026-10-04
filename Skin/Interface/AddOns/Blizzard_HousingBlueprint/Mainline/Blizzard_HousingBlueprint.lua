@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals _G
+-- luacheck: globals _G ipairs
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -34,7 +34,10 @@ do --[[ Blizzard_HousingBlueprintFrameTemplates.xml ]]
     function Skin.HousingBlueprintBaseFrameTemplate(Frame)
         if Frame.Background then Frame.Background:SetAlpha(0) end
         if Frame.Header then Frame.Header:SetAlpha(0) end
-        Base.SetBackdrop(Frame, Color.frame)
+        -- These dialogs float over the 3D house with nothing behind them, so
+        -- the user frame alpha read as too light; same fixed alpha as
+        -- Skin.DialogBorderDarkTemplate.
+        Base.SetBackdrop(Frame, Color.frame, 0.87)
         if Frame.CloseButton then
             Skin.UIPanelCloseButton(Frame.CloseButton)
         end
@@ -53,6 +56,23 @@ do --[[ Blizzard_HousingBlueprintFrameTemplates.xml ]]
                 end
             end)
         end)
+    end
+
+    -- InputScrollFrameTemplate share-code box: Skin.InputScrollFrameTemplate
+    -- only skins the scroll bar, so the rounded Common-Input-Border pieces
+    -- stayed. Swap them for a flat input backdrop here rather than in the
+    -- shared helper, whose other callers (Communities, LFG) rely on it as is.
+    local inputBorderKeys = {
+        "TopLeftTex", "TopRightTex", "TopTex", "BottomLeftTex", "BottomRightTex",
+        "BottomTex", "LeftTex", "RightTex", "MiddleTex",
+    }
+    function Skin.HousingBlueprintShareCodeBox(ScrollFrame)
+        Skin.InputScrollFrameTemplate(ScrollFrame)
+        for _, key in ipairs(inputBorderKeys) do
+            if ScrollFrame[key] then ScrollFrame[key]:SetAlpha(0) end
+        end
+        Base.SetBackdrop(ScrollFrame, Color.frame)
+        ScrollFrame:SetBackdropBorderColor(Color.button)
     end
 
     function Skin.HousingBlueprintContentSummaryTemplate(Frame)
@@ -87,7 +107,7 @@ function private.AddOns.Blizzard_HousingBlueprint()
             if success.BlueprintsCollectionButton then
                 Skin.UIPanelDynamicResizeButtonTemplate(success.BlueprintsCollectionButton)
             end
-            if success.ShareCodeBox then Skin.InputScrollFrameTemplate(success.ShareCodeBox) end
+            if success.ShareCodeBox then Skin.HousingBlueprintShareCodeBox(success.ShareCodeBox) end
             if success.ChatLinkButton then Skin.UIPanelButtonTemplate(success.ChatLinkButton) end
             if success.ClipboardButton then Skin.UIPanelButtonTemplate(success.ClipboardButton) end
         end
@@ -98,7 +118,7 @@ function private.AddOns.Blizzard_HousingBlueprint()
         Skin.HousingBlueprintBaseFrameTemplate(import)
         local input = import.InputContent
         if input then
-            if input.ShareCodeBox then Skin.InputScrollFrameTemplate(input.ShareCodeBox) end
+            if input.ShareCodeBox then Skin.HousingBlueprintShareCodeBox(input.ShareCodeBox) end
             if input.NextButton then Skin.UIPanelDynamicResizeButtonTemplate(input.NextButton) end
             if input.GearDropdown then Skin.DropdownButton(input.GearDropdown) end
         end
