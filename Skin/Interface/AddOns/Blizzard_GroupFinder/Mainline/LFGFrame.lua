@@ -258,7 +258,12 @@ do
     end
 end
 
-function private.AddOns.LFGFrame()
+-- FrameXML, not AddOns: the dispatcher only runs private.AddOns.<name> once
+-- an addon of that name loads, and "LFGFrame" is a file in Blizzard_GroupFinder,
+-- not an addon. Registered under AddOns from 2c5d1d78 (Aug 2025) until
+-- 2026-10-04, this never ran, so the LFR/dungeon ready dialog, ready-status
+-- board, role check and invite popups all showed Blizzard's art.
+function private.FrameXML.LFGFrame()
     _G.hooksecurefunc("LFG_SetRoleIconIncentive", Hook.LFG_SetRoleIconIncentive)
     _G.hooksecurefunc("LFGDungeonReadyPopup_Update", Hook.LFGDungeonReadyPopup_Update)
     _G.hooksecurefunc("LFGDungeonReadyStatusIndividual_UpdateIcon", Hook.LFGDungeonReadyStatusIndividual_UpdateIcon)
@@ -287,10 +292,13 @@ function private.AddOns.LFGFrame()
     Skin.DialogBorderTranslucentTemplate(LFGDungeonReadyDialog.Border)
     WipeDialogBorderTextures(LFGDungeonReadyDialog.Border)
     Skin.UIPanelHideButtonNoScripts(_G.LFGDungeonReadyDialogCloseButton)
-    Skin.UIPanelButtonTemplate(LFGDungeonReadyDialog.enterButton)
-    Skin.UIPanelButtonTemplate(LFGDungeonReadyDialog.leaveButton)
+    -- Enter/Leave call AcceptProposal()/RejectProposal(). Their OnClick reads
+    -- only globals, but keep the buttons free of addon table writes anyway
+    -- (same treatment as the StaticPopup buttons).
     HideLegacyButtonArt(LFGDungeonReadyDialog.enterButton)
     HideLegacyButtonArt(LFGDungeonReadyDialog.leaveButton)
+    Skin.TaintSafeUIPanelButtonTemplate(LFGDungeonReadyDialog.enterButton)
+    Skin.TaintSafeUIPanelButtonTemplate(LFGDungeonReadyDialog.leaveButton)
 
     _G.LFGDungeonReadyDialogRoleIcon:SetSize(64, 64)
     _G.LFGDungeonReadyDialogRoleIcon:ClearAllPoints()
