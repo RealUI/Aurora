@@ -546,9 +546,19 @@ local function UpdateColorModeRadios()
     end
 end
 
+-- B164: a live switch repaints backgrounds only; buttons, borders and panel
+-- fills keep the old mode until a reload re-skins them. Say so, with the
+-- reload one click away (the Features panel's pattern). Built after the radios.
+local colorModeReloadNote, colorModeReloadButton
+
 local function OnColorModeRadioClick(self)
+    local changed = self.modeKey ~= Color.GetActiveMode()
     Color.SetMode(self.modeKey)
     UpdateColorModeRadios()
+    if changed and colorModeReloadNote then
+        colorModeReloadNote:Show()
+        colorModeReloadButton:Show()
+    end
 end
 
 local lastModeAnchor = colorHeader
@@ -565,6 +575,19 @@ for i, modeName in ipairs(colorModeOrder) do
     _G.tinsert(colorModeRadios, radio)
     lastModeAnchor = radio
 end
+
+colorModeReloadNote = appearanceChild:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+colorModeReloadNote:SetPoint("TOPLEFT", colorModeRadios[1], "TOPRIGHT", 160, 0)
+colorModeReloadNote:SetWidth(300)
+colorModeReloadNote:SetJustifyH("LEFT")
+colorModeReloadNote:SetTextColor(1, 0.82, 0)
+colorModeReloadNote:SetText("Reload to apply the new color mode to buttons and borders everywhere.")
+colorModeReloadNote:Hide()
+
+colorModeReloadButton = createButton(appearanceChild, _G.C_UI.Reload, _G.RELOADUI)
+colorModeReloadButton:SetPoint("TOPLEFT", colorModeReloadNote, "BOTTOMLEFT", 0, -8)
+colorModeReloadButton:SetWidth(120)
+colorModeReloadButton:Hide()
 
 -- 7.3: Info note shown when colorMode == "HDR" and customHighlight.enabled == true
 local hdrInfoNote = appearanceChild:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
