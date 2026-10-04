@@ -295,7 +295,9 @@ function private.FrameXML.FriendsFrame()
     -- AddFriendFrame --
     --------------------
     local AddFriendFrame = _G.AddFriendFrame
-    Skin.DialogBorderTemplate(AddFriendFrame.Border)
+    -- Dark variant: the dialog opens over the contacts list, and at the user
+    -- frame alpha the friend names showed through its text.
+    Skin.DialogBorderDarkTemplate(AddFriendFrame.Border)
     -- AddFriendInfoFrame has no ContinueButton parentKey in either tree
     -- (Blizzard_AddFriend\AddFriendTemplates.xml declares OkayButton /
     -- CancelButton / AcceptButton), so this has been nil on retail too. It only
