@@ -1,4 +1,36 @@
-﻿## [12.1.0.12] ##
+﻿## [12.1.0.13] ##
+### Added ###
+
+  * add: **the Vanilla-style group finder's playstyle dropdown is skinned.** Build 1.60.1.70205 added it to the listing panel [forever]
+
+### Fixed ###
+
+  * fix: **upgrading an item with a long effect description works again.** Aurora replaced the global `GameTooltip_InsertFrame` to guard secret line heights on the loot history roll tooltips. On an item whose effect text reached the truncation branch of the upgrade preview, the replacement wrote `insertedFrames` onto Blizzard's preview tooltip, and on confirm Blizzard read that field one call before `C_ItemUpgrade.UpgradeItem()`, which was then refused. It showed either as nothing happening or as `AddOn 'RealUI' tried to call the protected function 'UpgradeItem()'`. The replacement is gone and Blizzard's original runs. A test with the original confirmed both sides: long-text trinkets upgrade, and the LFR loot history raises no errors [mainline/forever]
+  * fix: **the loot history no longer taints its own roll tooltips.** Two overrides in the loot history skin wrote into Blizzard state that every roll tooltip reads: a hook that re-ran each row's `Init` for uncached items, and a replacement `Layout` on the roll-line mixin. Both are removed. Rows get their card backdrop from a child frame, so nothing is stored on the row [mainline/forever]
+  * fix: **the LFR and dungeon "group has been formed" popup, the ready-status board, the role check and invite popups, and the battleground and rated PvP ready popups are skinned again.** Since an August 2025 change their skins were registered under keys the loader never runs, so all of them showed Blizzard's art. Enter and Leave use the taint-safe button skin, because they call `AcceptProposal()` and `AcceptBattlefieldPort()`. The rated PvP popup skin is reduced to art; it no longer re-lays Blizzard's role buttons. The leader icon keeps Blizzard's crown, and the minimize buttons sit inside the border [mainline]
+  * fix: **the role poll popup shows Aurora's role icons.** Blizzard re-sets each role button's atlas every time the popup opens, which put its role circle under Aurora's tint and mask. Aurora re-applies its icon after that, desaturated for a role your class cannot take [mainline]
+  * fix: **housing blueprint dialogs are darker,** and their share-code boxes lost Blizzard's rounded input border. The House Settings and house list windows get Aurora's close button [mainline]
+  * fix: **the text field in Blizzard popups is skinned,** for example the "type DELETE" box. Its rounded tooltip border sat over Aurora's backdrop [mainline/forever]
+  * fix: **the Add Friend dialog uses a dark backdrop,** so the contacts list no longer shows through it [mainline/forever]
+  * fix: **the loot history window has Aurora's title bar, close button and resize handle** [mainline/forever]
+  * fix: the Trading Post panels printed "Report: No NineSlice for nil" three times; their border is under `Border`, which Aurora now strips directly [mainline/forever]
+  * fix: Camelot's character title pane, its own tab since build 70205, showed a gold border [forever]
+
+### Changed ###
+
+  * chg: **the `/aurora insertframe` and `/aurora mawbuffs` dev toggles are removed,** together with their `AuroraConfig` keys. The `GameTooltip_InsertFrame` replacement is gone (see Fixed). The `ShouldShowMawBuffs` wrapper was removed after clean test runs, the objective tracker error returned in the next delve, and the wrapper is back. It stays until the objective tracker skin no longer taints that code [mainline/forever]
+  * chg: the backpack's free-slot count, its own string since build 70205, sits in the bag-slot corner like the other counts [forever]
+  * chg: the dev test data no longer errors on items the client does not have [shared]
+
+### Known Issues ###
+
+  * **Upgrading from 12.1.0.10 or older: delete the `Aurora` folder before installing.** A client prefers a suffixed TOC such as `Aurora_Mainline.toc` over `Aurora.toc`, so if the old files are left behind by unzipping over the folder, they keep loading instead of the new one. Addon managers that replace the folder are not affected [all]
+  * The Forever SavedVariables issue listed under 12.1.0.10 to 12.1.0.12 is resolved by the client (build 70009): `AuroraConfig` persists [forever]
+  * Camelot's gamepad addons and the Legacy system's tree page are deliberately left unskinned, as described under 12.1.0.10 [forever]
+  * The `ShouldShowMawBuffs` guard still owns a Blizzard global [mainline]
+  * The world-event, scenario and encounter UI widgets still render with Blizzard's styling while that skin is gated. Widgets on nameplates the client marks forbidden cannot be skinned by any addon [mainline]
+
+## [12.1.0.12] ##
 A hotfix for how 12.1.0.11 was published. The addon files are unchanged.
 
 ### Fixed ###
@@ -943,7 +975,8 @@ A hotfix for how 12.1.0.11 was published. The addon files are unchanged.
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.0.12...develop
+[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.0.13...develop
+[12.1.0.13]: https://github.com/RealUI/Aurora/compare/12.1.0.12...12.1.0.13
 [12.1.0.12]: https://github.com/RealUI/Aurora/compare/12.1.0.11...12.1.0.12
 [12.1.0.11]: https://github.com/RealUI/Aurora/compare/12.1.0.10...12.1.0.11
 [12.1.0.10]: https://github.com/Gethe/Aurora/compare/12.1.0.9...12.1.0.10
