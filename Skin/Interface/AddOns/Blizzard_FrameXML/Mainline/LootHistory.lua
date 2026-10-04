@@ -1,6 +1,6 @@
 local _, private = ...
 
--- luacheck: globals _G
+-- luacheck: globals _G next
 
 local Aurora = private.Aurora
 local Base, Skin = Aurora.Base, Aurora.Skin
@@ -49,6 +49,19 @@ function private.FrameXML.LootHistory()
         Skin.DefaultPanelFlatTemplate(LootHistoryFrame)
         if LootHistoryFrame.ClosePanelButton then
             Skin.UIPanelCloseButton(LootHistoryFrame.ClosePanelButton)
+        end
+
+        -- The resize tab under the bottom edge: one unnamed OVERLAY texture
+        -- (lootroll-resizehandle). Its scripts only StartSizing the window,
+        -- which is not protected, so a plain Aurora button look is safe.
+        local ResizeButton = LootHistoryFrame.ResizeButton
+        if ResizeButton then
+            for _, region in next, {ResizeButton:GetRegions()} do
+                if region:IsObjectType("Texture") then
+                    region:SetAlpha(0)
+                end
+            end
+            Skin.FrameTypeButton(ResizeButton)
         end
     end
 end
