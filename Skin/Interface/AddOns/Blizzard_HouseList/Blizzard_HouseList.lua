@@ -57,6 +57,7 @@ function private.AddOns.Blizzard_HouseList()
     if HouseListFrame.Background then HouseListFrame.Background:SetAlpha(0) end
     if HouseListFrame.WoodHeader then HouseListFrame.WoodHeader:SetAlpha(0) end
     if HouseListFrame.DecorativeFoliage then HouseListFrame.DecorativeFoliage:SetAlpha(0) end
+    if HouseListFrame.CloseButton then Skin.UIPanelCloseButton(HouseListFrame.CloseButton) end
 
     ----
     -- ScrollBox / ScrollBar
