@@ -24,6 +24,10 @@ function private.AddOns.Blizzard_HousingHouseSettings()
     Frame.PlantDecoLeft:SetAlpha(0)
     Frame.Spacer:SetAlpha(0)
 
+    if Frame.CloseButton then
+        Skin.UIPanelCloseButton(Frame.CloseButton)
+    end
+
     -- HouseOwnerDropdown (WowStyle1DropdownTemplate)
     Skin.WowStyle1ArrowDropdownTemplate(Frame.HouseOwnerDropdown)
 
