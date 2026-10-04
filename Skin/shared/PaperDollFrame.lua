@@ -227,6 +227,13 @@ function private.SharedSkins.PaperDollPanes()
     if TitleManagerPane then
         Skin.WowScrollBoxList(TitleManagerPane.ScrollBox)
         Skin.MinimalScrollBar(TitleManagerPane.ScrollBar)
+
+        -- Camelot only (1.60.1.70205): a common-insideframe Border, the same
+        -- ornate gold plate the stat panes carry (Camelot\CharacterFrame.lua
+        -- hides theirs). Retail's pane has no Border.
+        if TitleManagerPane.Border then
+            TitleManagerPane.Border:SetAlpha(0)
+        end
     end
 
     local EquipmentManagerPane = PaperDollFrame.EquipmentManagerPane
