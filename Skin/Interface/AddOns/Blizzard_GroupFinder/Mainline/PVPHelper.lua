@@ -9,16 +9,29 @@ local Aurora = private.Aurora
 local Base = Aurora.Base
 local Hook, Skin = Aurora.Hook, Aurora.Skin
 
+-- Aurora role icon keys; anything else keeps Blizzard's atlas.
+local ROLE_ICONS = {
+    TANK = "iconTANK",
+    HEALER = "iconHEALER",
+    DAMAGER = "iconDAMAGER",
+}
+
 do --[[ FrameXML\PVPHelper.lua ]]
     function Hook.PVPReadyDialog_Display(self, index, displayName, isRated, queueType, gameType, role)
-        Base.SetTexture(self.roleIcon.texture, "icon"..role)
+        local icon = role and ROLE_ICONS[role]
+        if icon then
+            Base.SetTexture(self.roleIcon.texture, icon)
+        end
     end
 end
 
 --do --[[ FrameXML\PVPHelper.xml ]]
 --end
 
-function private.AddOns.PVPHelper()
+-- FrameXML, not AddOns: "PVPHelper" is a file in Blizzard_GroupFinder, not an
+-- addon, so as private.AddOns.PVPHelper (2c5d1d78 until 2026-10-04) it never
+-- ran (B158).
+function private.FrameXML.PVPHelper()
 
     --[[ PVPFramePopup ]]--
 
@@ -40,9 +53,11 @@ function private.AddOns.PVPHelper()
         PVPReadyDialog.bottomArt:Hide()
 
         Skin.UIPanelHideButtonNoScripts(_G.PVPReadyDialogCloseButton)
-        Skin.UIPanelButtonTemplate(PVPReadyDialog.enterButton)
-        Skin.UIPanelButtonTemplate(PVPReadyDialog.leaveButton)
-        -- Skin.UIPanelButtonTemplate(PVPReadyDialog.hideButton)
+        -- Enter calls AcceptBattlefieldPort(self:GetParent().activeIndex, ...),
+        -- which is protected. It reads only activeIndex, which Blizzard writes;
+        -- keep the buttons free of addon table writes all the same.
+        Skin.TaintSafeUIPanelButtonTemplate(PVPReadyDialog.enterButton)
+        Skin.TaintSafeUIPanelButtonTemplate(PVPReadyDialog.leaveButton)
 
         PVPReadyDialog.roleIcon:SetSize(64, 64)
     end
