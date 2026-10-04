@@ -45,6 +45,14 @@ do --[[ FrameXML\MainMenuBarBagButtons.xml ]]
             ItemButton.Count:SetPoint("BOTTOMRIGHT", -2, 2)
         end
 
+        -- Backpack only: since 1.60.1.70205 the free-slot number has its own
+        -- FreeSlots string, which MainMenuBarBackpackMixin:OnLoadInternal pins
+        -- to CENTER (0,-10) once at load. Clear that and put it where Count sat.
+        if ItemButton.FreeSlots then
+            ItemButton.FreeSlots:ClearAllPoints()
+            ItemButton.FreeSlots:SetPoint("BOTTOMRIGHT", -2, 2)
+        end
+
         local function Restyle()
             local normal = ItemButton:GetNormalTexture()
             if normal then normal:SetAlpha(0) end
