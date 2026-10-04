@@ -33,6 +33,17 @@ local function WipeDialogBorderTextures(border)
     end
 end
 
+-- Skin.UIPanelHideButtonNoScripts draws its box inset 11px from the button's
+-- right and 10px from its top; Blizzard's TOPRIGHT -1,-1 anchor was made for
+-- the ornate border, so on Aurora's flat one the box hung over the edge.
+-- Re-anchor to the border backdrop so the box sits 4px inside its corner.
+local function AnchorHideButton(button, border)
+    local bg = border and border.GetBackdropTexture and border:GetBackdropTexture("bg")
+    if not (button and bg) then return end
+    button:ClearAllPoints()
+    button:SetPoint("TOPRIGHT", bg, "TOPRIGHT", 11 - 4, 10 - 4)
+end
+
 local LEGACY_BUTTON_TEXTURE_KEYS = {
     "Left", "Right", "Middle",
     "left", "right", "middle",
@@ -279,6 +290,7 @@ function private.FrameXML.LFGFrame()
     Skin.DialogBorderTemplate(statusBorder)
     WipeDialogBorderTextures(statusBorder)
     Skin.UIPanelHideButtonNoScripts(_G.LFGDungeonReadyStatusCloseButton)
+    AnchorHideButton(_G.LFGDungeonReadyStatusCloseButton, statusBorder)
 
     local LFGDungeonReadyDialog = _G.LFGDungeonReadyDialog
     LFGDungeonReadyDialog.background:ClearAllPoints()
@@ -292,6 +304,7 @@ function private.FrameXML.LFGFrame()
     Skin.DialogBorderTranslucentTemplate(LFGDungeonReadyDialog.Border)
     WipeDialogBorderTextures(LFGDungeonReadyDialog.Border)
     Skin.UIPanelHideButtonNoScripts(_G.LFGDungeonReadyDialogCloseButton)
+    AnchorHideButton(_G.LFGDungeonReadyDialogCloseButton, LFGDungeonReadyDialog.Border)
     -- Enter/Leave call AcceptProposal()/RejectProposal(). Their OnClick reads
     -- only globals, but keep the buttons free of addon table writes anyway
     -- (same treatment as the StaticPopup buttons).
@@ -303,8 +316,10 @@ function private.FrameXML.LFGFrame()
     _G.LFGDungeonReadyDialogRoleIcon:SetSize(64, 64)
     _G.LFGDungeonReadyDialogRoleIcon:ClearAllPoints()
     _G.LFGDungeonReadyDialogRoleIcon:SetPoint("BOTTOMLEFT", 121, 57)
+    -- Keep Blizzard's leader crown (UI-LFG-RoleIcon-Leader-Micro-GroupFinder).
+    -- Aurora's iconGUIDE tile drew as a blank dark-blue square at this size,
+    -- and a solo queue makes you leader, so it showed on every pop.
     _G.LFGDungeonReadyDialogRoleIconLeaderIcon:SetPoint("TOPLEFT")
-    Base.SetTexture(_G.LFGDungeonReadyDialogRoleIconLeaderIcon, "iconGUIDE")
 
     Skin.LFGDungeonReadyRewardTemplate(_G.LFGDungeonReadyDialogRewardsFrame.Rewards[1])
     Skin.LFGDungeonReadyRewardTemplate(_G.LFGDungeonReadyDialogRewardsFrame.Rewards[2])
