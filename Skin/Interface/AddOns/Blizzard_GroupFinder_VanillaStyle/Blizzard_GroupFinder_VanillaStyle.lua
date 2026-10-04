@@ -412,6 +412,11 @@ function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
         if ActivityView.Comment then
             Skin.UIPanelInputScrollFrameTemplate(ActivityView.Comment)
         end
+        -- Forever 1.60.1.70205: a WowStyle1 playstyle dropdown that must be
+        -- set before a listing can be posted. Absent on the classic clients.
+        if ActivityView.PlayStyleDropdown then
+            Skin.DropdownButton(ActivityView.PlayStyleDropdown)
+        end
     end
 
     -- Category buttons are built on demand, so catch them as they are added and
