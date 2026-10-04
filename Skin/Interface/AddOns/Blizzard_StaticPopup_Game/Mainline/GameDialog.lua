@@ -51,6 +51,13 @@ do --[[ AddOns\Blizzard_StaticPopup_Game\GameDialog.lua ]]
         -- (no Left/Right/Middle textures), so FrameTypeEditBox handles it directly.
         if Frame.EditBox then
             Skin.FrameTypeEditBox(Frame.EditBox)
+            -- TooltipBackdropTemplate draws its rounded border on a NineSlice
+            -- child, which sat over Aurora's backdrop (e.g. the "type DELETE"
+            -- box). Alpha on the child, not Hide: NineSlice layouts re-show
+            -- their pieces.
+            if Frame.EditBox.NineSlice then
+                Frame.EditBox.NineSlice:SetAlpha(0)
+            end
         end
 
         -- Progress bar used for dialogs with countdown timers (e.g. cinematic skip).
