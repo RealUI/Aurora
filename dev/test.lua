@@ -33,7 +33,7 @@ local function GetItem(itemID, isCurrency)
             data.texture = itemIcon
             data.quality = itemRarity
             data.locked = false
-            data.count = random(1, itemStackCount)
+            data.count = random(1, itemStackCount or 1) -- nil when the client lacks the item (e.g. Forever)
             data.isQuestItem = itemClassID == _G.LE_ITEM_CLASS_QUESTITEM
             data.isQuestActive = data.isQuestItem and (itemID % 2) == 1
         end)
