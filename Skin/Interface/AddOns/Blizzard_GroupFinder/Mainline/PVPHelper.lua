@@ -53,6 +53,11 @@ function private.FrameXML.PVPHelper()
         PVPReadyDialog.bottomArt:Hide()
 
         Skin.UIPanelHideButtonNoScripts(_G.PVPReadyDialogCloseButton)
+        -- The hide-button box is inset 11px right / 10px top in the button;
+        -- Blizzard's anchor was made for the ornate border, so it hung over
+        -- Aurora's. Put the box 4px inside the border backdrop's corner.
+        _G.PVPReadyDialogCloseButton:ClearAllPoints()
+        _G.PVPReadyDialogCloseButton:SetPoint("TOPRIGHT", bg, "TOPRIGHT", 11 - 4, 10 - 4)
         -- Enter calls AcceptBattlefieldPort(self:GetParent().activeIndex, ...),
         -- which is protected. It reads only activeIndex, which Blizzard writes;
         -- keep the buttons free of addon table writes all the same.
