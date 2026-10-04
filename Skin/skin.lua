@@ -30,7 +30,6 @@ do -- Button
         SetTexturesToColor(self, returnColor)
     end
 
-    local DISABLED_COLOR = Color.Lightness(Color.button, -0.3)
     local function Hook_Enable(self)
         if self.isEnabled then
             return
@@ -128,7 +127,9 @@ do -- Button
             Button:SetButtonColor(Color.grayLight, 1, Color.gray)
             Base.SetHighlight(Button, MinimalOnEnter, MinimalOnLeave)
         else
-            Button:SetButtonColor(Color.button, nil, DISABLED_COLOR)
+            -- B164: the live token, not a copy taken at file load (which
+            -- predated the saved colour mode and so was always Normal's).
+            Button:SetButtonColor(Color.button, nil, Color.buttonDisabled)
             Base.SetHighlight(Button, OnEnter, OnLeave)
         end
     end

@@ -259,6 +259,12 @@ Color.button    = Color.Create(Color.grayDark.r, Color.grayDark.g, Color.grayDar
 Color.frame     = Color.Create(Color.black.r, Color.black.g, Color.black.b, 0.2)
 Color.border    = Color.Create(0.15, 0.15, 0.15, 1.0) -- 262626, UI element borders
 
+-- B164: disabled-button colour, derived from the active mode's button token
+-- (never from the gradient override, so Normal looks as it always has). One
+-- live object: buttons hold the reference, so a mode switch reaches them the
+-- next time they are disabled.
+Color.buttonDisabled = Color.Lightness(Color.button, -0.3)
+
 --[[ Color.Modes
 Named palette presets for the color mode system. Each entry defines:
   - tokens: replacement values for the neutral Color.* palette tokens
@@ -327,6 +333,20 @@ Active mode tracking and live palette switching API.
 --]]
 local activeMode = "Normal"
 
+-- Copy a mode's palette tokens onto the live Color objects (SetMode and
+-- PreviewMode). B164: the gradient button style overrides the mode's button
+-- colour (aurora.lua sets it at load), and a live switch used to drop it, so
+-- every frame skinned afterwards got the plain mode colour until a reload.
+local function ApplyModeTokens(mode)
+    for token, value in _G.pairs(mode.tokens) do
+        Color[token]:SetRGBA(value:GetRGBA())
+    end
+    Color.buttonDisabled:SetRGBA(Color.Lightness(Color.button, -0.3):GetRGBA())
+    if _G.AuroraConfig and _G.AuroraConfig.buttonsHaveGradient then
+        Color.button:SetRGB(.4, .4, .4)
+    end
+end
+
 --[[ Color.GetActiveMode()
 Returns the name of the currently active color mode.
 
@@ -354,9 +374,7 @@ function Color.SetMode(name)
     if not mode then return end
 
     -- Apply neutral palette tokens
-    for token, value in _G.pairs(mode.tokens) do
-        Color[token]:SetRGBA(value:GetRGBA())
-    end
+    ApplyModeTokens(mode)
 
     activeMode = name
     _G.AuroraConfig.colorMode = name
@@ -384,9 +402,7 @@ function Color.PreviewMode(name)
     if not mode then return end
 
     -- Temporarily apply palette tokens (does not update activeMode)
-    for token, value in _G.pairs(mode.tokens) do
-        Color[token]:SetRGBA(value:GetRGBA())
-    end
+    ApplyModeTokens(mode)
 
     Color.ApplyPaletteToAll()                   -- refresh all tracked frames with new tokens
 
