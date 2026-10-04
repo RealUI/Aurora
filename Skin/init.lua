@@ -10,9 +10,10 @@ local interfaceVersion = select(4, _G.GetBuildInfo())
 -- WoW Forever (1.60.x, Blizzard codename Camelot) reports a 1.x version but
 -- runs the Mainline UI architecture with a Camelot overlay, so it is gated on
 -- the interface number (16000-19999), the same way Midnight is gated below.
--- Era stays below 16000 and TBC starts at 20000. Verified on beta 69913:
--- WOW_PROJECT_ID is WOW_PROJECT_MAINLINE (1) there, so the isRetail/isVanilla
--- terms below are guards against that changing, not the primary detection.
+-- Era stays below 16000 and TBC starts at 20000. WOW_PROJECT_ID is no help:
+-- it was WOW_PROJECT_MAINLINE (1) through beta 70124 and has been
+-- WOW_PROJECT_CAMELOT (18) since 70170, so isRetail only holds on Forever
+-- because isForever is OR'd in, and isVanilla is excluded explicitly.
 private.isForever = interfaceVersion >= 16000 and interfaceVersion < 20000
 
 private.isRetail = _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE or private.isForever
