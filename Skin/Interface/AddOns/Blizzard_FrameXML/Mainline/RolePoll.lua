@@ -7,10 +7,35 @@ if private.shouldSkip() then return end
 --[[ Core ]]
 local Aurora = private.Aurora
 local Base = Aurora.Base
-local Skin = Aurora.Skin
+local Hook, Skin = Aurora.Hook, Aurora.Skin
 
---do --[[ FrameXML\RolePoll.lua ]]
---end
+do --[[ FrameXML\RolePoll.lua ]]
+    -- RolePollPopupRoleButton_Enable/_Disable call SetNormalAtlas on every
+    -- show, which put Blizzard's role circle back under Aurora's tint and
+    -- round mask (a coloured tile with a big glossy circle). Re-apply the
+    -- Aurora icon after both; desaturate it when the role is unavailable.
+    local ROLE_ICONS = {}
+    local function RefreshRoleIcon(button, disabled)
+        local enum = _G.Enum and _G.Enum.LFGRole
+        if enum and not ROLE_ICONS[enum.Tank] then
+            ROLE_ICONS[enum.Tank] = "iconTANK"
+            ROLE_ICONS[enum.Healer] = "iconHEALER"
+            ROLE_ICONS[enum.Damage] = "iconDAMAGER"
+        end
+        local icon = ROLE_ICONS[button.role]
+        local texture = button:GetNormalTexture()
+        if icon and texture then
+            Base.SetTexture(texture, icon)
+            texture:SetDesaturated(disabled)
+        end
+    end
+    function Hook.RolePollPopupRoleButton_Enable(button)
+        RefreshRoleIcon(button, false)
+    end
+    function Hook.RolePollPopupRoleButton_Disable(button)
+        RefreshRoleIcon(button, true)
+    end
+end
 
 do --[[ FrameXML\RolePoll.xml ]]
     function Skin.RolePollRoleButtonTemplate(Button)
@@ -21,6 +46,9 @@ do --[[ FrameXML\RolePoll.xml ]]
 end
 
 function private.FrameXML.RolePoll()
+    _G.hooksecurefunc("RolePollPopupRoleButton_Enable", Hook.RolePollPopupRoleButton_Enable)
+    _G.hooksecurefunc("RolePollPopupRoleButton_Disable", Hook.RolePollPopupRoleButton_Disable)
+
     Skin.DialogBorderTemplate(_G.RolePollPopup.Border)
     Skin.UIPanelCloseButton(_G.RolePollPopupCloseButton)
 
