@@ -39,4 +39,16 @@ end
 
 function private.FrameXML.LootHistory()
     _G.hooksecurefunc(_G.LootHistoryElementMixin, "OnLoad", Skin.LootHistoryElementTemplate)
+
+    -- B157: the window chrome was never skinned (Blizzard title bar and red
+    -- close button). Panel art and the close button only: these write to the
+    -- NineSlice, Bg and button children, never to the window, the rows or the
+    -- roll tooltip path that B53 cleaned up.
+    local LootHistoryFrame = _G.GroupLootHistoryFrame
+    if LootHistoryFrame then
+        Skin.DefaultPanelFlatTemplate(LootHistoryFrame)
+        if LootHistoryFrame.ClosePanelButton then
+            Skin.UIPanelCloseButton(LootHistoryFrame.ClosePanelButton)
+        end
+    end
 end
