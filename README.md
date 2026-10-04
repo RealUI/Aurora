@@ -68,9 +68,8 @@ Slash Commands
   * `/aurora debug` - show the debug log (needs LibTextDump).
   * `/aurora skinaudit` - list the skins that failed to apply this session, with the client build and interface version.
   * `/aurora reset` - reset the configuration to defaults (then `/reload`).
-  * `/aurora insertframe` - dev A/B toggle; see Developer Notes.
 
-The options panel and slash commands live in `gui.lua`. An embedding host usually includes only `Skin\skin.xml` and a flavor manifest, so `/aurora` does not exist there and the host supplies its own options UI. Under RealUI, `RealUI_Skins` stores `AuroraConfig` per profile and mirrors the dev toggle as `/auroraInsertFrame`.
+The options panel and slash commands live in `gui.lua`. An embedding host usually includes only `Skin\skin.xml` and a flavor manifest, so `/aurora` does not exist there and the host supplies its own options UI. Under RealUI, `RealUI_Skins` stores `AuroraConfig` per profile.
 
 
 Layout
@@ -95,23 +94,7 @@ Every skin runs inside `pcall`. A skin written for frames that a client lacks th
 Developer Notes
 ---------------
 
-**`GameTooltip_InsertFrame`**: Aurora replaces this global. Its version differs from Blizzard's original in two ways:
-
-  * It passes the two `Round()` inputs through a `SafeNumber()` guard.
-  * It nil-guards `GetLeftLine(2)`. Blizzard's original indexes that line without a check, and it errors on tooltips that have fewer than two lines.
-
-Replacing a global has a cost: the global is then tainted for every secure caller. Blizzard's `Blizzard_ItemUpgradeUI` reads this global inside `PlayUpgradedCelebration()`, one line before `C_ItemUpgrade.UpgradeItem()`. The upgrade is therefore blocked whenever an item's effect text is long enough to reach the truncation branch.
-
-`/aurora insertframe` toggles `AuroraConfig.devRestoreInsertFrame`. With it on, Aurora runs Blizzard's original, so you can test the affected surfaces and find out whether the replacement is still needed:
-
-  * LootHistory "all passed" tooltip (most likely to need the nil-guard)
-  * Professions reagent and reward tooltips
-  * Delve widget-set tooltips
-  * Garrison mission threat tooltips
-  * Quest-offer map pin tooltips
-  * Trinket upgrades in the item upgrade window
-
-The toggle takes effect after `/reload`. While the replacement is off, Aurora prints a notice at load, so test runs are not misread.
+**`GameTooltip_InsertFrame`**: Aurora does not replace this global, and should not. Releases up to 12.1.0.12 replaced it to guard secret `Round()` inputs on the loot history roll tooltips. The cost was trinket upgrades: the replacement wrote `insertedFrames` on the item upgrade preview tooltip, and on confirm Blizzard read that tainted field one call before `C_ItemUpgrade.UpgradeItem()`, which was then refused for any item whose effect text reached the truncation branch. The secret values only appeared because the loot history already ran tainted, from Aurora's own overrides there, which are gone. An A/B with Blizzard's original confirmed both sides: trinket upgrades go through and the LFR loot history is clean.
 
 **`ShouldShowMawBuffs`**: Aurora wraps this global so that it returns `false` while `C_Secrets.ShouldAurasBeSecret()` is true. Blizzard's version calls `C_UnitAuras.GetAuraDataByIndex("player", 1, "MAW")` without a guard, and that call throws when auras are secret and the execution is tainted. Its callers are inside the objective tracker's update and layout code, so the throw breaks the delve and LFR stage blocks partway through layout. Owning the global has a taint cost on the scenario tracker's `UNIT_AURA` path. The wrapper was removed once after several clean runs, and the error returned in the next delve, so clean runs do not show it is unneeded. It can go once the objective tracker skin stops tainting that layout code.
 

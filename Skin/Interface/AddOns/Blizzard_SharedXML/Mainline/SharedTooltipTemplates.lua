@@ -70,91 +70,26 @@ function private.SharedXML.SharedTooltipTemplates()
     local setTooltipMoneyPatched = false
     local setTooltipMoneyPatchFrame
 
-    -- Shared helper: coerce secret/tainted numbers to safe fallbacks so
-    -- arithmetic in Blizzard code doesn't error on addon-tainted values.
-    local function SafeNumber(value, fallback)
-        if type(value) ~= "number" then return fallback end
-        if _G.issecretvalue and _G.issecretvalue(value) then return fallback end
-        return value
-    end
-
     -- NOTE: Do NOT replace _G.GetUnscaledFrameRect here.
     -- Overwriting that global with an addon-owned function taints it,
     -- which propagates through layout paths into the GameMenu secure
     -- execution and causes ADDON_ACTION_FORBIDDEN on Logout/Quit.
 
-    -- Replace GameTooltip_InsertFrame to avoid taint: Aurora's font
-    -- modifications cause GetLineHeight() and GetHeight() to return secret
-    -- numbers, breaking Round() arithmetic at SharedTooltipTemplates.lua:202.
-    -- securecallfunction does NOT help — secret values error on ANY
-    -- arithmetic regardless of context.  Use SafeNumber for all tooltips.
-    --
-    -- COST OF OWNING THIS GLOBAL: an addon-written global is tainted for every
-    -- secure reader.  Blizzard_ItemUpgradeUI.lua:867 reads it inside
-    -- PlayUpgradedCelebration(), one line before C_ItemUpgrade.UpgradeItem(),
-    -- so the upgrade is blocked whenever an item's effect text is tall enough
-    -- to hit the truncation branch.
-    --
-    -- The replacement differs from Blizzard's original in TWO ways:
-    --   1. SafeNumber() around the two Round() inputs (the documented reason)
-    --   2. a nil-guard on GetLeftLine(2) — Blizzard indexes it unconditionally
-    --      and errors on any tooltip with fewer than two lines (undocumented,
-    --      and the likelier reason this was ever needed; cf. LootHistory)
-    --
-    -- ANSWERED 2026-08-19: difference (1) is load-bearing. Running Blizzard's
-    -- original in a raid threw at SharedTooltipTemplates.lua:213 — "attempt to
-    -- compare local 'frameWidth' (a secret number value, while execution
-    -- tainted by 'RealUI')" — from LootHistory's SetTooltip, x12. That is the
-    -- SafeNumber guard's job, not the GetLeftLine(2) nil-guard, so the
-    -- replacement cannot simply be dropped; removing the taint means finding a
-    -- way to guard those two Round() inputs WITHOUT owning the global.
-    --
-    -- /aurora insertframe flips devRestoreInsertFrame to run Blizzard's
-    -- original, so the surfaces at risk (LootHistory "all passed", Professions
-    -- reagent/reward, delve widget sets, Garrison mission threats, quest-offer
-    -- map pins, trinket item upgrades) can still be exercised. Remember to flip
-    -- it back: a stale `true` reproduces the error above and looks like a bug.
-    local restoreOriginal = _G.AuroraConfig and _G.AuroraConfig.devRestoreInsertFrame
-    if restoreOriginal then
-        _G.print("|cffffcc00Aurora:|r GameTooltip_InsertFrame replacement DISABLED (/aurora insertframe, or /auroraInsertFrame under RealUI).")
-    end
-
-    if _G.GameTooltip_InsertFrame and not restoreOriginal then
-        _G.GameTooltip_InsertFrame = function(tooltipFrame, frame, verticalPadding)
-            verticalPadding = verticalPadding or 0
-
-            local textSpacing = tooltipFrame:GetCustomLineSpacing() or 2
-            local leftLine2 = tooltipFrame:GetLeftLine(2)
-            local rawLineHeight = leftLine2 and leftLine2:GetLineHeight() or 12
-            local textHeight = _G.Round(SafeNumber(rawLineHeight, 12))
-            local rawFrameHeight = frame:GetHeight()
-            local neededHeight = _G.Round(SafeNumber(rawFrameHeight, 0) + verticalPadding)
-            local numLinesNeeded = _G.math.ceil(neededHeight / (textHeight + textSpacing))
-            local currentLine = tooltipFrame:NumLines()
-            _G.GameTooltip_AddBlankLinesToTooltip(tooltipFrame, numLinesNeeded)
-            frame:SetParent(tooltipFrame)
-            frame:ClearAllPoints()
-            frame:SetPoint("TOPLEFT", tooltipFrame:GetLeftLine(currentLine + 1), "TOPLEFT", 0, -verticalPadding)
-            if not tooltipFrame.insertedFrames then
-                tooltipFrame.insertedFrames = {}
-            end
-            local frameWidth = SafeNumber(frame:GetWidth(), 0)
-            if tooltipFrame:GetMinimumWidth() < frameWidth then
-                tooltipFrame:SetMinimumWidth(frameWidth)
-            end
-            frame:Show()
-            _G.tinsert(tooltipFrame.insertedFrames, frame)
-            return (numLinesNeeded * textHeight) + (numLinesNeeded - 1) * textSpacing
-        end
-    end
+    -- NOTE: Do NOT replace GameTooltip_InsertFrame. Aurora owned it from
+    -- 094362e4 to guard secret Round() inputs (SafeNumber) for the LootHistory
+    -- roll tooltips, and it cost trinket upgrades (B53/B145): the replacement
+    -- wrote insertedFrames on the item upgrade preview tooltip, and on confirm
+    -- SetOwner -> SharedTooltip_ClearInsertedFrames read that tainted field
+    -- one call before C_ItemUpgrade.UpgradeItem(), which was then refused.
+    -- The secret values only appeared because LootHistory already ran
+    -- tainted, from Aurora's own Init hook and Layout override (both removed).
+    -- Removed 2026-10-04 after an A/B with Blizzard's original: long-text
+    -- trinket upgrades go through, and an LFR loot history hover is clean.
 
     -- NOTE: Do NOT wrap GameTooltip_AddWidgetSet here.
     -- Replacing the global with an addon-owned function taints the execution
     -- before RegisterForWidgetSet is called, causing GetUnscaledFrameRect to
     -- receive secret values from frame:GetScaledRect() and error on arithmetic.
-    -- The GameTooltip_InsertFrame replacement above is picked up via global
-    -- lookup by Blizzard's original GameTooltip_AddWidgetSet regardless of
-    -- execution context — securecallfunction shares the same _G as all code.
 
     -- Replace SetTooltipMoney to avoid taint: Aurora's GameTooltip
     -- skinning marks the tooltip hierarchy as addon-modified, causing
