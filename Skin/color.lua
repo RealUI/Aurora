@@ -333,17 +333,52 @@ Active mode tracking and live palette switching API.
 --]]
 local activeMode = "Normal"
 
+--[[ Token overrides (B164). A host can pin the colour of a palette token
+(`frame` or `button`) on top of whatever the active mode supplies: standalone
+Aurora pins `button` for the gradient style, RealUI pins the colours its Skins
+pickers were changed to. Only RGB is pinned; alpha stays the mode's. Before
+this, a mode switch overwrote the host's colour, so every frame skinned after
+it got the plain mode colour until a reload. ]]
+local tokenOverrides = {}
+
+local function ApplyTokenOverride(token)
+    local color = tokenOverrides[token]
+    if color then
+        Color[token]:SetRGB(color.r, color.g, color.b)
+    end
+end
+
+--[[ Color.SetTokenOverride(_token, color_)
+Pin a palette token's RGB above the colour mode, or release it with `nil`.
+Applies immediately and survives later mode switches.
+
+**Args:**
+* `token` - `"frame"` or `"button"` _(string)_
+* `color` - the colour to pin, or `nil` to follow the mode again _(Color, optional)_
+--]]
+function Color.SetTokenOverride(token, color)
+    if color then
+        tokenOverrides[token] = Color.Create(color.r, color.g, color.b)
+        ApplyTokenOverride(token)
+    else
+        tokenOverrides[token] = nil
+        local mode = Color.Modes[activeMode]
+        if mode and mode.tokens[token] then
+            Color[token]:SetRGBA(mode.tokens[token]:GetRGBA())
+        end
+    end
+end
+
 -- Copy a mode's palette tokens onto the live Color objects (SetMode and
--- PreviewMode). B164: the gradient button style overrides the mode's button
--- colour (aurora.lua sets it at load), and a live switch used to drop it, so
--- every frame skinned afterwards got the plain mode colour until a reload.
+-- PreviewMode). The disabled-button colour follows the mode's own button
+-- colour, before any override, so Normal looks as it always has.
 local function ApplyModeTokens(mode)
     for token, value in _G.pairs(mode.tokens) do
         Color[token]:SetRGBA(value:GetRGBA())
     end
     Color.buttonDisabled:SetRGBA(Color.Lightness(Color.button, -0.3):GetRGBA())
-    if _G.AuroraConfig and _G.AuroraConfig.buttonsHaveGradient then
-        Color.button:SetRGB(.4, .4, .4)
+    for token in _G.next, tokenOverrides do
+        ApplyTokenOverride(token)
     end
 end
 

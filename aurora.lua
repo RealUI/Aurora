@@ -87,8 +87,9 @@ function private.OnLoad()
     -- Apply the saved color mode palette before skin registration
     Color.SetMode(AuroraConfig.colorMode)
 
+    -- Pinned, so a later live mode switch keeps it (B164).
     if AuroraConfig.buttonsHaveGradient then
-        Color.button:SetRGB(.4, .4, .4)
+        Color.SetTokenOverride("button", Color.Create(.4, .4, .4))
     end
 
     -- Store frame alpha from saved vars
