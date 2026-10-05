@@ -401,26 +401,48 @@ function Util.Mixin(table, ...)
     end
 end
 
+-- Both tables live here, never on the pool or the frame: writing a key onto a
+-- Blizzard table taints that key (doctrine R1). Weak keys let entries go with
+-- the pool / frame.
 local wrappedPools = setmetatable({}, {__mode = "k"})
---[[ TAINT HAZARD — read before adding a call site.
+local poolSkinned = setmetatable({}, {__mode = "k"})
 
-     This REPLACES `pool.Acquire` with an addon-owned closure. Any Blizzard code
-     that acquires from the pool then runs our code inside its own execution,
-     and if that execution goes on to write a GLOBAL, the global is permanently
-     marked as tainted by this addon — every later reader inherits it.
+-- Iterate a pool's active objects without writing to it. Every Blizzard pool
+-- type exposes EnumerateActive (ObjectPoolMixin, SecureObjectPoolMixin's
+-- proxy, PoolCollectionMixin, SecurePoolCollectionMixin's proxy); the
+-- `activeObjects` read is a fallback for a hand-rolled pool that lacks it.
+-- Pools yield (object, dummy) and collections yield object, so only the first
+-- value is used.
+local function EnumeratePool(pool)
+    if pool.EnumerateActive then
+        return pool:EnumerateActive()
+    end
+    local active = _G.rawget(pool, "activeObjects")
+    if type(active) == "table" then
+        return next, active
+    end
+    return next, {}
+end
 
-     That is not hypothetical: the ChatConfigFrame tab pool is acquired from
-     `ChatConfig_UpdateChatSettings → ChatTabManager:UpdateTabDisplay`, which
-     calls `UpdateSelection`, which writes `CURRENT_CHAT_FRAME_ID`. Wrapping that
-     pool tainted the global on every login for the whole session (confirmed in
-     taint.log, 2026-08-23; see Blizzard_ChatFrame/Mainline/ChatConfigFrame.lua
-     for the OnShow-based replacement).
+--[[ Util.WrapPoolAcquire(_pool, templateOrSkinFunc_)
+Skins every object acquired from `pool`, once per object.
 
-     Safe when the pool is only ever acquired from paths that do not write
-     globals or call protected functions — which is most of them. When in doubt,
-     prefer an OnShow hook that skins `pool:EnumerateActive()`. ]]
+B167: this used to REPLACE `pool.Acquire` with an addon closure, so every
+Blizzard acquire ran Aurora code inside its own execution and returned to
+Blizzard tainted (the ChatConfig tab pool tainted CURRENT_CHAT_FRAME_ID that
+way, 2026-08-23). It is now a `hooksecurefunc` post-hook: `pool.Acquire` stays
+secure, the hook runs after Blizzard's Acquire has returned its object and
+before the caller continues, and the taint is dropped when the hook returns.
+
+A post-hook does not see the return value, so each hook call makes an
+idempotent pass over the pool's active objects and skins any not seen yet.
+Skin functions therefore run once per object, not on every re-acquire.
+
+Template-name callers share the `private.IsSkinned` side table; function
+callers are tracked in `poolSkinned`. Neither writes onto the frame. The skin
+function itself must still not touch protected layout or write globals. ]]
 function Util.WrapPoolAcquire(pool, templateOrSkinFunc)
-    if not pool or wrappedPools[pool] then
+    if not pool or wrappedPools[pool] or type(pool.Acquire) ~= "function" then
         return
     end
 
@@ -450,24 +472,25 @@ function Util.WrapPoolAcquire(pool, templateOrSkinFunc)
             skinFunc(frame)
             private.SetSkinned(frame, true)
         else
+            if poolSkinned[frame] then
+                return
+            end
+
+            poolSkinned[frame] = true
             skinFunc(frame)
         end
     end
 
-    local acquire = pool.Acquire
-    pool.Acquire = function(self, ...)
-        local frame, isNew = acquire(self, ...)
-        Apply(frame)
-        return frame, isNew
-    end
-
-    wrappedPools[pool] = true
-
-    if pool.EnumerateActive then
-        for frame in pool:EnumerateActive() do
+    local function ApplyActive(self)
+        for frame in EnumeratePool(self) do
             Apply(frame)
         end
     end
+
+    wrappedPools[pool] = true
+    _G.hooksecurefunc(pool, "Acquire", ApplyActive)
+
+    ApplyActive(pool)
 end
 
 local frameAlpha = 0.2
