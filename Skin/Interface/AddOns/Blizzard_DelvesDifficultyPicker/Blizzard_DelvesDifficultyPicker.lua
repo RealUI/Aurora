@@ -2,20 +2,17 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 local Aurora = private.Aurora
-local Hook = Aurora.Hook
 local Skin = Aurora.Skin
 local Util = Aurora.Util
 
 function private.AddOns.Blizzard_DelvesDifficultyPicker()
     local DelvesDifficultyPickerFrame = _G.DelvesDifficultyPickerFrame
 
-    -- The Map Properties icons live in an addon-local widget container, not one
-    -- of the global containers Blizzard_UIWidgets mixes the hook into, so their
-    -- widgets never reached Skin.UIWidgetTemplateSpellDisplay and kept
-    -- Blizzard's circular Border/CircleMask. Mixing the hook in here routes them
-    -- through the same skin path. Widgets are created when the frame registers
-    -- its widget set (on show), which is after this runs.
-    Util.Mixin(DelvesDifficultyPickerFrame.DelveModifiersWidgetContainer, Hook.UIWidgetContainerMixin)
+    -- The Map Properties icons (B48) are spell display widgets in this frame's
+    -- own widget container. Blizzard_UIWidgets styles them: its post-hook on
+    -- UIWidgetTemplateSpellDisplayMixin.Setup has this container on its
+    -- allow-list (tracker-widget-taint-rewrite task 2). Nothing is mixed into
+    -- the container any more.
 
     Skin.InsetFrameTemplate(DelvesDifficultyPickerFrame)
     Skin.DialogBorderTemplate(DelvesDifficultyPickerFrame.Border)
