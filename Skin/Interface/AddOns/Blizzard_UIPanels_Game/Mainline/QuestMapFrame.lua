@@ -445,7 +445,7 @@ function private.FrameXML.QuestMapFrame()
     -- Aurora's closure, and securecallfunction called from addon code does
     -- not make the callee secure. The whole OnEnter then ran tainted: the
     -- tooltip, the map's highlighted quest and POI, and quest cache reads
-    -- shared with the objective tracker. Removed 2026-10-06 (taint audit,
+    -- shared with the objective tracker. Removed 2026-10-05 (taint audit,
     -- tracker-widget-taint-rewrite). If the secret-width error returns,
     -- the GameTooltip state it reads is tainted elsewhere: trace that.
 
