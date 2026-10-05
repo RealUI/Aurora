@@ -68,33 +68,14 @@ function private.AddOns.Blizzard_MawBuffs()
     --              File              --
     ----====####################====----
 
-    ----------------------------------------
-    -- ShouldShowMawBuffs secret-aura guard --
-    ----------------------------------------
-    -- Blizzard bug (WoW 12.x secret auras). Blizzard_MawBuffs.lua:4 reads
-    -- C_UnitAuras.GetAuraDataByIndex("player", 1, "MAW") unguarded, and that
-    -- API THROWS when auras are secret and the execution is tainted:
-    --
-    --   GetAuraDataByIndex(): Auras cannot be accessed when secret while
-    --   tainted by 'RealUI_Skins'
-    --
-    -- Its callers are MawBuffsContainerMixin:Update and the scenario tracker's
-    -- OnEvent / LayoutContents, so the throw aborts the delve stage block
-    -- mid-layout (B97). The taint comes from the tracker skin's own layout
-    -- writes (objective-tracker-taint.md); this guard hides the throw, not that.
-    --
-    -- COST: owning the global taints it for every later reader, including the
-    -- scenario tracker's UNIT_AURA path (a quarter of one 4.0.1 taint log).
-    --
-    -- History: removed 2026-09-27 after a delve and two LFR wings ran clean
-    -- without it; the throw came back in the next delve (2026-09-28, B137).
-    -- Clean runs do not prove it unneeded. It can go only once the tracker
-    -- skin's rewrite stops tainting LayoutContents, or the skin is gated.
-    if _G.C_Secrets and _G.C_Secrets.ShouldAurasBeSecret and _G.ShouldShowMawBuffs then
-        local origShouldShowMawBuffs = _G.ShouldShowMawBuffs
-        _G.ShouldShowMawBuffs = function()
-            if _G.C_Secrets.ShouldAurasBeSecret() then return false end
-            return origShouldShowMawBuffs()
-        end
-    end
+    -- The ShouldShowMawBuffs wrapper that lived here (B97, 2026-08-29 to
+    -- 2026-10-05) is gone, and must not come back. A login taint.log
+    -- (tracker-widget-taint-rewrite task 5.8) showed it was the injector, not
+    -- the cure: the scenario tracker's LayoutContents reads the global on every
+    -- layout, starting with the tracker's first update at login, and reading
+    -- an addon-written global taints the execution. The very next write
+    -- (Module.lua:159 `state`) carried that taint into the whole tracker's
+    -- layout state for the session. The GetAuraDataByIndex throw it was meant
+    -- to hide only happens when the tracker is already tainted; fix the taint,
+    -- never the global.
 end
