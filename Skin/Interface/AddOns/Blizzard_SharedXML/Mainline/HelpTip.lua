@@ -1,63 +1,20 @@
 local _, private = ...
 if private.shouldSkip() then return end
 
---[[ Lua Globals ]]
--- luacheck: globals
+--[[ Help tips are deliberately left as Blizzard art (2026-10-06).
 
---[[ Core ]]
-local Aurora = private.Aurora
-local Base = Aurora.Base
-local Hook, Skin = Aurora.Hook, Aurora.Skin
-local Util = Aurora.Util
-
-do --[[ FrameXML\HelpTip.lua ]]
-    local directions = {
-        "Down",
-        "Left",
-        "Up",
-        "Right"
-    }
-
-    Hook.HelpTipTemplateMixin = {}
-    function Hook.HelpTipTemplateMixin:RotateArrow(rotation)
-        local Arrow = self.Arrow
-        local direction = directions[rotation]
-        if direction == "Left" or direction == "Right" then
-            Arrow:SetSize(17, 41)
-        else
-            Arrow:SetSize(41, 17)
-        end
-
-        --Base.SetTexture(Arrow.Arrow, "arrow"..direction)
-        _G.C_Timer.NewTicker(0, function(...)
-            Base.SetTexture(Arrow.Arrow, "arrow"..direction)
-        end, 1)
-    end
-end
-
-do --[[ FrameXML\HelpTip.xml ]]
-    function Skin.HelpTipTemplate(Frame)
-        Skin.GlowBoxTemplate(Frame)
-        Skin.UIPanelCloseButton(Frame.CloseButton)
-        Skin.UIPanelButtonTemplate(Frame.OkayButton)
-        Skin.GlowBoxArrowTemplate(Frame.Arrow)
-    end
-end
+     They used to be skinned: GlowBoxTemplate backdrop, button skins, and a
+     RotateArrow post-hook that resized the arrow from addon code. A login
+     taint.log (tracker-widget-taint-rewrite, B168) showed what that costs.
+     Blizzard shows help tips from inside its own executions, the world map
+     opening among them (Blizzard_WorldMapTemplates.lua:804 -> HelpTip:Show).
+     Blizzard's HelpTip code keeps using the frame after Acquire, reads the
+     fields the skin wrote, and the rest of that execution runs tainted: the
+     map's world-quest POIs then create QuestCache entries under Aurora's
+     taint, and the objective tracker inherits it when it reads the same
+     cache. The same chain is the likely Aurora side of the map errors in
+     known-wow-ui-bugs.md #1. A help tip is a rare tutorial popup; it is not
+     worth that. Restyle in place only, or not at all. ]]
 
 function private.FrameXML.HelpTip()
-    Util.Mixin(_G.HelpTipTemplateMixin, Hook.HelpTipTemplateMixin)
-
-    -- Skin each help tip frame once, when the pool first hands it out. This
-    -- used to replace HelpTip.framePool.Acquire with an Aurora closure, so
-    -- every help tip Blizzard showed (quest, map, tracker and tutorial code)
-    -- ran Aurora code inside that execution (B167 class, found 2026-10-06 by
-    -- tracker-widget-taint-rewrite). Util.WrapPoolAcquire post-hooks Acquire
-    -- and skins each frame once, including the frames already active.
-    Util.WrapPoolAcquire(_G.HelpTip.framePool, function(frame)
-        Skin.HelpTipTemplate(frame)
-        Util.Mixin(frame, Hook.HelpTipTemplateMixin)
-    end)
-	for frame in _G.HelpTip.framePool:EnumerateActive() do
-        Hook.HelpTipTemplateMixin.RotateArrow(frame, frame.Arrow.rotation)
-	end
 end
