@@ -37,16 +37,12 @@ do --[[ FrameXML\GameTooltip.lua ]]
 end
 
 do --[[ FrameXML\GameTooltip.xml ]]
+    -- The taint-safe tooltip skin (Skin.SharedTooltipTemplate). The
+    -- <name>StatusBar is left as Blizzard art, as on GameTooltip itself:
+    -- Skin.FrameTypeStatusBar and Base.SetBackdrop write methods onto it and
+    -- SetPoint gives it an addon anchor (2026-10-06 taint audit).
     function Skin.GameTooltipTemplate(GameTooltip)
         Skin.SharedTooltipTemplate(GameTooltip)
-
-        local statusBar = _G[GameTooltip:GetName().."StatusBar"]
-        Skin.FrameTypeStatusBar(statusBar)
-        Base.SetBackdropColor(statusBar, Color.frame)
-
-        statusBar:SetHeight(4)
-        statusBar:SetPoint("TOPLEFT", GameTooltip, "BOTTOMLEFT", 1, 0)
-        statusBar:SetPoint("TOPRIGHT", GameTooltip, "BOTTOMRIGHT", -1, 0)
     end
     function Skin.InternalEmbeddedItemTooltipTemplate(Frame)
         Base.CropIcon(Frame.Icon)
@@ -130,92 +126,24 @@ function private.FrameXML.GameTooltip()
     _G.hooksecurefunc("GameTooltip_ShowStatusBar", Hook.GameTooltip_ShowStatusBar)
     _G.hooksecurefunc("GameTooltip_ShowProgressBar", Hook.GameTooltip_ShowProgressBar)
 
-    -- B94: the shopping tooltips are skinned further down, by the same
-    -- taint-safe path GameTooltip uses (ApplyTaintSafeTooltipSkin), not by
-    -- Skin.ShoppingTooltipTemplate.
+    -- Taint-safe tooltip skin: Skin.SharedTooltipTemplate (SharedTooltipTemplates.lua)
+    -- hides the NineSlice border pieces with SetAlpha(0), colours Center once,
+    -- writes nothing onto Blizzard's tables and never sets _auroraNineSlice, so
+    -- the NineSliceUtil.ApplyLayout hook (Base.SetBackdrop on every backdrop
+    -- style change) never runs on a tooltip. The old route marked GameTooltip's
+    -- child hierarchy as addon-modified and broke GameTooltip_AddWidgetSet
+    -- (AreaPOI tooltips). B94 moved GameTooltip and the shopping tooltips over;
+    -- the 2026-10-06 taint audit moved the template itself, so every tooltip
+    -- skinned through Skin.GameTooltipTemplate / ShoppingTooltipTemplate /
+    -- SharedTooltipTemplate (EmbeddedItemTooltip, ItemRefTooltip, Contribution
+    -- and Garrison tooltips, FrameStackTooltip) is on it.
+    -- GameTooltipStatusBar is not skinned: Base.SetBackdrop writes methods and
+    -- SetPoint gives it an addon anchor.
+    private.ApplyTaintSafeTooltipSkin = Skin.SharedTooltipTemplate
 
-    -- Taint-safe GameTooltip skin: the standard Skin.GameTooltipTemplate
-    -- calls Skin.NineSlicePanelTemplate (sets _auroraNineSlice, enabling
-    -- the NineSliceUtil.ApplyLayout hook that runs Base.SetBackdrop on
-    -- EVERY backdrop style change—writing BackdropMixin methods to the
-    -- NineSlice table and creating textures), plus Base.SetBackdrop /
-    -- SetPoint / SetHeight on the StatusBar.  These operations mark
-    -- GameTooltip's child hierarchy as addon-modified, causing
-    -- GetWidth/GetScaledRect to return "secret number" values that break
-    -- widget set processing in GameTooltip_AddWidgetSet (AreaPOI tooltips).
-    --[[ B94: the same treatment, reusable.
-
-         Applied to GameTooltip below, and to the SHOPPING tooltips, which used
-         to go through `Skin.ShoppingTooltipTemplate` → `SharedTooltipTemplate`
-         → `NineSlicePanelTemplate` instead. `/realdev tooltipdump` showed what
-         that produced: `_auroraNineSlice=yes` and an Aurora backdrop present on
-         the NineSlice (black, a=0.70) — and the tooltips still rendering as
-         bare text over the world at the auction house, while GameTooltip, with
-         NO Aurora backdrop at all, looked correct.
-
-         So the backdrop was never the thing drawing GameTooltip's panel;
-         `SetCenterColor` on Blizzard's own Center piece is. Route the shopping
-         tooltips through the same path rather than stacking a second mechanism
-         on top of Blizzard's. It also takes them out of the heavy
-         `NineSliceUtil.ApplyLayout` hook, which is the taint-risky one this
-         path exists to avoid. ]]
-    local function ApplyTaintSafeTooltipSkin(tooltip)
-        local ns = tooltip and tooltip.NineSlice
-        if not ns then return end
-
-        -- Hide border pieces; keep Center visible for backdrop color.
-        -- SetAlpha does not get reset by NineSliceUtil.ApplyLayout.
-        local borderPieces = {
-            "TopLeftCorner", "TopRightCorner",
-            "BottomLeftCorner", "BottomRightCorner",
-            "TopEdge", "BottomEdge", "LeftEdge", "RightEdge",
-        }
-        for _, name in next, borderPieces do
-            local piece = ns[name]
-            if piece then
-                piece:SetAlpha(0)
-            end
-        end
-        local r, g, b = Color.frame:GetRGB()
-        ns:SetCenterColor(r, g, b, Util.GetFrameAlpha())
-        -- Do NOT set ns._auroraNineSlice — see the note below.
-        Hook.SetTaintSafe(tooltip)
-    end
-    private.ApplyTaintSafeTooltipSkin = ApplyTaintSafeTooltipSkin
-
-    -- The shopping tooltips, on the same path (B94). Declared in the same
-    -- Blizzard file as GameTooltip and structurally identical to it; the only
-    -- reason they took the generic route is that nobody had reason to look at
-    -- them until the AH comparison tooltips came back transparent.
-    ApplyTaintSafeTooltipSkin(_G.ShoppingTooltip1)
-    ApplyTaintSafeTooltipSkin(_G.ShoppingTooltip2)
-
-    do
-        local ns = _G.GameTooltip.NineSlice
-        -- Hide border pieces; keep Center visible for backdrop color.
-        -- SetAlpha does not get reset by NineSliceUtil.ApplyLayout.
-        local borderPieces = {
-            "TopLeftCorner", "TopRightCorner",
-            "BottomLeftCorner", "BottomRightCorner",
-            "TopEdge", "BottomEdge", "LeftEdge", "RightEdge",
-        }
-        for _, name in next, borderPieces do
-            local piece = ns[name]
-            if piece then
-                piece:SetAlpha(0)
-            end
-        end
-        local r, g, b = Color.frame:GetRGB()
-        ns:SetCenterColor(r, g, b, Util.GetFrameAlpha())
-        -- Do NOT set ns._auroraNineSlice — this would enable the heavy
-        -- NineSlice hook (Base.SetBackdrop) on every tooltip display.
-        -- Do NOT skin GameTooltipStatusBar — Base.SetBackdrop creates
-        -- textures/writes methods, and SetPoint creates a tainted anchor.
-        -- Tell the SharedTooltip_SetBackdropStyle hook to skip this tooltip
-        -- so it doesn't call NineSlice:SetCenterColor from addon context
-        -- during the tooltip display flow.
-        Hook.SetTaintSafe(_G.GameTooltip)
-    end
+    Skin.SharedTooltipTemplate(_G.GameTooltip)
+    Skin.SharedTooltipTemplate(_G.ShoppingTooltip1)
+    Skin.SharedTooltipTemplate(_G.ShoppingTooltip2)
 
     Skin.GameTooltipTemplate(_G.EmbeddedItemTooltip)
     Skin.InternalEmbeddedItemTooltipTemplate(_G.EmbeddedItemTooltip.ItemTooltip)

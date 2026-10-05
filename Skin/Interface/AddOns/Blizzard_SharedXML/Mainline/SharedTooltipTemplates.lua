@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals
+-- luacheck: globals next
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -32,11 +32,37 @@ do --[[ FrameXML\SharedTooltipTemplates.lua ]]
 end
 
 do --[[ FrameXML\SharedTooltipTemplates.xml ]]
+    --[[ Every tooltip goes through the taint-safe path (B94, then the
+        2026-10-06 taint audit). It used to call Skin.NineSlicePanelTemplate,
+        which sets _auroraNineSlice and so enables the NineSliceUtil.ApplyLayout
+        post-hook: Skin.FrameTypeFrame and Base.SetBackdrop (BackdropMixin
+        methods, new textures, RealUI's stripes) on the NineSlice on every
+        backdrop style change, in the middle of Blizzard's tooltip display.
+        SharedTooltip_SetBackdropStyle then calls SetCenterColor on that same
+        NineSlice, and widget tooltips (EmbeddedItemTooltip, scenario and
+        area-POI widget sets) ran tainted.
+        Now: border pieces hidden with SetAlpha(0), which ApplyLayout does not
+        reset (SetTexture("") would be undone by its SetAtlas); the Center
+        piece coloured once; no field on Blizzard's tables; the backdrop-style
+        hook told to leave the tooltip alone. ]]
+    local TOOLTIP_BORDER_PIECES = {
+        "TopLeftCorner", "TopRightCorner",
+        "BottomLeftCorner", "BottomRightCorner",
+        "TopEdge", "BottomEdge", "LeftEdge", "RightEdge",
+    }
     function Skin.SharedTooltipTemplate(GameTooltip)
-        if GameTooltip.debug then
-            GameTooltip.NineSlice.debug = GameTooltip.debug
+        local ns = GameTooltip and GameTooltip.NineSlice
+        if not ns then return end
+
+        for _, name in next, TOOLTIP_BORDER_PIECES do
+            local piece = ns[name]
+            if piece then
+                piece:SetAlpha(0)
+            end
         end
-        Skin.NineSlicePanelTemplate(GameTooltip.NineSlice)
+        local r, g, b = Color.frame:GetRGB()
+        ns:SetCenterColor(r, g, b, Util.GetFrameAlpha())
+        Hook.SetTaintSafe(GameTooltip)
     end
     function Skin.SharedNoHeaderTooltipTemplate(GameTooltip)
         Skin.SharedTooltipTemplate(GameTooltip)
