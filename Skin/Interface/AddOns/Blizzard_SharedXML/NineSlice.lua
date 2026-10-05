@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals next
+-- luacheck: globals next setmetatable
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -136,12 +136,19 @@ do --[[ SharedXML\NineSlice.lua ]]
         end
     end
 
+    -- Re-entry guard: Base.SetBackdrop can call ApplyLayout again. Kept here,
+    -- not as a field on the container, which Blizzard owns (doctrine R1); this
+    -- hook used to write container._applyLayout on every call (2026-10-06).
+    -- Tooltips no longer reach this hook at all: Skin.SharedTooltipTemplate
+    -- skins them in place and never sets _auroraNineSlice.
+    local applying = setmetatable({}, {__mode = "k"})
+
     Hook.NineSliceUtil = {}
     function Hook.NineSliceUtil.ApplyLayout(container, userLayout, textureKit)
         if not container._auroraNineSlice then return end
-        if textureKit == "AuroraSkin" or container._applyLayout then return end
+        if textureKit == "AuroraSkin" or applying[container] then return end
 
-        container._applyLayout = true
+        applying[container] = true
         local userLayoutName = GetNameforLayout(container, userLayout)
 
         if container.debug then
@@ -172,7 +179,7 @@ do --[[ SharedXML\NineSlice.lua ]]
                 end
             end
         end
-        container._applyLayout = false
+        applying[container] = nil
     end
 end
 
