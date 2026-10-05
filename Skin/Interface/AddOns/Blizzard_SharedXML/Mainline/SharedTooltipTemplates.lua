@@ -67,9 +67,6 @@ function private.SharedXML.SharedTooltipTemplates()
 
     _G.hooksecurefunc("SharedTooltip_SetBackdropStyle", Hook.SharedTooltip_SetBackdropStyle)
 
-    local setTooltipMoneyPatched = false
-    local setTooltipMoneyPatchFrame
-
     -- NOTE: Do NOT replace _G.GetUnscaledFrameRect here.
     -- Overwriting that global with an addon-owned function taints it,
     -- which propagates through layout paths into the GameMenu secure
@@ -91,64 +88,10 @@ function private.SharedXML.SharedTooltipTemplates()
     -- before RegisterForWidgetSet is called, causing GetUnscaledFrameRect to
     -- receive secret values from frame:GetScaledRect() and error on arithmetic.
 
-    -- Replace SetTooltipMoney to avoid taint: Aurora's GameTooltip
-    -- skinning marks the tooltip hierarchy as addon-modified, causing
-    -- GetTextWidth() on MoneyFrame buttons to return secret numbers.
-    -- MoneyFrame_Update then does arithmetic on these secret values and
-    -- errors with "attempt to perform arithmetic on a secret number
-    -- value (tainted by 'RealUI_Skins')".
-    -- WoWUIBugs #801 — acknowledged by Blizzard, tracked internally.
-    -- Workaround: render tooltip money as an inline coin-textured string
-    -- via GetCoinTextureString, bypassing MoneyFrame_Update entirely.
-    local function InstallSetTooltipMoneyWorkaround()
-        if setTooltipMoneyPatched then
-            return true
-        end
-        if not _G.SetTooltipMoney then
-            return false
-        end
-
-        local origClearMoney = _G.GameTooltip_ClearMoney
-
-        _G.SetTooltipMoney = function(frame, money, type, prefixText, suffixText)
-            -- Hide any previously shown money frames (from before this
-            -- replacement took effect or from a prior tooltip cycle).
-            if origClearMoney and frame.shownMoneyFrames then
-                origClearMoney(frame)
-            end
-
-            local coinText = _G.C_CurrencyInfo.GetCoinTextureString(money)
-            if coinText then
-                local line = ""
-                if prefixText and prefixText ~= "" then
-                    line = prefixText .. " "
-                end
-                line = line .. coinText
-                if suffixText and suffixText ~= "" then
-                    line = line .. " " .. suffixText
-                end
-                _G.GameTooltip_AddBlankLinesToTooltip(frame, 1)
-                frame:AddLine(line, 1, 1, 1)
-            end
-            frame.hasMoney = 1
-        end
-
-        setTooltipMoneyPatched = true
-        return true
-    end
-
-    if not InstallSetTooltipMoneyWorkaround() then
-        setTooltipMoneyPatchFrame = _G.CreateFrame("Frame")
-        setTooltipMoneyPatchFrame:RegisterEvent("ADDON_LOADED")
-        setTooltipMoneyPatchFrame:SetScript("OnEvent", function(self, _, addonName)
-            if addonName ~= "Blizzard_MoneyFrame" then
-                return
-            end
-
-            if InstallSetTooltipMoneyWorkaround() then
-                self:UnregisterAllEvents()
-                self:SetScript("OnEvent", nil)
-            end
-        end)
-    end
+    -- NOTE: Do NOT replace SetTooltipMoney. Aurora replaced it with an
+    -- inline coin string (WoWUIBugs #801, secret GetTextWidth in
+    -- MoneyFrame_Update). Nothing in Blizzard's 12.1 UI calls it any more
+    -- (MoneyFrame.lua:609 only defines it), and replacing a Blizzard global
+    -- taints whatever calls it. Removed 2026-10-06 (taint audit,
+    -- tracker-widget-taint-rewrite).
 end
