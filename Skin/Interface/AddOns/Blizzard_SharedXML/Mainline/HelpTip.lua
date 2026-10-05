@@ -1,7 +1,7 @@
 local _, private = ...
 if private.shouldSkip() then return end
 
---[[ Help tips are deliberately left as Blizzard art (2026-10-06).
+--[[ Help tips are deliberately left as Blizzard art (2026-10-05).
 
      They used to be skinned: GlowBoxTemplate backdrop, button skins, and a
      RotateArrow post-hook that resized the arrow from addon code. A login

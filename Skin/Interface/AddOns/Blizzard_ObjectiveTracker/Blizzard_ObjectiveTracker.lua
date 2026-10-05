@@ -98,7 +98,7 @@ local function StyleHeader(header, collapsed)
     -- A flat dark band in place of Blizzard's orange-brown header art. The
     -- first build only desaturated and tinted the atlas with Color.highlight,
     -- which under RealUI's orange highlight looked exactly like Blizzard's art
-    -- (owner, 2026-10-06). SetColorTexture keeps the region and its atlas size.
+    -- (owner, 2026-10-05). SetColorTexture keeps the region and its atlas size.
     local background = header.Background
     if background then
         local r, g, b = Color.button:GetRGB()
