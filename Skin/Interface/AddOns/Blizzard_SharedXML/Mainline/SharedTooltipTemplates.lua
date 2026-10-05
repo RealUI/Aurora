@@ -92,6 +92,6 @@ function private.SharedXML.SharedTooltipTemplates()
     -- inline coin string (WoWUIBugs #801, secret GetTextWidth in
     -- MoneyFrame_Update). Nothing in Blizzard's 12.1 UI calls it any more
     -- (MoneyFrame.lua:609 only defines it), and replacing a Blizzard global
-    -- taints whatever calls it. Removed 2026-10-06 (taint audit,
+    -- taints whatever calls it. Removed 2026-10-05 (taint audit,
     -- tracker-widget-taint-rewrite).
 end
