@@ -164,7 +164,10 @@ function private.FrameXML.ChatConfigFrame()
     Skin.ConfigCategoryButtonTemplate(_G.ChatConfigCategoryFrameButton7)
     --[[ Chat window tabs: skinned on OnShow, NOT by wrapping the pool.
 
-         `Util.WrapPoolAcquire` REPLACES `pool.Acquire` with an addon closure.
+         (History: until B167, 2026-10-05, `Util.WrapPoolAcquire` replaced
+         `pool.Acquire` with an addon closure; it now post-hooks it. The tabs
+         stay on OnShow: the reasoning below is why that was chosen.)
+         `Util.WrapPoolAcquire` REPLACED `pool.Acquire` with an addon closure.
          Blizzard drives this particular pool from inside a secure path at
          login — `ChatConfig_UpdateChatSettings → ChatTabManager:UpdateTabDisplay
          → :UpdateSelection` — and `UpdateSelection` writes the global
