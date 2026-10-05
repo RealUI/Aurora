@@ -47,22 +47,17 @@ end
 function private.FrameXML.HelpTip()
     Util.Mixin(_G.HelpTipTemplateMixin, Hook.HelpTipTemplateMixin)
 
-    -- Hook.ObjectPoolMixin removed in 11.0.0 (private API).
-    -- Wrap the pool's Acquire method to skin and mixin frames when first created.
-    do
-        local poolAcquire = _G.HelpTip.framePool.Acquire
-        _G.HelpTip.framePool.Acquire = function(pool, ...)
-            local frame, isNew = poolAcquire(pool, ...)
-            if isNew then
-                Skin.HelpTipTemplate(frame)
-                Util.Mixin(frame, Hook.HelpTipTemplateMixin)
-            end
-            return frame, isNew
-        end
-    end
-	for frame in _G.HelpTip.framePool:EnumerateActive() do
+    -- Skin each help tip frame once, when the pool first hands it out. This
+    -- used to replace HelpTip.framePool.Acquire with an Aurora closure, so
+    -- every help tip Blizzard showed (quest, map, tracker and tutorial code)
+    -- ran Aurora code inside that execution (B167 class, found 2026-10-06 by
+    -- tracker-widget-taint-rewrite). Util.WrapPoolAcquire post-hooks Acquire
+    -- and skins each frame once, including the frames already active.
+    Util.WrapPoolAcquire(_G.HelpTip.framePool, function(frame)
         Skin.HelpTipTemplate(frame)
         Util.Mixin(frame, Hook.HelpTipTemplateMixin)
+    end)
+	for frame in _G.HelpTip.framePool:EnumerateActive() do
         Hook.HelpTipTemplateMixin.RotateArrow(frame, frame.Arrow.rotation)
 	end
 end
