@@ -12,22 +12,7 @@ local Color, Util = Aurora.Color, Aurora.Util
 do --[[ FrameXML\CampaignOverview.lua ]]
     Hook.CampaignOverviewMixin = {}
     function Hook.CampaignOverviewMixin:SetCampaign(campaignID)
-        local campaignHeader = self.Header
-        local campaign = campaignHeader.campaign
-        if campaign then
-            local kit = Util.GetTextureKit(campaign.uiTextureKit, true)
-            campaignHeader.Background:SetTexture("")
-            campaignHeader._auroraBG:SetColorTexture(kit.color:GetRGB())
-
-            local overlay = campaignHeader._auroraOverlay
-            overlay:SetPoint("CENTER", campaignHeader._auroraBG, "RIGHT", -25, 0)
-            overlay:SetAtlas(kit.emblem)
-            overlay:SetSize(66.33, 76.56)
-
-            overlay:SetBlendMode("BLEND")
-            overlay:SetVertexColor(0, 0, 0) -- static: not a theme color
-            campaignHeader.HighlightTexture:SetColorTexture(Color.white.r, Color.white.g, Color.white.b, Color.frame.a)
-        end
+        Skin.CampaignHeaderInPlace(self.Header)
     end
     function Hook.CampaignOverviewMixin:UpdateCampaignLoreText(campaignID, textEntries)
         local campaign, color = self.Header.campaign
@@ -51,7 +36,6 @@ end
 
 do --[[ FrameXML\CampaignOverview.xml ]]
     function Skin.CampaignOverviewTemplate(Frame)
-        Skin.CampaignHeaderDisplayTemplate(Frame.Header)
         Skin.ScrollFrameTemplate(Frame.ScrollFrame)
 
         Frame.ScrollFrame.TopShadow:Hide()

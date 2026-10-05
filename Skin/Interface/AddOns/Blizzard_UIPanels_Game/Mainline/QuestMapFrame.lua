@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals select next
+-- luacheck: globals select next setmetatable
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -11,53 +11,106 @@ local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
 do --[[ FrameXML\QuestMapFrame.lua ]]
-    -- /dump C_CampaignInfo.GetCampaignInfo(C_CampaignInfo.GetCurrentCampaignID())
+    --[[ Quest log headers (B170 follow-up, 2026-10-06)
+        Restyled in place from this post-hook, which runs after Blizzard's
+        QuestLogQuests_Update has finished, never from the header pools'
+        Acquire. The pools are acquired inside QuestLogQuests_Update while the
+        map opens; the old Acquire skins added frames, textures, backdrop
+        methods and _aurora* fields to each header, Blizzard kept using the
+        header in the same execution, and the quest log build ran tainted.
+        Campaign headers are laid out first, and their quests' QuestCache
+        entries are the ones the objective tracker's Campaign module reads
+        (the B168 chain). So: colours and textures on existing regions only,
+        no new regions, no size or anchor change, no field on Blizzard's
+        frames; skin state lives in the weak table below. Blizzard re-applies
+        the campaign and callings texture kits on every update, so those are
+        restyled on every pass. ]]
+    local styledHeaders = setmetatable({}, {__mode = "k"})
+
+    -- CampaignHeaderDisplayTemplate's Background is 304x69, mostly transparent
+    -- atlas below the title. The colour band covers its top 47px, inset 6 and
+    -- 5 like the old clip frame, drawn with vertex offsets (1 upper-left,
+    -- 2 lower-left, 3 upper-right, 4 lower-right) so the region keeps its size
+    -- and anchors. HighlightTexture is anchored to Background and gets the same.
+    local function SetCampaignBand(texture, r, g, b, a)
+        texture:SetColorTexture(r, g, b, a)
+        texture:SetVertexOffset(1, 6, 0)
+        texture:SetVertexOffset(2, 6, 22)
+        texture:SetVertexOffset(3, -5, 0)
+        texture:SetVertexOffset(4, -5, 22)
+    end
+    function Skin.CampaignHeaderInPlace(header)
+        local campaign = header:GetCampaign()
+        if not campaign then return end
+
+        local kit = Util.GetTextureKit(campaign.uiTextureKit, true)
+        local r, g, b = kit.color:GetRGB()
+        SetCampaignBand(header.Background, r, g, b, 1)
+        SetCampaignBand(header.HighlightTexture, Color.white.r, Color.white.g, Color.white.b, Color.frame.a)
+        if header.TopFiligree then
+            header.TopFiligree:SetTexture("")
+        end
+    end
+
+    -- QuestLogHeaderTemplate (ListHeaderVisualTemplate): a flat band on the
+    -- existing Normal and Highlight textures, as on the objective tracker's
+    -- headers. Blizzard never re-sets them, so once per header.
+    local function StyleListHeader(header)
+        if styledHeaders[header] then return end
+        styledHeaders[header] = true
+
+        local normal = header:GetNormalTexture()
+        if normal then
+            local r, g, b = Color.button:GetRGB()
+            normal:SetColorTexture(r, g, b, 0.6)
+        end
+        local highlight = header:GetHighlightTexture()
+        if highlight then
+            local r, g, b = Color.highlight:GetRGB()
+            highlight:SetColorTexture(r, g, b, 0.25)
+        end
+    end
+
+    -- A pool that does not exist on this flavor enumerates nothing.
+    local function NoActive() end
+    local function Active(pool)
+        if pool then
+            return pool:EnumerateActive()
+        end
+        return NoActive
+    end
+
     function Hook.QuestLogQuests_Update(_poiTable)
-        local kit, overlay
-        for campaignHeader in _G.QuestScrollFrame.campaignHeaderFramePool:EnumerateActive() do
-            local campaign = campaignHeader:GetCampaign()
-            if campaign then
-                kit = Util.GetTextureKit(campaign.uiTextureKit, true)
-                campaignHeader.Background:SetTexture("")
-                if campaignHeader._auroraBG then
-                    campaignHeader._auroraBG:SetColorTexture(kit.color:GetRGB())
-                end
-                if campaignHeader._auroraOverlay then
-                    overlay = campaignHeader._auroraOverlay
-                    overlay:SetPoint("CENTER", campaignHeader._auroraBG, "RIGHT", -25, 0)
-                    overlay:SetAtlas(kit.emblem)
-                    overlay:SetSize(66.33, 76.56)
+        local scrollFrame = _G.QuestScrollFrame
 
-                    overlay:SetBlendMode("BLEND")
-                    overlay:SetVertexColor(0, 0, 0) -- static: not a theme color
-                    campaignHeader.HighlightTexture:SetColorTexture(Color.white.r, Color.white.g, Color.white.b, Color.frame.a)
+        for header in Active(scrollFrame.headerFramePool) do
+            StyleListHeader(header)
+        end
+
+        for header in Active(scrollFrame.campaignHeaderFramePool) do
+            Skin.CampaignHeaderInPlace(header)
+        end
+
+        for header in Active(scrollFrame.campaignHeaderMinimalFramePool) do
+            if not styledHeaders[header] then
+                styledHeaders[header] = true
+                if header.Background then
+                    header.Background:SetTexture("")
+                end
+                if header.Highlight then
+                    header.Highlight:SetColorTexture(1, 1, 1, Color.frame.a) -- static: not a theme color
                 end
             end
         end
 
-        local covenantData = _G.C_Covenants.GetCovenantData(_G.C_Covenants.GetActiveCovenantID())
-        kit = Util.GetTextureKit(covenantData and covenantData.textureKit, true)
-        for callingHeader in _G.QuestScrollFrame.covenantCallingsHeaderFramePool:EnumerateActive() do
-            callingHeader.Background:SetTexture("")
-            if callingHeader._auroraBG then
-                callingHeader._auroraBG:SetColorTexture(Util.uiTextureKits.alt.color:GetRGB())
+        -- UpdateBG re-atlases Background and HighlightTexture on every update.
+        for header in Active(scrollFrame.covenantCallingsHeaderFramePool) do
+            StyleListHeader(header)
+            header.Background:SetColorTexture(Util.uiTextureKits.alt.color:GetRGB())
+            header.HighlightTexture:SetColorTexture(Color.white.r, Color.white.g, Color.white.b, Color.frame.a)
+            if header.Divider then
+                header.Divider:SetTexture("")
             end
-            if callingHeader._auroraOverlay then
-                overlay = callingHeader._auroraOverlay
-                overlay:SetPoint("CENTER", callingHeader._auroraBG, "RIGHT", -25, 0)
-                overlay:SetAtlas(kit.emblem)
-                overlay:SetSize(66.33, 76.56)
-
-                overlay:SetBlendMode("BLEND")
-                overlay:SetVertexColor(0, 0, 0) -- static: not a theme color
-                callingHeader.HighlightTexture:SetColorTexture(Color.white.r, Color.white.g, Color.white.b, Color.frame.a)
-            end
-        end
-
-        local separator = _G.QuestMapFrame.QuestsFrame.ScrollFrame.Contents.Separator
-        if separator:IsShown() then
-            separator.Divider:SetColorTexture(Color.white.r, Color.white.g, Color.white.b, 0.5)
-            separator.Divider:SetSize(200, 1)
         end
     end
 
@@ -170,48 +223,9 @@ do --[[ FrameXML\QuestMapFrame.lua ]]
 end
 
 do --[[ FrameXML\QuestMapFrame.xml ]]
-    function Skin.QuestLogHeaderTemplate(Button)
-        -- B38: these headers are full-width rows carrying a dedicated
-        -- right-side CollapseButton with its own plus/minus icon. The legacy
-        -- Skin.ExpandOrCollapse treatment drew Aurora's own "+" glyph at the
-        -- row's top-left — on top of the header text — doubling the indicator.
-        -- Skin the row itself and leave the CollapseButton's clean plus/minus
-        -- atlas as the single expand indicator.
-        Skin.FrameTypeButton(Button)
-        Button:SetBackdropOption("offsets", {
-            left = 3,
-            right = 3,
-            top = 3,
-            bottom = 3,
-        })
-    end
-    function Skin.CovenantCallingsHeaderTemplate(Button)
-        Skin.QuestLogHeaderTemplate(Button)
-
-        local clipFrame = _G.CreateFrame("Frame", nil, Button)
-        clipFrame:SetFrameLevel(Button:GetFrameLevel())
-        clipFrame:SetPoint("TOPLEFT", -12, 7)
-        clipFrame:SetPoint("TOPRIGHT", 217, 7)
-        clipFrame:SetHeight(31)
-        clipFrame:SetClipsChildren(true)
-        Button._clipFrame = clipFrame
-
-        local BG = clipFrame:CreateTexture(nil, "BACKGROUND")
-        BG:SetAllPoints()
-        Button._auroraBG = BG
-
-        local overlay = clipFrame:CreateTexture(nil, "OVERLAY")
-        overlay:SetDesaturated(true)
-        overlay:SetAlpha(0.3)
-        Button._auroraOverlay = overlay
-
-        Button.Divider:Hide()
-        Button.HighlightTexture:SetAllPoints(clipFrame)
-    end
-    function Skin.QuestLogTitleTemplate(Button)
-    end
-    function Skin.QuestLogObjectiveTemplate(Button)
-    end
+    -- QuestLogHeaderTemplate, CovenantCallingsHeaderTemplate and the
+    -- QuestLogTitle/Objective templates are pooled by the quest log and are
+    -- no longer skinned on Acquire: see Hook.QuestLogQuests_Update above.
     function Skin.QuestMapFrameTabTemplate(Button, stripShapedArt)
         local CheckButton = Button.Button or Button
 
@@ -463,19 +477,14 @@ function private.FrameXML.QuestMapFrame()
 
     local QuestsFrame = QuestMapFrame.QuestsFrame
     Skin.ScrollFrameTemplate(QuestsFrame.ScrollFrame)
-    do
-        local QuestScrollFrame = _G.QuestScrollFrame
-        -- titleFramePool intentionally not wrapped: Skin.QuestLogTitleTemplate is a no-op and
-        -- wrapping the pool would add even more taint to the title buttons.
-        Util.WrapPoolAcquire(QuestScrollFrame.objectiveFramePool, "QuestLogObjectiveTemplate")
-        Util.WrapPoolAcquire(QuestScrollFrame.headerFramePool, "QuestLogHeaderTemplate")
-        Util.WrapPoolAcquire(QuestScrollFrame.campaignHeaderFramePool, "CampaignHeaderTemplate")
-        Util.WrapPoolAcquire(QuestScrollFrame.campaignHeaderMinimalFramePool, "CampaignHeaderMinimalTemplate")
-        Util.WrapPoolAcquire(QuestScrollFrame.covenantCallingsHeaderFramePool, "CovenantCallingsHeaderTemplate")
-    end
+    -- The quest log's pools (titles, objectives, headers, campaign and
+    -- callings headers) are not wrapped: their headers are restyled in place
+    -- from Hook.QuestLogQuests_Update.
 
     QuestsFrame.ScrollFrame.Contents.Separator:SetSize(260, 10)
     QuestsFrame.ScrollFrame.Contents.Separator.Divider:SetPoint("TOP", 0, 0)
+    QuestsFrame.ScrollFrame.Contents.Separator.Divider:SetColorTexture(Color.white.r, Color.white.g, Color.white.b, 0.5)
+    QuestsFrame.ScrollFrame.Contents.Separator.Divider:SetSize(200, 1)
 
     do -- StoryHeader
         local StoryHeader = QuestsFrame.ScrollFrame.Contents.StoryHeader
