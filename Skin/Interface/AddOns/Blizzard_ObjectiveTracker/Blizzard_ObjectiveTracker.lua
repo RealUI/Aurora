@@ -331,3 +331,4 @@ function private.AddOns.Blizzard_ObjectiveTracker()
         StyleStatusBar(challengeMode.StatusBar, Color.cyan)
     end
 end
+
