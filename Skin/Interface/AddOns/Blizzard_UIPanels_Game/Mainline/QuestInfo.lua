@@ -12,6 +12,7 @@ local Color = Aurora.Color
 
 do --[[ FrameXML\QuestInfo.lua ]]
     local templates = {}
+    local StyleRewards
     function Hook.QuestInfo_Display(template, parentFrame, acceptButton, material, mapView)
         local headerR, headerG, headerB = Color.white:GetRGB()
         local textR, textG, textB = Color.grayLight:GetRGB()
@@ -47,6 +48,8 @@ do --[[ FrameXML\QuestInfo.lua ]]
         for i = 1, #templateElements do
             templateElements[i](parentFrame)
         end
+
+        StyleRewards(rewardsFrame)
     end
     function Hook.QuestInfo_ShowObjectives()
         local numObjectives = _G.GetNumQuestLeaderBoards()
@@ -70,27 +73,55 @@ do --[[ FrameXML\QuestInfo.lua ]]
             end
         end
     end
-    function Hook.QuestInfo_ShowRewards()
-        local rewardsFrame = _G.QuestInfoFrame.rewardsFrame
-        local textR, textG, textB = Color.grayLight:GetRGB()
 
-        for obj in rewardsFrame.spellHeaderPool:EnumerateActive() do
-            obj:SetVertexColor(textR, textG, textB)
+    --[[ Taint audit 2026-10-06 (B170 follow-up): the rewards are restyled in
+        place from the QuestInfo_Display and QuestInfo_ShowRewards post-hooks,
+        after Blizzard has laid them out. The old QuestInfo_GetRewardButton hook
+        ran Skin.Large/SmallItemButtonTemplate in the middle of
+        QuestInfo_ShowRewards (backdrop methods, a nameBG frame, re-anchored
+        icon, _aurora* fields) while Blizzard kept using the button, and the
+        spell, follower and header pools had their Acquire replaced by addon
+        closures, so Blizzard called addon code from inside the build. Either
+        way the quest log and map details build ran tainted, next to the
+        QuestCache entries the objective tracker reads. In place only: no new
+        regions, no size or anchor change, no field on Blizzard's frames. ]]
+    function StyleRewards(rewardsFrame)
+        local styleButton = Skin[rewardsFrame.buttonTemplate]
+        if not styleButton then return end
+
+        local textR, textG, textB = Color.grayLight:GetRGB()
+        for header in rewardsFrame.spellHeaderPool:EnumerateActive() do
+            header:SetVertexColor(textR, textG, textB)
+        end
+
+        for i = 1, #rewardsFrame.RewardButtons do
+            styleButton(rewardsFrame.RewardButtons[i])
+        end
+        for button in rewardsFrame.reputationRewardPool:EnumerateActive() do
+            styleButton(button)
+        end
+
+        if rewardsFrame == _G.MapQuestInfoRewardsFrame then
+            for button in rewardsFrame.spellRewardPool:EnumerateActive() do
+                styleButton(button)
+            end
+            for button in rewardsFrame.followerRewardPool:EnumerateActive() do
+                Skin.SmallQuestInfoRewardFollowerTemplate(button)
+            end
+        else
+            for button in rewardsFrame.spellRewardPool:EnumerateActive() do
+                Skin.QuestInfoRewardSpellInPlace(button)
+            end
+            for button in rewardsFrame.followerRewardPool:EnumerateActive() do
+                Skin.LargeQuestInfoRewardFollowerTemplate(button)
+            end
         end
     end
 
-    local rewardFrames = {}
-    function Hook.QuestInfo_GetRewardButton(rewardsFrame, index)
-        if not Skin[rewardsFrame.buttonTemplate] then return end
-
-        local numRewardButtons = rewardFrames[rewardsFrame] or 0
-
-        while numRewardButtons < #rewardsFrame.RewardButtons do
-            numRewardButtons = numRewardButtons + 1
-            Skin[rewardsFrame.buttonTemplate](rewardsFrame.RewardButtons[numRewardButtons])
-        end
-
-        rewardFrames[rewardsFrame] = numRewardButtons
+    -- QuestFrame calls the global on QUEST_ITEM_UPDATE; QuestInfo_Display
+    -- holds its own reference, so its rewards are styled from that hook.
+    function Hook.QuestInfo_ShowRewards()
+        StyleRewards(_G.QuestInfoFrame.rewardsFrame)
     end
 
     templates = {
@@ -110,111 +141,94 @@ do --[[ FrameXML\QuestInfo.lua ]]
 end
 
 do --[[ FrameXML\QuestInfo.xml ]]
-    function Skin.SmallQuestRewardItemButtonTemplate(Button)
-        Skin.SmallItemButtonTemplate(Button)
+    -- In place (taint audit 2026-10-06, B170 follow-up; see StyleRewards):
+    -- skin state lives in this weak table, never on Blizzard's frames.
+    local styled = setmetatable({}, {__mode = "k"})
+
+    local function SetFrameBand(texture)
+        local r, g, b = Color.frame:GetRGB()
+        texture:SetColorTexture(r, g, b, Color.frame.a)
     end
+
+    -- The existing NameFrame becomes the flat band the old nameBG frame drew:
+    -- icon right + 1 to the button's right - 3, icon top to icon bottom. Drawn
+    -- with vertex offsets (1 upper-left, 2 lower-left, 3 upper-right, 4 lower-
+    -- right) so the region keeps its size and anchors. NameFrame is anchored
+    -- LEFT to the icon's RIGHT, so it is centred on the icon; its size comes
+    -- from the region because the small template's atlas sets it.
+    local function SetNameBand(Button)
+        local nameFrame, icon = Button.NameFrame, Button.Icon
+        local _, _, _, iconX = icon:GetPoint(1)
+        local _, _, _, nameX = nameFrame:GetPoint(1)
+        local iconW, iconH = icon:GetSize()
+        local nameW, nameH = nameFrame:GetSize()
+
+        local left = 1 - nameX
+        local right = (Button:GetWidth() - 3) - (iconX + iconW + nameX + nameW)
+        local inset = (nameH - iconH) / 2
+
+        SetFrameBand(nameFrame)
+        nameFrame:SetVertexOffset(1, left, -inset)
+        nameFrame:SetVertexOffset(2, left, inset)
+        nameFrame:SetVertexOffset(3, right, -inset)
+        nameFrame:SetVertexOffset(4, right, inset)
+    end
+
+    -- Item, currency and reputation rewards, and the fixed XP/money/honor
+    -- buttons: cropped icon, name band. Blizzard's IconBorder shows quality as
+    -- it does unskinned; Aurora's SetItemButtonQuality hooks skip these
+    -- buttons (no icon border of ours).
     function Skin.LargeQuestRewardItemButtonTemplate(Button)
-        Skin.LargeItemButtonTemplate(Button)
+        if styled[Button] then return end
+        styled[Button] = true
+
+        Base.CropIcon(Button.Icon)
+        if Button.NameFrame then
+            SetNameBand(Button)
+        end
     end
+    Skin.SmallQuestRewardItemButtonTemplate = Skin.LargeQuestRewardItemButtonTemplate
+
+    -- QuestSpellTemplate in the quest frame's spell reward pool.
+    function Skin.QuestInfoRewardSpellInPlace(Button)
+        if styled[Button] then return end
+        styled[Button] = true
+
+        Base.CropIcon(Button.Icon)
+        SetNameBand(Button)
+
+        local _, _, spellBorder = Button:GetRegions()
+        spellBorder:SetTexture("")
+    end
+
+    -- Follower rewards: the BG atlas becomes the band the old backdrop drew,
+    -- right of the portrait; Blizzard's portrait art is left as it is.
     function Skin.LargeQuestInfoRewardFollowerTemplate(Button)
-        Base.SetBackdrop(Button, Color.frame)
-        Button:SetBackdropOptions({
-            offsets = {
-                left = 41,
-                right = 0,
-                top = 8,
-                bottom = 8,
-            },
-        })
+        if styled[Button] then return end
+        styled[Button] = true
 
-        Button.BG:SetAlpha(0)
-        Button.BG:SetTexture("")
-
-        local bg = Button:GetBackdropTexture("bg")
-        Button.Class:SetPoint("TOPRIGHT", bg, -1, -1)
-        Button.Class:SetPoint("BOTTOMRIGHT", bg, -1, 1)
-
-        local GarrisonPortrait = Button.PortraitFrame
-        Skin.GarrisonFollowerPortraitTemplate(GarrisonPortrait)
-        GarrisonPortrait:SetScale(1)
-        GarrisonPortrait:SetSize(41.6, 48)
-        GarrisonPortrait:SetBackdropOptions({
-            offsets = {
-                left = 3,
-                right = 4,
-                top = 4,
-                bottom = 10,
-            },
-        })
-
-        local garrisonBG = GarrisonPortrait:GetBackdropTexture("bg")
-        local garrisonLvlBG = GarrisonPortrait._auroraLvlBG
-        garrisonLvlBG:SetPoint("TOPLEFT", garrisonBG, "BOTTOMLEFT", 0, 2)
-        GarrisonPortrait.Level:SetScale(0.8)
-
-        local AdventuresPortrait = Button.AdventuresFollowerPortraitFrame
-        Skin.AdventuresLevelPortraitTemplate(AdventuresPortrait)
-        AdventuresPortrait:SetScale(1)
-        AdventuresPortrait:SetSize(43.2, 43.2)
-        AdventuresPortrait:SetBackdropOptions({
-            offsets = {
-                left = 4,
-                right = 6,
-                top = 3,
-                bottom = 7,
-            },
-        })
-
-        local adventuresBG = AdventuresPortrait:GetBackdropTexture("bg")
-        local adventuresLvlBG = AdventuresPortrait._auroraLvlBG
-        adventuresLvlBG:SetPoint("TOPLEFT", adventuresBG, "BOTTOMLEFT", 0, 2)
-        AdventuresPortrait.LevelDisplayFrame.LevelText:SetScale(0.8)
+        -- BG spans 30,-7 to 144,-48; the band 41,-8 to 144,-47.
+        SetFrameBand(Button.BG)
+        Button.BG:SetVertexOffset(1, 11, -1)
+        Button.BG:SetVertexOffset(2, 11, 1)
+        Button.BG:SetVertexOffset(3, 0, -1)
+        Button.BG:SetVertexOffset(4, 0, 1)
     end
     function Skin.SmallQuestInfoRewardFollowerTemplate(Button)
-        Base.SetBackdrop(Button, Color.frame)
-        Button:SetBackdropOptions({
-            offsets = {
-                left = 33,
-                right = 0,
-                top = -1,
-                bottom = -2,
-            },
-        })
+        if styled[Button] then return end
+        styled[Button] = true
 
-        Button.BG:SetAlpha(0)
-        Button.BG:SetTexture("")
-
-        local bg = Button:GetBackdropTexture("bg")
-        Button.Class:SetPoint("TOPRIGHT", bg, -1, -1)
-        Button.Class:SetPoint("BOTTOMRIGHT", bg, -1, 1)
-
-        local PortraitFrame = Button.PortraitFrame
-        Skin.GarrisonFollowerPortraitTemplate(PortraitFrame)
-        PortraitFrame:SetScale(1)
-        PortraitFrame:SetSize(33.8, 39)
-        PortraitFrame:SetBackdropOptions({
-            offsets = {
-                left = 1,
-                right = 4,
-                top = 3,
-                bottom = 7,
-            },
-        })
-
-        local portraitBG = PortraitFrame:GetBackdropTexture("bg")
-        local lvlBG = PortraitFrame._auroraLvlBG
-        lvlBG:SetPoint("TOPLEFT", portraitBG, "BOTTOMLEFT", 0, 3)
-        lvlBG:SetPoint("BOTTOMRIGHT", portraitBG, 0, -6)
-        PortraitFrame.Level:SetScale(0.65)
-    end
-    function Skin.QuestInfoSpellHeaderTemplate(FontString)
-        FontString:SetTextColor(0.8, 0.8, 0.8)
+        -- BG spans 30,2 to 134,-32; the band 33,1 to 134,-32.
+        SetFrameBand(Button.BG)
+        Button.BG:SetVertexOffset(1, 3, -1)
+        Button.BG:SetVertexOffset(2, 3, 0)
+        Button.BG:SetVertexOffset(3, 0, -1)
+        Button.BG:SetVertexOffset(4, 0, 0)
     end
 end
 
 function private.FrameXML.QuestInfo()
     _G.hooksecurefunc("QuestInfo_Display", Hook.QuestInfo_Display)
-    _G.hooksecurefunc("QuestInfo_GetRewardButton", Hook.QuestInfo_GetRewardButton)
     _G.hooksecurefunc("QuestInfo_ShowRewards", Hook.QuestInfo_ShowRewards)
 
     ------------------------------
@@ -238,12 +252,12 @@ function private.FrameXML.QuestInfo()
     ---------------------------
     -- QuestInfoRewardsFrame --
     ---------------------------
+    -- The fixed reward buttons get the reward buttons' in-place look.
     local QuestInfoRewardsFrame = _G.QuestInfoRewardsFrame
-    Skin.LargeItemButtonTemplate(QuestInfoRewardsFrame.HonorFrame)
-    Skin.LargeItemButtonTemplate(QuestInfoRewardsFrame.SkillPointFrame)
-    Skin.LargeItemButtonTemplate(QuestInfoRewardsFrame.ArtifactXPFrame)
-    Skin.LargeItemButtonTemplate(QuestInfoRewardsFrame.WarModeBonusFrame)
-    Skin.LargeItemButtonTemplate(QuestInfoRewardsFrame.HonorFrame)
+    Skin.LargeQuestRewardItemButtonTemplate(QuestInfoRewardsFrame.HonorFrame)
+    Skin.LargeQuestRewardItemButtonTemplate(QuestInfoRewardsFrame.SkillPointFrame)
+    Skin.LargeQuestRewardItemButtonTemplate(QuestInfoRewardsFrame.ArtifactXPFrame)
+    Skin.LargeQuestRewardItemButtonTemplate(QuestInfoRewardsFrame.WarModeBonusFrame)
 
     local TitleFrame = QuestInfoRewardsFrame.TitleFrame
     Base.CropIcon(TitleFrame.Icon)
@@ -266,70 +280,20 @@ function private.FrameXML.QuestInfo()
         bottom = 17,
     })
 
-    -- Hook.ObjectPoolMixin removed in 11.0.0 (private API).
-    -- Wrap each pool's Acquire method to skin frames when first created.
-    do
-        local poolAcquire = QuestInfoRewardsFrame.spellRewardPool.Acquire
-        QuestInfoRewardsFrame.spellRewardPool.Acquire = function(pool, ...)
-            local frame, isNew = poolAcquire(pool, ...)
-            if isNew then Skin.QuestSpellTemplate(frame) end
-            return frame, isNew
-        end
-    end
-    do
-        local poolAcquire = QuestInfoRewardsFrame.followerRewardPool.Acquire
-        QuestInfoRewardsFrame.followerRewardPool.Acquire = function(pool, ...)
-            local frame, isNew = poolAcquire(pool, ...)
-            if isNew then Skin.LargeQuestInfoRewardFollowerTemplate(frame) end
-            return frame, isNew
-        end
-    end
-    do
-        local poolAcquire = QuestInfoRewardsFrame.spellHeaderPool.Acquire
-        QuestInfoRewardsFrame.spellHeaderPool.Acquire = function(pool, ...)
-            local fontString, isNew = poolAcquire(pool, ...)
-            if isNew then Skin.QuestInfoSpellHeaderTemplate(fontString) end
-            return fontString, isNew
-        end
-    end
+    -- The spell, follower and spell header pools are left alone: their
+    -- objects are restyled in place by StyleRewards.
 
     ------------------------------
     -- MapQuestInfoRewardsFrame --
     ------------------------------
     local MapQuestInfoRewardsFrame = _G.MapQuestInfoRewardsFrame
-    Skin.SmallItemButtonTemplate(MapQuestInfoRewardsFrame.XPFrame)
-    Skin.SmallItemButtonTemplate(MapQuestInfoRewardsFrame.HonorFrame)
-    Skin.SmallItemButtonTemplate(MapQuestInfoRewardsFrame.ArtifactXPFrame)
-    Skin.SmallItemButtonTemplate(MapQuestInfoRewardsFrame.WarModeBonusFrame)
-    Skin.SmallItemButtonTemplate(MapQuestInfoRewardsFrame.MoneyFrame)
-    Skin.SmallItemButtonTemplate(MapQuestInfoRewardsFrame.SkillPointFrame)
-    Skin.SmallItemButtonTemplate(MapQuestInfoRewardsFrame.TitleFrame)
-
-    -- Hook.ObjectPoolMixin removed in 11.0.0 (private API).
-    do
-        local poolAcquire = MapQuestInfoRewardsFrame.spellRewardPool.Acquire
-        MapQuestInfoRewardsFrame.spellRewardPool.Acquire = function(pool, ...)
-            local frame, isNew = poolAcquire(pool, ...)
-            if isNew then Skin.SmallItemButtonTemplate(frame) end
-            return frame, isNew
-        end
-    end
-    do
-        local poolAcquire = MapQuestInfoRewardsFrame.followerRewardPool.Acquire
-        MapQuestInfoRewardsFrame.followerRewardPool.Acquire = function(pool, ...)
-            local frame, isNew = poolAcquire(pool, ...)
-            if isNew then Skin.SmallQuestInfoRewardFollowerTemplate(frame) end
-            return frame, isNew
-        end
-    end
-    do
-        local poolAcquire = MapQuestInfoRewardsFrame.spellHeaderPool.Acquire
-        MapQuestInfoRewardsFrame.spellHeaderPool.Acquire = function(pool, ...)
-            local fontString, isNew = poolAcquire(pool, ...)
-            if isNew then Skin.QuestInfoSpellHeaderTemplate(fontString) end
-            return fontString, isNew
-        end
-    end
+    Skin.SmallQuestRewardItemButtonTemplate(MapQuestInfoRewardsFrame.XPFrame)
+    Skin.SmallQuestRewardItemButtonTemplate(MapQuestInfoRewardsFrame.HonorFrame)
+    Skin.SmallQuestRewardItemButtonTemplate(MapQuestInfoRewardsFrame.ArtifactXPFrame)
+    Skin.SmallQuestRewardItemButtonTemplate(MapQuestInfoRewardsFrame.WarModeBonusFrame)
+    Skin.SmallQuestRewardItemButtonTemplate(MapQuestInfoRewardsFrame.MoneyFrame)
+    Skin.SmallQuestRewardItemButtonTemplate(MapQuestInfoRewardsFrame.SkillPointFrame)
+    Skin.SmallQuestRewardItemButtonTemplate(MapQuestInfoRewardsFrame.TitleFrame)
 
     --------------------
     -- QuestInfoFrame --
