@@ -67,32 +67,19 @@ do --[[ AddOns\Blizzard_PVPMatch.xml ]]
 
             private.SetSkinned(Button, true)
 
-            -- NOT Skin.LargeItemButtonTemplate: that one is built for WIDE
-            -- item rows (icon + a 108px name strip) and insets the backdrop
-            -- `right = 108`. PVPMatchResults lays its loot out as small
-            -- SQUARES, so the inset collapsed the backdrop to nothing — and
-            -- since the icon anchors to that backdrop, the reward icons
-            -- rendered as empty black boxes with only the quality border
-            -- showing ("You earned" row, found 2026-08-22 after a BG win).
-            -- Square-button variant: same backdrop + quality-border wiring
-            -- (_auroraIconBorder), icon cropped to the button itself.
-            Base.SetBackdrop(Button, Color.black, Color.frame.a)
-            Button._auroraIconBorder = Button
-
-            local bg = Button:GetBackdropTexture("bg")
+            -- In place (taint audit 2026-10-06, B170 follow-up): the loot
+            -- buttons come from itemPool, acquired inside the results screen's
+            -- setup, which keeps using them. The old skin put a backdrop and
+            -- _auroraIconBorder on the button and re-anchored the icon to the
+            -- backdrop. Now the icon is only cropped square (masks removed,
+            -- SetTexCoord) and Blizzard's quality border stays.
             if Button.Icon then
                 Base.CropIcon(Button.Icon)
-                Button.Icon:ClearAllPoints()
-                Button.Icon:SetPoint("TOPLEFT", bg, 1, -1)
-                Button.Icon:SetPoint("BOTTOMRIGHT", bg, -1, 1)
             end
 
             if Button.NameFrame then
                 Button.NameFrame:SetAlpha(0)
                 Button.NameFrame:SetTexture("")
-            end
-            if Button.IconBorder then
-                Button.IconBorder:SetAlpha(0)
             end
         end
     end
