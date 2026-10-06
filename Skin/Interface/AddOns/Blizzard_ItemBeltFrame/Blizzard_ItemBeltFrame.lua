@@ -13,8 +13,10 @@ local function SkinBeltButton(button)
     if not button or private.IsSkinned(button) then return end
     private.SetSkinned(button, true)
 
-    -- Crop the item icon
-    Base.CropIcon(button.Icon, button)
+    -- Crop the item icon in place: no parent, so no border texture or
+    -- fields on the button (taint audit 2026-10-06, B170 follow-up; the
+    -- pool is acquired inside Blizzard's belt update).
+    Base.CropIcon(button.Icon)
 
     -- Strip decorative atlas textures (border, background)
     if button.BG then
