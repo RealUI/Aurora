@@ -8,21 +8,19 @@ if private.shouldSkip() then return end
 local Aurora = private.Aurora
 local Base = Aurora.Base
 local Hook, Skin = Aurora.Hook, Aurora.Skin
-local Color, Util = Aurora.Color, Aurora.Util
+local Color = Aurora.Color
 
 do --[[ FrameXML\AlertFrameSystems.lua ]]
-    function Hook.DungeonCompletionAlertFrameReward_SetRewardMoney(frame, optionalMoney)
-        frame.texture:SetTexture([[Interface/Icons/inv_misc_coin_02]])
+    -- The setters run inside the alert's SetUp (or Coalesce), before Blizzard
+    -- anchors the rewards, and set the icon texture themselves. Restyle the
+    -- reward button in place; see Skin.DungeonCompletionAlertFrameRewardTemplate.
+    local function StyleReward(frame)
+        Skin.DungeonCompletionAlertFrameRewardTemplate(frame)
     end
-    function Hook.DungeonCompletionAlertFrameReward_SetRewardXP(frame, optionalXP)
-        frame.texture:SetTexture([[Interface/Icons/xp_icon]])
-    end
-    function Hook.DungeonCompletionAlertFrameReward_SetRewardItem(frame, itemLink, texture)
-        frame.texture:SetTexture(texture)
-    end
-    function Hook.DungeonCompletionAlertFrameReward_SetReward(frame, reward)
-        frame.texture:SetTexture(reward.texturePath)
-    end
+    Hook.DungeonCompletionAlertFrameReward_SetRewardMoney = StyleReward
+    Hook.DungeonCompletionAlertFrameReward_SetRewardXP = StyleReward
+    Hook.DungeonCompletionAlertFrameReward_SetRewardItem = StyleReward
+    Hook.DungeonCompletionAlertFrameReward_SetReward = StyleReward
 end
 
 do --[[ FrameXML\AlertFrameSystems.xml ]]
@@ -50,70 +48,72 @@ do --[[ FrameXML\AlertFrameSystems.xml ]]
         end
     end
     ]]
+
+    --[[ Taint audit 2026-10-06 (B170 follow-up): the scenario, invasion and
+        dungeon completion alerts and their reward buttons are skinned in
+        place. The setUpFunction post-hook runs inside AlertFrameQueueMixin:
+        ShowAlert, which goes on to AddAlertFrame (UpdateAnchors, SetParent,
+        AlertFrame_ShowNewAlert) with the same frame, and the reward setters
+        run inside SetUp itself, before StandardRewardAlertFrame_
+        AdjustRewardAnchors. The old skins wrote backdrop methods, _aurora*
+        and _title fields, an icon border texture and new anchors onto the
+        alert mid-execution. Now: colours, texcoords and vertex offsets on
+        existing regions only, state in this weak table, no FrameTypeFrame
+        (so RealUI's stripes are not added to these three alerts). ]]
+    local styled = setmetatable({}, {__mode = "k"})
+
+    -- Shape an existing texture into a flat Color.frame band with vertex
+    -- offsets (1 upper-left, 2 lower-left, 3 upper-right, 4 lower-right), so
+    -- the region keeps its size and anchors. Both rects are in the alert's
+    -- space from its top-left corner, y downwards: the region's own rect, then
+    -- the band. The band starts right of the alert's icon and is as tall as
+    -- the icon, like the quest reward buttons.
+    local function SetBand(texture, rectLeft, rectTop, rectRight, rectBottom, left, top, right, bottom)
+        local r, g, b = Color.frame:GetRGB()
+        texture:SetColorTexture(r, g, b, Color.frame.a)
+        texture:SetVertexOffset(1, left - rectLeft, rectTop - top)
+        texture:SetVertexOffset(2, left - rectLeft, rectBottom - bottom)
+        texture:SetVertexOffset(3, right - rectRight, rectTop - top)
+        texture:SetVertexOffset(4, right - rectRight, rectBottom - bottom)
+    end
+
+    -- The rect of a texture anchored CENTER (x 0, y offset) on its alert.
+    local function CenteredRect(frame, texture, offsetY)
+        local frameW, frameH = frame:GetSize()
+        local width, height = texture:GetSize()
+        local left, top = (frameW - width) / 2, (frameH - height) / 2 - offsetY
+        return left, top, left + width, top + height
+    end
+
+    -- Reward icons: Base.CropIcon without a parent only drops the circle mask
+    -- and crops the icon square; the reward ring is cleared.
     function Skin.DungeonCompletionAlertFrameRewardTemplate(Button)
+        if styled[Button] then return end
+        styled[Button] = true
+
         local texture, ring = Button:GetRegions()
-        Base.CropIcon(texture, Button)
-        ring:Hide()
+        Base.CropIcon(texture)
+        ring:SetTexture("")
     end
     Skin.InvasionAlertFrameRewardTemplate = Skin.DungeonCompletionAlertFrameRewardTemplate
     Skin.WorldQuestFrameRewardTemplate = Skin.DungeonCompletionAlertFrameRewardTemplate
 
-    local heroicTexture = _G.CreateTextureMarkup([[Interface/LFGFrame/UI-LFG-ICON-HEROIC]], 32, 32, 16, 20, 0, 0.5, 0, 0.625, -5, 0)
+    -- SetUp toggles raidArt / dungeonArt and moves the 45px dungeonTexture
+    -- (BOTTOMLEFT 13,18 for a dungeon, 26,15 for a raid), so each art gets
+    -- the band for its own icon position, once. Blizzard's heroic icon,
+    -- glow and shine are left as they are.
     function Skin.DungeonCompletionAlertFrameTemplate(ContainedAlertFrame)
-        if not ContainedAlertFrame._auroraTemplate then
-            Skin.FrameTypeFrame(ContainedAlertFrame)
-            local bg = ContainedAlertFrame:GetBackdropTexture("bg")
+        if styled[ContainedAlertFrame] then return end
+        styled[ContainedAlertFrame] = true
 
-            Base.CropIcon(ContainedAlertFrame.dungeonTexture, ContainedAlertFrame)
-            ContainedAlertFrame.raidArt:SetAlpha(0)
-            ContainedAlertFrame.dungeonArt:SetAlpha(0)
+        Base.CropIcon(ContainedAlertFrame.dungeonTexture)
 
-            local title = select(7, ContainedAlertFrame:GetRegions())
-            title:SetPoint("LEFT", ContainedAlertFrame.dungeonTexture, "RIGHT", 5, 0)
-            title:SetPoint("RIGHT", bg, -5, 0)
+        local width, height = ContainedAlertFrame:GetSize()
+        local left, top, right, bottom = CenteredRect(ContainedAlertFrame, ContainedAlertFrame.dungeonArt, 0)
+        SetBand(ContainedAlertFrame.dungeonArt, left, top, right, bottom, 13 + 45 + 1, height - 18 - 45, width - 7, height - 18)
 
-            ContainedAlertFrame.instanceName:SetPoint("LEFT", ContainedAlertFrame.dungeonTexture, "RIGHT", 5, 0)
-            ContainedAlertFrame.instanceName:SetPoint("RIGHT", bg, -5, 0)
-            ContainedAlertFrame.heroicIcon:SetAlpha(0)
-
-            ContainedAlertFrame.glowFrame.glow:SetPoint("TOPLEFT", bg, -10, 10)
-            ContainedAlertFrame.glowFrame.glow:SetPoint("BOTTOMRIGHT", bg, 10, -10)
-            ContainedAlertFrame.glowFrame.glow:SetAtlas("Toast-Flash")
-            ContainedAlertFrame.glowFrame.glow:SetTexCoord(0, 1, 0, 1)
-
-            ContainedAlertFrame.shine:SetHeight(55)
-            ContainedAlertFrame.shine:SetTexCoord(0.794921875, 0.96484375, 0.06640625, 0.23046875)
-            --ContainedAlertFrame.shine:SetTexCoord(0.78125, 0.912109375, 0.06640625, 0.23046875)
-
-            ContainedAlertFrame._auroraTemplate = "DungeonCompletionAlertFrameTemplate"
-        else
-            local rewardData = ContainedAlertFrame.rewardData
-            if rewardData.subtypeID == _G.LFG_SUBTYPEID_RAID then
-                ContainedAlertFrame:SetBackdropOption("offsets", {
-                    left = 20,
-                    right = 20,
-                    top = 14,
-                    bottom = 9,
-                })
-                ContainedAlertFrame.shine:SetPoint("BOTTOMLEFT", 0, 10)
-            else
-                ContainedAlertFrame:SetBackdropOption("offsets", {
-                    left = 7,
-                    right = 7,
-                    top = 11,
-                    bottom = 12,
-                })
-                ContainedAlertFrame.shine:SetPoint("BOTTOMLEFT", 0, 13)
-            end
-
-            for i, button in next, ContainedAlertFrame.RewardFrames do
-                Util.SkinOnce(button, Skin.DungeonCompletionAlertFrameRewardTemplate)
-            end
-
-            if rewardData.subtypeID == _G.LFG_SUBTYPEID_HEROIC then
-                ContainedAlertFrame.instanceName:SetText(heroicTexture .. rewardData.name)
-            end
-        end
+        left, top, right, bottom = CenteredRect(ContainedAlertFrame, ContainedAlertFrame.raidArt, -3)
+        SetBand(ContainedAlertFrame.raidArt, left, top, right, bottom, 26 + 45 + 1, height - 15 - 45, width - 20, height - 15)
     end
     function Skin.AchievementAlertFrameTemplate(ContainedAlertFrame)
         if not ContainedAlertFrame._auroraTemplate then
@@ -251,91 +251,36 @@ do --[[ FrameXML\AlertFrameSystems.xml ]]
             ContainedAlertFrame._auroraTemplate = "GuildChallengeAlertFrameTemplate"
         end
     end
+    -- Regions: toast art (LEFT, atlas size, drawn above the icon), the 48px
+    -- icon at LEFT 15,0, title, ZoneName, BonusStar. In place, once (see the
+    -- taint note above Skin.DungeonCompletionAlertFrameRewardTemplate).
     function Skin.ScenarioLegionInvasionAlertFrameTemplate(ContainedAlertFrame)
-        if not ContainedAlertFrame._auroraTemplate then
-            local toastFrame, icon, title = ContainedAlertFrame:GetRegions()
-            Skin.FrameTypeFrame(ContainedAlertFrame)
-            ContainedAlertFrame:SetBackdropOption("offsets", {
-                left = 11,
-                right = 11,
-                top = 10,
-                bottom = 10,
-            })
+        if styled[ContainedAlertFrame] then return end
+        styled[ContainedAlertFrame] = true
 
-            toastFrame:Hide()
-            Base.CropIcon(icon, ContainedAlertFrame)
+        local toastFrame, icon = ContainedAlertFrame:GetRegions()
+        Base.CropIcon(icon)
 
-            local bg = ContainedAlertFrame:GetBackdropTexture("bg")
-            title:SetPoint("TOP", bg, 0, -15)
-            title:SetPoint("LEFT", icon, "RIGHT", 5, 0)
-            title:SetPoint("RIGHT", bg, -5, 0)
-            ContainedAlertFrame._title = title
-
-            ContainedAlertFrame.ZoneName:ClearAllPoints()
-            ContainedAlertFrame.ZoneName:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -2)
-            ContainedAlertFrame.ZoneName:SetPoint("TOPRIGHT", title, "BOTTOMRIGHT", 0, -2)
-
-            ContainedAlertFrame._auroraTemplate = "ScenarioLegionInvasionAlertFrameTemplate"
-        else
-            for i, button in next, ContainedAlertFrame.RewardFrames do
-                Util.SkinOnce(button, Skin.InvasionAlertFrameRewardTemplate)
-            end
-
-            local bg = ContainedAlertFrame:GetBackdropTexture("bg")
-            if ContainedAlertFrame.BonusStar:IsShown() then
-                ContainedAlertFrame._title:SetPoint("RIGHT", bg, -45, 0)
-            else
-                ContainedAlertFrame._title:SetPoint("RIGHT", bg, -5, 0)
-            end
-        end
+        local width, height = ContainedAlertFrame:GetSize()
+        local toastW, toastH = toastFrame:GetSize()
+        local toastTop = (height - toastH) / 2
+        local iconTop = (height - 48) / 2
+        SetBand(toastFrame, 0, toastTop, toastW, toastTop + toastH, 15 + 48 + 1, iconTop, width - 11, iconTop + 48)
     end
+    -- Regions: icon background, the 45px dungeonTexture at LEFT 17,0, the
+    -- toast art (all points, drawn above the icon), title, dungeonName,
+    -- BonusStar, shine. In place, once.
     function Skin.ScenarioAlertFrameTemplate(ContainedAlertFrame)
-        if not ContainedAlertFrame._auroraTemplate then
-            Skin.FrameTypeFrame(ContainedAlertFrame)
-            ContainedAlertFrame:SetBackdropOption("offsets", {
-                left = 11,
-                right = 20,
-                top = 10,
-                bottom = 11,
-            })
+        if styled[ContainedAlertFrame] then return end
+        styled[ContainedAlertFrame] = true
 
-            select(1, ContainedAlertFrame:GetRegions()):Hide() -- iconBG
-            ContainedAlertFrame.dungeonTexture:ClearAllPoints()
-            ContainedAlertFrame.dungeonTexture:SetPoint("TOPLEFT", 17, -16)
-            Base.CropIcon(ContainedAlertFrame.dungeonTexture, ContainedAlertFrame)
-            select(3, ContainedAlertFrame:GetRegions()):Hide() -- toastFrame
+        local iconBG, _, toastFrame = ContainedAlertFrame:GetRegions()
+        iconBG:SetTexture("")
+        Base.CropIcon(ContainedAlertFrame.dungeonTexture)
 
-            local bg = ContainedAlertFrame:GetBackdropTexture("bg")
-            local title = select(4, ContainedAlertFrame:GetRegions())
-            title:SetPoint("TOP", bg, 0, -15)
-            title:SetPoint("LEFT", ContainedAlertFrame.dungeonTexture, "RIGHT", 5, 0)
-            title:SetPoint("RIGHT", bg, -5, 0)
-            ContainedAlertFrame._title = title
-
-            ContainedAlertFrame.dungeonName:SetPoint("TOP", title, "BOTTOM", 0, -2)
-            ContainedAlertFrame.dungeonName:SetPoint("LEFT", ContainedAlertFrame.dungeonTexture, "RIGHT", 5, 0)
-            ContainedAlertFrame.dungeonName:SetPoint("RIGHT", bg, -5, 0)
-
-            ContainedAlertFrame.glowFrame.glow:SetPoint("TOPLEFT", bg, -10, 10)
-            ContainedAlertFrame.glowFrame.glow:SetPoint("BOTTOMRIGHT", bg, 10, -10)
-            ContainedAlertFrame.glowFrame.glow:SetAtlas("Toast-Flash")
-            ContainedAlertFrame.glowFrame.glow:SetTexCoord(0, 1, 0, 1)
-
-            ContainedAlertFrame.shine:SetTexCoord(0.794921875, 0.96484375, 0.06640625, 0.23046875)
-
-            ContainedAlertFrame._auroraTemplate = "ScenarioAlertFrameTemplate"
-        else
-            for i, button in next, ContainedAlertFrame.RewardFrames do
-                Util.SkinOnce(button, Skin.DungeonCompletionAlertFrameRewardTemplate)
-            end
-
-            local bg = ContainedAlertFrame:GetBackdropTexture("bg")
-            if ContainedAlertFrame.BonusStar:IsShown() then
-                ContainedAlertFrame._title:SetPoint("RIGHT", bg, -45, 0)
-            else
-                ContainedAlertFrame._title:SetPoint("RIGHT", bg, -5, 0)
-            end
-        end
+        local width, height = ContainedAlertFrame:GetSize()
+        local iconTop = (height - 45) / 2
+        SetBand(toastFrame, 0, 0, width, height, 17 + 45 + 1, iconTop, width - 20, iconTop + 45)
     end
     function Skin.MoneyWonAlertFrameTemplate(ContainedAlertFrame)
         if not ContainedAlertFrame._auroraTemplate then
