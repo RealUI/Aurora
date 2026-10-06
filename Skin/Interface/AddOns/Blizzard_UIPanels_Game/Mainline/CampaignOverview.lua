@@ -22,12 +22,9 @@ do --[[ FrameXML\CampaignOverview.lua ]]
             color = Color.highlight
         end
 
+        -- Blizzard's lore dividers, tinted in place: no new texture file, size
+        -- or anchor (taint audit 2026-10-06, B170 follow-up).
         for texture in self.texturePool:EnumerateActive() do
-            local _, line = texture:GetPoint()
-            texture:SetTexture([[Interface\LFGFrame\UI-LFG-SEPARATOR]])
-            texture:SetTexCoord(0, 0.6640625, 0, 0.3125)
-            texture:SetPoint("BOTTOM", line, 0, -8)
-            texture:SetHeight(30)
             texture:SetDesaturated(true)
             texture:SetVertexColor(color:GetRGB())
         end
