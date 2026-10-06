@@ -65,10 +65,17 @@ do --[[ FrameXML\GameTooltip.xml ]]
     function Skin.ShoppingTooltipTemplate(GameTooltip)
         Skin.SharedTooltipTemplate(GameTooltip)
     end
+    --[[ Tooltip status and progress bars come from GameTooltip's pools,
+        acquired inside the tooltip display (GameTooltip_ShowStatusBar /
+        ShowProgressBar, e.g. world-quest pins, then GameTooltip_AddWidgetSet
+        in the same execution). So: in place only (taint audit 2026-10-06,
+        B170 follow-up). Existing regions are recoloured or cleared; no size,
+        anchor or draw-layer change. ]]
     function Skin.TooltipStatusBarTemplate(StatusBar)
+        -- The unnamed UI-StatusBar-Border texture.
         local _, border = StatusBar:GetRegions()
-        if border then
-            border:Hide()
+        if border and border.SetTexture then
+            border:SetTexture("")
         end
 
         local texture = StatusBar:GetStatusBarTexture()
@@ -79,6 +86,18 @@ do --[[ FrameXML\GameTooltip.xml ]]
         local r, g, b = Color.highlight:GetRGB()
         StatusBar:SetStatusBarColor(r, g, b)
     end
+
+    -- A 7x14 divider drawn as a 1px line: vertex offsets narrow the quad
+    -- without resizing the region (1 upper-left, 2 lower-left, 3 upper-right,
+    -- 4 lower-right).
+    local function StyleDivider(divider)
+        if not divider then return end
+        divider:SetColorTexture(Color.button:GetRGB())
+        divider:SetVertexOffset(1, 3, 0)
+        divider:SetVertexOffset(2, 3, 0)
+        divider:SetVertexOffset(3, -3, 0)
+        divider:SetVertexOffset(4, -3, 0)
+    end
     function Skin.TooltipProgressBarTemplate(Frame)
         local bar = Frame.Bar
         if not bar then
@@ -88,31 +107,25 @@ do --[[ FrameXML\GameTooltip.xml ]]
         local texture = bar:GetStatusBarTexture()
         if texture then
             texture:SetTexture("Interface\\TargetingFrame\\UI-StatusBar")
-            texture:SetDrawLayer("BORDER")
         end
 
         local r, g, b = Color.highlight:GetRGB()
         bar:SetStatusBarColor(r, g, b)
 
-        if bar.BorderLeft then bar.BorderLeft:Hide() end
-        if bar.BorderRight then bar.BorderRight:Hide() end
-        if bar.BorderMid then bar.BorderMid:Hide() end
+        if bar.BorderLeft then bar.BorderLeft:SetTexture("") end
+        if bar.BorderRight then bar.BorderRight:SetTexture("") end
+        if bar.BorderMid then bar.BorderMid:SetTexture("") end
 
-        local LeftDivider = bar.LeftDivider
-        if LeftDivider then
-            LeftDivider:SetColorTexture(Color.button:GetRGB())
-            LeftDivider:SetSize(1, 15)
-        end
+        StyleDivider(bar.LeftDivider)
+        StyleDivider(bar.RightDivider)
 
-        local RightDivider = bar.RightDivider
-        if RightDivider then
-            RightDivider:SetColorTexture(Color.button:GetRGB())
-            RightDivider:SetSize(1, 15)
-        end
-
-        local background = _G.select(7, bar:GetRegions())
-        if background then
-            background:Hide()
+        -- The unnamed dark-blue BACKGROUND colour texture.
+        for i = 1, _G.select("#", bar:GetRegions()) do
+            local region = _G.select(i, bar:GetRegions())
+            if region ~= texture and region:IsObjectType("Texture")
+            and region:GetDrawLayer() == "BACKGROUND" then
+                region:SetColorTexture(Color.frame.r, Color.frame.g, Color.frame.b, Color.frame.a)
+            end
         end
     end
 end
