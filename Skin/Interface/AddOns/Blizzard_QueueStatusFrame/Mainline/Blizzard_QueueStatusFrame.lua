@@ -2,46 +2,19 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals next tinsert
+-- luacheck: globals
 
 --[[ Core ]]
 local Aurora = private.Aurora
-local Base = Aurora.Base
-local Hook, Skin = Aurora.Hook, Aurora.Skin
+local Skin = Aurora.Skin
 local Util = Aurora.Util
 do --[[ AddOns\Blizzard_QueueStatusFrame\Blizzard_QueueStatusFrame.lua ]]
-    function Hook.QueueStatusEntry_SetFullDisplay(entry, _, _, _, isTank, isHealer, isDPS)
-        local nextRoleIcon = 1
-        if isDPS then
-            local icon = entry["RoleIcon"..nextRoleIcon]
-            Base.SetTexture(icon, "iconDAMAGER")
-            icon._auroraBG:Show()
-            nextRoleIcon = nextRoleIcon + 1
-        end
-        if isHealer then
-            local icon = entry["RoleIcon"..nextRoleIcon]
-            Base.SetTexture(icon, "iconHEALER")
-            icon._auroraBG:Show()
-            nextRoleIcon = nextRoleIcon + 1
-        end
-        if isTank then
-            local icon = entry["RoleIcon"..nextRoleIcon]
-            Base.SetTexture(icon, "iconTANK")
-            icon._auroraBG:Show()
-            nextRoleIcon = nextRoleIcon + 1
-        end
-
-        for i = nextRoleIcon, _G.LFD_NUM_ROLES do
-            local icon = entry["RoleIcon"..i]
-            if icon._auroraBG then
-                icon._auroraBG:Hide()
-            end
-        end
-        -- NOTE: do NOT call SetPoint on HealersFound or any entry sub-frame here.
-        -- SetPoint on pool entry children taints their layout metrics permanently,
-        -- causing entry.Status:GetHeight() to return a secret number and crashing
-        -- Blizzard's arithmetic in QueueStatusEntry_SetMinimalDisplay:1119.
-    end
+    -- The entry role icons are left as Blizzard's atlases (taint audit
+    -- 2026-10-06, B170 follow-up). Aurora's QueueStatusEntry_SetFullDisplay
+    -- post-hook gave each RoleIcon the "icon<ROLE>" texture snapshot, which
+    -- creates border, background and mask textures on the entry and writes
+    -- _auroraBorder/_auroraBG/_auroraMask onto the icon, inside the queue
+    -- frame's update that goes on to measure and lay out the same entry.
 end
 
 do --[[ AddOns\Blizzard_QueueStatusFrame\Blizzard_QueueStatusFrame.xml ]]
@@ -59,7 +32,8 @@ do --[[ AddOns\Blizzard_QueueStatusFrame\Blizzard_QueueStatusFrame.xml ]]
         -- NOTE: do NOT call SetPoint or SetHeight on any entry sub-frame here.
         -- Pool entry frames are used in protected call chains; any layout modification
         -- from addon code permanently taints the frame's geometry, causing GetHeight()
-        -- on sibling FontStrings to return secret numbers (see above).
+        -- on sibling FontStrings to return secret numbers
+        -- (QueueStatusEntry_SetMinimalDisplay). SetAtlas on the existing icons only.
         Skin.QueueStatusRoleCountTemplate(Frame.HealersFound)
         Skin.QueueStatusRoleCountTemplate(Frame.TanksFound)
         Skin.QueueStatusRoleCountTemplate(Frame.DamagersFound)
@@ -67,8 +41,6 @@ do --[[ AddOns\Blizzard_QueueStatusFrame\Blizzard_QueueStatusFrame.xml ]]
 end
 
 function private.FrameXML.QueueStatusFrame()
-     _G.hooksecurefunc("QueueStatusEntry_SetFullDisplay", Hook.QueueStatusEntry_SetFullDisplay)
-
     local QueueStatusFrame = _G.QueueStatusFrame
     -- NOTE: QueueStatusFrame already inherits TooltipBackdropTemplate in XML and has its OnLoad
     -- handler applied by Blizzard. Calling Skin.TooltipBackdropTemplate() on the protected frame
