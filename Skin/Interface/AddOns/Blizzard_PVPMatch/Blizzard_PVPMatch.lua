@@ -78,7 +78,6 @@ do --[[ AddOns\Blizzard_PVPMatch.xml ]]
             end
 
             if Button.NameFrame then
-                Button.NameFrame:SetAlpha(0)
                 Button.NameFrame:SetTexture("")
             end
         end
