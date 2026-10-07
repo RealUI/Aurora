@@ -184,6 +184,46 @@ do --[[ AddOns\Blizzard_HousingTemplates\Blizzard_HousingCatalogCategories.xml ]
         SetHousingActionButtonState(Button, Button:GetState(false))
     end
 
+    --[[ Pooled category and subcategory buttons (taint audit 2026-10-06,
+        B170 follow-up). In place only, applied after Blizzard's
+        DisplayTopLevelCategories / DisplaySubcategoriesUnderCategory have
+        sized, initialised and laid them out, never from the pools' Acquire.
+        Skin.HousingCatalogCategoryTemplate (backdrop, backdrop options, a
+        field on the button) stays for the load-time BackButton and
+        AllSubcategoriesStandIn. The pooled buttons have no texture of their
+        own besides the state-coloured icon, so they keep Blizzard's look; only
+        the subcategory selection glow becomes a flat inset band. ]]
+    function Skin.HousingCatalogCategoryInPlace(Button)
+        if private.IsSkinned(Button) then
+            return
+        end
+
+        private.SetSkinned(Button, true)
+
+        local selected = Button.SelectedBackground
+        if selected then
+            if selected.FlipbookSparkle then
+                selected.FlipbookSparkle:SetTexture("")
+            end
+            local highlight = selected.Highlight
+            if highlight then
+                Util.SetHighlightColor(highlight, 0.2)
+                highlight:SetVertexOffset(1, 6, -8)
+                highlight:SetVertexOffset(2, 6, 8)
+                highlight:SetVertexOffset(3, -6, -8)
+                highlight:SetVertexOffset(4, -6, 8)
+            end
+        end
+    end
+    function Hook.HousingCatalogCategories_Display(self)
+        for button in self.categoryPool:EnumerateActive() do
+            Skin.HousingCatalogCategoryInPlace(button)
+        end
+        for button in self.subcategoryPool:EnumerateActive() do
+            Skin.HousingCatalogCategoryInPlace(button)
+        end
+    end
+
     function Skin.HousingCategoryBackButtonTemplate(Button)
         Skin.HousingCatalogCategoryTemplate(Button)
 
@@ -251,9 +291,11 @@ function private.AddOns.Blizzard_HousingTemplates()
 
     _G.hooksecurefunc(_G.HousingCatalogCategoriesMixin, "OnLoad", function(self)
         Skin.HousingCatalogCategoriesTemplate(self)
-        Util.WrapPoolAcquire(self.categoryPool, Skin.HousingCatalogCategoryTemplate)
-        Util.WrapPoolAcquire(self.subcategoryPool, Skin.HousingCatalogCategoryTemplate)
     end)
+    -- Pooled categories: in place after Blizzard's display passes, not from
+    -- the pools' Acquire (taint audit 2026-10-06).
+    _G.hooksecurefunc(_G.HousingCatalogCategoriesMixin, "DisplayTopLevelCategories", Hook.HousingCatalogCategories_Display)
+    _G.hooksecurefunc(_G.HousingCatalogCategoriesMixin, "DisplaySubcategoriesUnderCategory", Hook.HousingCatalogCategories_Display)
 
     _G.hooksecurefunc(_G.HousingCatalogFiltersMixin, "Initialize", function(self)
         Skin.HousingCatalogFiltersTemplate(self)
