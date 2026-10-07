@@ -33,14 +33,23 @@ do --[[ AddOns\Blizzard_HousingBulletinBoard\Blizzard_HousingBulletinBoard.lua ]
         Base.SetBackdrop(self, Color.button, alpha)
     end
 
-    Hook.BulletinBoardColumnDisplayMixin = {}
-    function Hook.BulletinBoardColumnDisplayMixin:OnLoad()
-        -- Wrap the columnHeaders pool so newly created header buttons are skinned
-        Util.WrapPoolAcquire(self.columnHeaders, function(button)
-            if private.IsSkinned(button) then return end
-            private.SetSkinned(button, true)
-            Skin.UIPanelButtonTemplate(button)
-        end)
+    -- Column headers (taint audit 2026-10-06, B170 follow-up): restyled in
+    -- place after Blizzard's LayoutColumns, never from the pool's Acquire.
+    -- The old Acquire post-hook ran Skin.UIPanelButtonTemplate (backdrop,
+    -- fields) on buttons LayoutColumns went on to size and anchor; it was
+    -- also installed from a mixin OnLoad hook that never fired for the XML
+    -- frame. The headers have no art besides the highlight, so only that
+    -- texture is recoloured.
+    function Hook.BulletinBoardColumnDisplay_LayoutColumns(self)
+        for button in self.columnHeaders:EnumerateActive() do
+            if not private.IsSkinned(button) then
+                private.SetSkinned(button, true)
+                local highlight = button:GetHighlightTexture()
+                if highlight then
+                    Util.SetHighlightColor(highlight, 0.2)
+                end
+            end
+        end
     end
 end
 
@@ -105,13 +114,13 @@ function private.AddOns.Blizzard_HousingBulletinBoard()
     -- Hook roster entry Init for dynamic skinning
     _G.hooksecurefunc(_G.NeighborhoodRosterEntryMixin, "Init", Hook.NeighborhoodRosterEntryMixin.Init)
 
-    -- Hook column display OnLoad to wrap the columnHeaders pool
-    _G.hooksecurefunc(_G.BulletinBoardColumnDisplayMixin, "OnLoad", Hook.BulletinBoardColumnDisplayMixin.OnLoad)
-
-    -- Hide decorative line on ColumnDisplay
+    -- Hide decorative line on ColumnDisplay; headers in place after layout
     local ColumnDisplay = ResidentsTab.ColumnDisplay
-    if ColumnDisplay and ColumnDisplay.DecorativeLine then
-        ColumnDisplay.DecorativeLine:SetAlpha(0)
+    if ColumnDisplay then
+        if ColumnDisplay.DecorativeLine then
+            ColumnDisplay.DecorativeLine:SetAlpha(0)
+        end
+        _G.hooksecurefunc(ColumnDisplay, "LayoutColumns", Hook.BulletinBoardColumnDisplay_LayoutColumns)
     end
 
     ----
@@ -143,7 +152,8 @@ function private.AddOns.Blizzard_HousingBulletinBoard()
         if SearchBox.MiddleBorder then SearchBox.MiddleBorder:SetAlpha(0) end
     end
 
-    -- Wrap pendingInvitesPool for dynamic invite entries
+    -- Pending invites: the skin only hides the background (in place), so the
+    -- Acquire post-hook stays (taint audit 2026-10-06).
     Util.WrapPoolAcquire(InviteFrame.pendingInvitesPool, Skin.PendingInviteTemplate)
 
     ----
