@@ -6,19 +6,37 @@ if private.shouldSkip() then return end
 
 --[[ Core ]]
 local Aurora = private.Aurora
-local Base, Skin = Aurora.Base, Aurora.Skin
-local Color, Util = Aurora.Color, Aurora.Util
+local Base, Hook, Skin = Aurora.Base, Aurora.Hook, Aurora.Skin
+local Color = Aurora.Color
+
+do --[[ AddOns\Blizzard_HousingHouseFinder\Blizzard_HousingHouseFinder.lua ]]
+    -- Neighborhood buttons (taint audit 2026-10-06, B170 follow-up):
+    -- restyled in place after Blizzard has populated the list, never from the
+    -- pools' Acquire (the old post-hook added a backdrop to buttons Blizzard
+    -- went on to Init, select and lay out).
+    function Hook.HouseFinderFrame_PopulateNeighborhoodList(self)
+        for button in self.neighborhoodButtonPool:EnumerateActive() do
+            Skin.HouseFinderNeighborhoodButtonTemplate(button)
+        end
+    end
+    function Hook.HouseFinderFrame_PopulateBNetNeighborhoodList(self)
+        for button in self.bnetNeighborhoodButtonPool:EnumerateActive() do
+            Skin.HouseFinderNeighborhoodButtonTemplate(button)
+        end
+    end
+end
 
 do --[[ AddOns\Blizzard_HousingHouseFinder\Blizzard_HousingHouseFinder.xml ]]
+    -- In place only: Select/Deselect re-atlas ButtonBackground (default,
+    -- recommended, selected), so it is tinted rather than replaced; the tint
+    -- survives SetAtlas and the selected tile stays distinguishable.
     function Skin.HouseFinderNeighborhoodButtonTemplate(Button)
         if private.IsSkinned(Button) then return end
         private.SetSkinned(Button, true)
 
-        Base.SetBackdrop(Button, Color.button, 0.2)
-
-        -- Hide the decorative background atlas
         if Button.ButtonBackground then
-            Button.ButtonBackground:SetAlpha(0)
+            Button.ButtonBackground:SetDesaturated(true)
+            Button.ButtonBackground:SetVertexColor(Color.button:GetRGB())
         end
     end
 end
@@ -61,8 +79,8 @@ function private.AddOns.Blizzard_HousingHouseFinder()
     ----
     -- Neighborhood Button Pools
     ----
-    Util.WrapPoolAcquire(HouseFinderFrame.neighborhoodButtonPool, Skin.HouseFinderNeighborhoodButtonTemplate)
-    Util.WrapPoolAcquire(HouseFinderFrame.bnetNeighborhoodButtonPool, Skin.HouseFinderNeighborhoodButtonTemplate)
+    _G.hooksecurefunc(HouseFinderFrame, "PopulateNeighborhoodList", Hook.HouseFinderFrame_PopulateNeighborhoodList)
+    _G.hooksecurefunc(HouseFinderFrame, "PopulateBNetNeighborhoodList", Hook.HouseFinderFrame_PopulateBNetNeighborhoodList)
 
     ----
     -- GuildSubdivisionDropdown (WowStyle1ArrowDropdownTemplate)
