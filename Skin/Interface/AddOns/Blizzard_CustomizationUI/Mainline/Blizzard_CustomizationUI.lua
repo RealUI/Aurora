@@ -3,16 +3,36 @@ if private.shouldSkip() then return end
 
 local Aurora = private.Aurora
 local Base, Hook, Skin = Aurora.Base, Aurora.Hook, Aurora.Skin
-local Util = Aurora.Util
+local Color, Util = Aurora.Color, Aurora.Util
 
--- Skin a dynamically acquired option frame (dropdown, slider, or checkbox).
+-- A flat box on an existing 32x32 checkbox state texture, inset 7px with
+-- vertex offsets so the region keeps its size and anchors.
+local function SetCheckBox(texture, r, g, b, a)
+    texture:SetColorTexture(r, g, b, a)
+    texture:SetVertexOffset(1, 7, -7)
+    texture:SetVertexOffset(2, 7, 7)
+    texture:SetVertexOffset(3, -7, -7)
+    texture:SetVertexOffset(4, -7, 7)
+end
+
+-- Skin a pooled option frame (dropdown, slider, or checkbox).
+-- Taint audit 2026-10-06 (B170 follow-up): in place only. The pools are no
+-- longer wrapped (their Acquire post-hooks ran mid-UpdateOptionButtons, before
+-- Blizzard's SetupOption and Layout), and the checkbox no longer gets
+-- Skin.FrameTypeCheckButton (backdrop frame, highlight scripts, fields): the
+-- existing Normal / Pushed / Highlight textures become the flat box and
+-- Blizzard's check mark stays.
 local function SkinOptionFrame(frame)
     if not frame or private.IsSkinned(frame) then return end
     private.SetSkinned(frame, true)
 
-    -- Checkbox option: skin the inner CheckButton
-    if frame.Button and frame.Button.GetObjectType and frame.Button:GetObjectType() == "CheckButton" then
-        Skin.FrameTypeCheckButton(frame.Button)
+    -- Checkbox option: restyle the inner CheckButton's own textures
+    local button = frame.Button
+    if button and button.GetObjectType and button:GetObjectType() == "CheckButton" then
+        local r, g, b = Color.button:GetRGB()
+        SetCheckBox(button:GetNormalTexture(), r, g, b, 0.3)
+        SetCheckBox(button:GetPushedTexture(), r, g, b, 0.3)
+        SetCheckBox(button:GetHighlightTexture(), Color.highlight.r, Color.highlight.g, Color.highlight.b, 0.25)
     end
 end
 
@@ -78,19 +98,9 @@ function private.AddOns.Blizzard_CustomizationUI()
                 end
             end
 
-            -- Wrap option pools with Util.WrapPoolAcquire
-            if self.dropdownPool then
-                Util.WrapPoolAcquire(self.dropdownPool, SkinOptionFrame)
-            end
-            if self.sliderPool then
-                Util.WrapPoolAcquire(self.sliderPool, SkinOptionFrame)
-            end
-            if self.pools then
-                local checkPool = self.pools:GetPool("CustomizationOptionCheckButtonTemplate")
-                if checkPool then
-                    Util.WrapPoolAcquire(checkPool, SkinOptionFrame)
-                end
-            end
+            -- Option pools: skinned in place by the UpdateOptionButtons
+            -- post-hook above, after Blizzard's setup and layout, not from
+            -- the pools' Acquire (taint audit 2026-10-06).
         end)
     end
 end
