@@ -6,14 +6,18 @@ local Base, Hook, Skin = Aurora.Base, Aurora.Hook, Aurora.Skin
 local Util = Aurora.Util
 
 do --[[ AddOns\Blizzard_SharedTalentUI.lua ]]
-    -- Skin a single talent button node.
+    -- Skin a single talent button node. In place only (taint audit
+    -- 2026-10-06, B170 follow-up): it runs from UpdateVisualState and from the
+    -- node pools' Acquire post-hook, both inside Blizzard's talent tree
+    -- build, so the icon is cropped without a parent (no border texture
+    -- created on the button) and the shadow is only hidden.
     local function SkinTalentButton(button)
         if not button or private.IsSkinned(button) then return end
         private.SetSkinned(button, true)
 
         -- Crop the ability icon
         if button.Icon then
-            Base.CropIcon(button.Icon, button)
+            Base.CropIcon(button.Icon)
         end
 
         -- Hide the decorative shadow texture
@@ -29,6 +33,7 @@ do --[[ AddOns\Blizzard_SharedTalentUI.lua ]]
     function Hook.TalentButtonBaseMixin:UpdateVisualState()
         SkinTalentButton(self)
     end
+    Hook.SkinTalentButton = SkinTalentButton
 end
 
 function private.AddOns.Blizzard_SharedTalentUI()
@@ -67,17 +72,10 @@ function private.AddOns.Blizzard_SharedTalentUI()
 
         -- Wrap talent node pools as they are lazily created.
         -- AcquireTalentButton calls GetOrCreatePool, so we hook it to
-        -- wrap each new sub-pool the first time it appears.
-        local skinPoolButton = function(button)
-            if not button or private.IsSkinned(button) then return end
-            private.SetSkinned(button, true)
-            if button.Icon then
-                Base.CropIcon(button.Icon, button)
-            end
-            if button.Shadow then
-                button.Shadow:SetAlpha(0)
-            end
-        end
+        -- wrap each new sub-pool the first time it appears. The skin is the
+        -- in-place SkinTalentButton above (it used to be a copy that cropped
+        -- the icon with a parent).
+        local skinPoolButton = Hook.SkinTalentButton
 
         _G.hooksecurefunc(_G.TalentFrameBaseMixin, "AcquireTalentButton", function(self)
             -- Wrap any unwrapped pools in the collection.
