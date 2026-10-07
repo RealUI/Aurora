@@ -93,39 +93,16 @@ function private.AddOns.Blizzard_DelvesCompanionConfiguration()
     local frame = _G.DelvesCompanionConfigurationFrame
     if not frame then return end
 
-    ------------------------------------------------
-    -- Tooltip taint guard
-    ------------------------------------------------
-    -- Skinning the tooltip hierarchy makes widgetContainer:GetHeight() return a
-    -- secret number, so GameTooltip_AddWidgetSet errors at GameTooltip.lua:607
-    -- on `GetHeight() + (verticalPadding or 0)` when the companion portrait is
-    -- hovered. securecallfunction does NOT help here - secret values error on
-    -- ANY arithmetic regardless of execution context (see the note in
-    -- SharedTooltipTemplates.lua), and the previous wrapper never applied
-    -- anyway: the mixin is copied onto the frame when the XML loads, before
-    -- this addon callback runs, so patching the prototype missed the instance.
-    --
-    -- Owning GameTooltip_AddWidgetSet is also ruled out by that same note, and
-    -- it cannot be reimplemented locally because RegisterForWidgetSet needs
-    -- WidgetLayout, a file-local in GameTooltip.lua. The failing arithmetic is
-    -- the last two lines of the function and produces only the overflow return
-    -- value, which this call site discards - GameTooltip_InsertFrame has
-    -- already inserted and shown the widget container by then. So swallow the
-    -- tail on the instance and leave the global alone.
-    --
-    -- The throw skips the GameTooltip:Show() that follows it in Blizzard's
-    -- OnEnter, so re-assert it here; on the non-erroring path the tooltip is
-    -- already shown and the second call is a no-op.
-    local portrait = frame.CompanionPortraitFrame
-    if portrait and portrait.OnEnter then
-        local origPortraitOnEnter = portrait.OnEnter
-        portrait:SetScript("OnEnter", function(self)
-            _G.pcall(origPortraitOnEnter, self)
-            if _G.GameTooltip:GetOwner() == self then
-                _G.GameTooltip:Show()
-            end
-        end)
-    end
+    -- NOTE: Do NOT SetScript the companion portrait's OnEnter. Aurora replaced
+    -- it with a pcall wrapper to swallow a secret GetHeight() in
+    -- GameTooltip_AddWidgetSet (GameTooltip.lua:607). The replacement made
+    -- every portrait hover run Blizzard's OnEnter under Aurora's taint, so
+    -- SetOwner, the widget set and the shared UI-widget pool it acquires from
+    -- all ran tainted, and a tainted execution is exactly what receives the
+    -- secret height (the GameTooltip_AddWidgetSet note in
+    -- SharedTooltipTemplates.lua). The tooltip skin is taint-safe since B94,
+    -- so the secure OnEnter should not see the secret. Removed 2026-10-06
+    -- (taint audit, B170 follow-up; same class as QuestMapLogTitleButton_OnEnter).
 
     -- Strip the InsetFrameTemplate and DialogBorderTemplate decorative textures
     Base.StripBlizzardTextures(frame)
