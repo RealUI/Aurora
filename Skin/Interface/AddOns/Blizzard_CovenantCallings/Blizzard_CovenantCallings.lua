@@ -17,13 +17,16 @@ do
         Util.WrapPoolAcquire(callingsFrame.pool, Skin.CovenantCallingQuestTemplate)
     end
 
+    -- Pooled (Acquire post-hook): in place only (taint audit 2026-10-06,
+    -- B170 follow-up). The icon is cropped without a parent, so no border
+    -- texture and no _auroraIconBorder field on Blizzard's frame.
     function Skin.CovenantCallingQuestTemplate(Frame)
         if private.IsSkinned(Frame) then
             return
         end
 
         private.SetSkinned(Frame, true)
-        Frame._auroraIconBorder = Base.CropIcon(Frame.Icon, Frame)
+        Base.CropIcon(Frame.Icon)
     end
 
     function Skin.CovenantCallingsTemplate(Frame)
