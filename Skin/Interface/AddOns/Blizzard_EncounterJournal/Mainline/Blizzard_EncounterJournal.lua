@@ -99,14 +99,23 @@ do --[[ AddOns\Blizzard_EncounterJournal.lua ]]
             icon:SetTexCoord(.08, .92, .08, .92)
         end
 
-        Hook.JourneyProgressFrameMixin = {}
-        function Hook.JourneyProgressFrameMixin:OnLoad()
-            Util.WrapPoolAcquire(self.rewardPool, Skin.JourneyProgressRewardCardTemplate)
+        --[[ Journeys reward cards and highlights (taint audit 2026-10-06,
+            B170 follow-up). Restyled in place after Blizzard's SetRewards /
+            DisplayHighlights have finished, never from the pools' Acquire:
+            the old Acquire skins added a backdrop, a border texture and
+            fields to frames Blizzard kept filling and anchoring in the same
+            execution. Instance post-hooks, because the mixins are copied onto
+            the frames when the XML loads (the old mixin OnLoad hooks never
+            fired). ]]
+        function Hook.JourneyProgressFrame_SetRewards(self)
+            for card in self.rewardPool:EnumerateActive() do
+                Skin.JourneyProgressRewardCardTemplate(card)
+            end
         end
-
-        Hook.JourneyOverviewHighlightsFrameMixin = {}
-        function Hook.JourneyOverviewHighlightsFrameMixin:OnLoad()
-            Util.WrapPoolAcquire(self.highlightPool, Skin.JourneyOverviewHighlightTemplate)
+        function Hook.JourneyOverviewHighlights_DisplayHighlights(self)
+            for highlight in self.highlightPool:EnumerateActive() do
+                Skin.JourneyOverviewHighlightTemplate(highlight)
+            end
         end
     end
     do --[[ Blizzard_EncounterJournal ]]
@@ -324,6 +333,9 @@ do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
                 Util.SkinOnce(child, Skin.EncounterBossButtonTemplate)
             end)
         end
+        -- In place only (pool frames, see the hooks above): the existing
+        -- background texture becomes the flat panel; no backdrop, no new
+        -- regions, skin state in Aurora's side table.
         function Skin.JourneyOverviewHighlightTemplate(Frame)
             if private.IsSkinned(Frame) then
                 return
@@ -331,10 +343,7 @@ do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
 
             private.SetSkinned(Frame, true)
 
-            if Frame.Background then
-                Frame.Background:SetAlpha(0)
-            end
-            Base.SetBackdrop(Frame, Color.frame, Color.frame.a)
+            Frame.Background:SetColorTexture(Color.frame.r, Color.frame.g, Color.frame.b, Color.frame.a)
 
             Frame.HighlightTitle:SetTextColor(Color.white:GetRGB())
             Frame.HighlightLevel:SetTextColor(Color.grayLight:GetRGB())
@@ -347,12 +356,9 @@ do --[[ AddOns\Blizzard_EncounterJournal.xml ]]
 
             private.SetSkinned(Frame, true)
 
-            if Frame.RewardCardBG then
-                Frame.RewardCardBG:SetAlpha(0)
-            end
-            Base.SetBackdrop(Frame, Color.frame, Color.frame.a)
-            Base.CropIcon(Frame.RewardCardIcon, Frame)
-            Frame.RewardCardIconBorderDefault:SetAlpha(0)
+            Frame.RewardCardBG:SetColorTexture(Color.frame.r, Color.frame.g, Color.frame.b, Color.frame.a)
+            Base.CropIcon(Frame.RewardCardIcon)
+            Frame.RewardCardIconBorderDefault:SetTexture("")
             Frame.RewardCardName:SetTextColor(Color.white:GetRGB())
         end
     end
@@ -388,8 +394,6 @@ function private.AddOns.Blizzard_EncounterJournal()
     _G.hooksecurefunc("EJSuggestFrame_UpdateRewards", Hook.EJSuggestFrame_UpdateRewards)
     _G.hooksecurefunc("EJSuggestFrame_RefreshDisplay", Hook.EJSuggestFrame_RefreshDisplay)
     _G.hooksecurefunc("EncounterJournal_DisplayInstance", Hook.EncounterJournal_DisplayInstance)
-    _G.hooksecurefunc(_G.JourneyProgressFrameMixin, "OnLoad", Hook.JourneyProgressFrameMixin.OnLoad)
-    _G.hooksecurefunc(_G.JourneyOverviewHighlightsFrameMixin, "OnLoad", Hook.JourneyOverviewHighlightsFrameMixin.OnLoad)
 
     local EncounterJournal = _G.EncounterJournal
     Skin.PortraitFrameTemplate(EncounterJournal)
@@ -638,8 +642,10 @@ function private.AddOns.Blizzard_EncounterJournal()
     ----====#############################====----
     local EncounterJournalJourneysFrame = _G.EncounterJournalJourneysFrame
     Skin.MinimalScrollBar(EncounterJournalJourneysFrame.ScrollBar)
-    Util.WrapPoolAcquire(EncounterJournalJourneysFrame.JourneyProgress.rewardPool, Skin.JourneyProgressRewardCardTemplate)
-    Util.WrapPoolAcquire(EncounterJournalJourneysFrame.JourneyOverview.Highlights.highlightPool, Skin.JourneyOverviewHighlightTemplate)
+    -- Reward cards and highlights: in place after Blizzard fills them
+    -- (taint audit 2026-10-06, see Hook.JourneyProgressFrame_SetRewards).
+    _G.hooksecurefunc(EncounterJournalJourneysFrame.JourneyProgress, "SetRewards", Hook.JourneyProgressFrame_SetRewards)
+    _G.hooksecurefunc(EncounterJournalJourneysFrame.JourneyOverview.Highlights, "DisplayHighlights", Hook.JourneyOverviewHighlights_DisplayHighlights)
 
 
     ----====####################====----
