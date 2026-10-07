@@ -6,27 +6,35 @@ if private.shouldSkip() then return end
 
 --[[ Core ]]
 local Aurora = private.Aurora
-local Base = Aurora.Base
+local Base, Hook = Aurora.Base, Aurora.Hook
 local Skin = Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
---[[ do AddOns\Blizzard_AdventureMap.lua
-end ]]
+do --[[ AddOns\Blizzard_AdventureMap.lua ]]
+    -- Quest dialog rewards (taint audit 2026-10-06, B170 follow-up): restyled
+    -- in place after RefreshRewards has added and anchored them, never from
+    -- the pool's Acquire (the old Acquire skin created a backdrop frame and an
+    -- icon border on rewards AddReward went on to fill and anchor).
+    function Hook.AdventureMapQuestChoiceDialog_RefreshRewards(self)
+        for reward in self.rewardPool:EnumerateActive() do
+            Util.SkinOnce(reward, Skin.AdventureMapQuestRewardTemplate)
+        end
+    end
+end
 
 do --[[ AddOns\Blizzard_AdventureMap.xml ]]
+    -- In place only: ItemNameBG (the band beside the icon) becomes the flat
+    -- name panel, the icon is cropped without a border texture.
     function Skin.AdventureMapQuestRewardTemplate(Button)
-        Base.CropIcon(Button.Icon, Button)
-
-        Button.ItemNameBG:SetAlpha(0)
-        local nameBG = _G.CreateFrame("Frame", nil, Button)
-        nameBG:SetPoint("TOPLEFT", Button.Icon, "TOPRIGHT", 2, 1)
-        nameBG:SetPoint("BOTTOMRIGHT")
-        Base.SetBackdrop(nameBG, Color.frame)
+        Base.CropIcon(Button.Icon)
+        Button.ItemNameBG:SetColorTexture(Color.frame.r, Color.frame.g, Color.frame.b, Color.frame.a)
     end
+    -- Map insets live on the map canvas (pooled by the canvas, Acquire
+    -- post-hook below): in place only. The close button keeps Blizzard's art;
+    -- skinning it created textures and a backdrop mid map update.
     function Skin.AdventureMapInsetTemplate(Frame)
-        Frame.ExpandedFrame.Border:Hide()
+        Frame.ExpandedFrame.Border:SetTexture("")
         Frame.CollapsedFrame.TextBackground:SetAlpha(0)
-        Skin.UIPanelCloseButton(Frame.ExpandedFrame.CloseButton)
     end
 end
 
@@ -46,7 +54,7 @@ function private.AddOns.Blizzard_AdventureMap()
     ----====####################====----
     local AdventureMapQuestChoiceDialog = _G.AdventureMapQuestChoiceDialog
 
-    Util.WrapPoolAcquire(AdventureMapQuestChoiceDialog.rewardPool, "AdventureMapQuestRewardTemplate")
+    _G.hooksecurefunc(AdventureMapQuestChoiceDialog, "RefreshRewards", Hook.AdventureMapQuestChoiceDialog_RefreshRewards)
 
     -- AdventureMapFrame is no longer a named global; the pool is created inside
     -- AdventureMapMixin:OnLoad, so hook the mixin to wrap it after it is set up.
