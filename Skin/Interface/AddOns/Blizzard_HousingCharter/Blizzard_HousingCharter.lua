@@ -7,7 +7,7 @@ if private.shouldSkip() then return end
 --[[ Core ]]
 local Aurora = private.Aurora
 local Base, Skin = Aurora.Base, Aurora.Skin
-local Color, Util = Aurora.Color, Aurora.Util
+local Color = Aurora.Color
 
 do --[[ AddOns\Blizzard_HousingCharter\Blizzard_HousingCharter.xml ]]
     function Skin.HousingCharterSignatureTemplate(Frame)
@@ -41,11 +41,9 @@ function private.AddOns.Blizzard_HousingCharter()
     Skin.UIPanelButtonTemplate(HousingCharterFrame.SettingsButton)
     Skin.UIPanelButtonTemplate(HousingCharterFrame.CloseButton)
 
-    -- Wrap signature pool (created in OnLoad, which fires before ADDON_LOADED)
-    Util.WrapPoolAcquire(HousingCharterFrame.signaturePool, function(frame)
-        if private.IsSkinned(frame) then return end
-        private.SetSkinned(frame, true)
-    end)
+    -- Signature pool: not hooked. The old Acquire post-hook skinned nothing
+    -- (signatures are a bare font string) and only added addon code to
+    -- every Blizzard acquire; removed 2026-10-06 (taint audit, B170 follow-up).
 
     ----
     -- HousingCharterRequestSignatureDialog
