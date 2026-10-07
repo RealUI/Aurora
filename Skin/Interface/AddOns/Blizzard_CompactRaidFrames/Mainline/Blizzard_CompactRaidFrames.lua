@@ -68,8 +68,10 @@ function private.AddOns.Blizzard_CompactRaidFrames()
 
     local toggleButtonForward = CompactRaidFrameManager.toggleButtonForward
     toggleButtonForward:SetPoint("RIGHT", -1, 0)
-    toggleButtonForward:SetScript("OnMouseDown", private.nop)
-    toggleButtonForward:SetScript("OnMouseUp", private.nop)
+    -- NOTE: no SetScript on these Blizzard buttons (doctrine R6). The old
+    -- OnMouseDown/OnMouseUp nops suppressed handlers 12.1 no longer has
+    -- (the XML binds only OnLoad/OnClick/OnEnter/OnLeave); removed
+    -- 2026-10-06 (taint audit, B170 follow-up).
 
     local arrowForward = toggleButtonForward:GetNormalTexture()
     arrowForward:ClearAllPoints()
@@ -80,8 +82,6 @@ function private.AddOns.Blizzard_CompactRaidFrames()
 
     local toggleButtonBack = CompactRaidFrameManager.toggleButtonBack
     toggleButtonBack:SetPoint("RIGHT", -1, 0)
-    toggleButtonBack:SetScript("OnMouseDown", private.nop)
-    toggleButtonBack:SetScript("OnMouseUp", private.nop)
 
     local arrowBack = toggleButtonBack:GetNormalTexture()
     arrowBack:ClearAllPoints()
