@@ -18,13 +18,14 @@ local function SkinBeltButton(button)
     -- pool is acquired inside Blizzard's belt update).
     Base.CropIcon(button.Icon)
 
-    -- Strip decorative atlas textures (border, background)
+    -- Strip decorative atlas textures (border, background). SetTexture(""),
+    -- not SetAlpha(0): these buttons are pooled (taint doctrine rule 2).
     if button.BG then
-        button.BG:SetAlpha(0)
+        button.BG:SetTexture("")
     end
     local normalTex = button:GetNormalTexture()
     if normalTex then
-        normalTex:SetAlpha(0)
+        normalTex:SetTexture("")
     end
 end
 
