@@ -23,6 +23,9 @@ local Util = Aurora.Util
 ]]
 
 do --[[ SocialUITemplates.xml ]]
+    -- Pooled (socialTabPool, Acquire post-hook): in place only. The icon is
+    -- cropped without a parent, so no border texture is created on the tab
+    -- (taint audit 2026-10-06, B170 follow-up).
     function Skin.SocialUITabTemplate(Button)
         -- LargeSideTabButtonTemplate + a Count fontstring
         if Button.Background then Button.Background:SetAlpha(0) end
@@ -32,7 +35,7 @@ do --[[ SocialUITemplates.xml ]]
             Button.SelectedTexture:SetVertexColor(Color.highlight:GetRGB())
         end
         if Button.Icon then
-            Base.CropIcon(Button.Icon, Button)
+            Base.CropIcon(Button.Icon)
         end
     end
 end
