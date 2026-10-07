@@ -8,9 +8,9 @@ end
 
 --[[ Core ]]
 local Aurora = private.Aurora
-local Base = Aurora.Base
+local Hook = Aurora.Hook
 local Skin = Aurora.Skin
-local Color, Util = Aurora.Color, Aurora.Util
+local Color = Aurora.Color
 
 --[[ SHARED retail + Mists: the 5.5.4 Blizzard_Transmog is retail-modern.
     As of 5.5.4.68806 the TOCs are no longer identical: Blizzard_Transmog.lua
@@ -32,23 +32,19 @@ do
         end
     end
 
+    --[[ Outfit slot buttons (taint audit 2026-10-06, B170 follow-up). In
+        place only, from a post-hook on the character preview's SetupSlots
+        (after Blizzard has acquired, initialised, parented and anchored
+        them), never from the pools' Acquire: the old Acquire skins put a
+        backdrop on buttons SetupSlotSection went on to Init and SetParent.
+        Border is hidden with SetAlpha because Blizzard re-atlases it for every
+        slot state; no backdrop square any more. ]]
     function Skin.TransmogAppearanceSlotTemplate(Button)
         if private.IsSkinned(Button) then
             return
         end
 
         private.SetSkinned(Button, true)
-
-        Base.SetBackdrop(Button, Color.button)
-        Button:SetBackdropOption(
-            "offsets",
-            {
-                left = 7,
-                right = 7,
-                top = 7,
-                bottom = 7
-            }
-        )
 
         Button.Border:SetAlpha(0)
     end
@@ -60,18 +56,16 @@ do
 
         private.SetSkinned(Button, true)
 
-        Base.SetBackdrop(Button, Color.button)
-        Button:SetBackdropOption(
-            "offsets",
-            {
-                left = 6,
-                right = 6,
-                top = 6,
-                bottom = 6
-            }
-        )
-
         Button.Border:SetAlpha(0)
+    end
+
+    function Hook.TransmogCharacter_SetupSlots(CharacterPreview)
+        for slot in CharacterPreview.CharacterAppearanceSlotFramePool:EnumerateActive() do
+            Skin.TransmogAppearanceSlotTemplate(slot)
+        end
+        for slot in CharacterPreview.CharacterIllusionSlotFramePool:EnumerateActive() do
+            Skin.TransmogIllusionSlotTemplate(slot)
+        end
     end
 end
 
@@ -202,14 +196,13 @@ function private.AddOns.Blizzard_Transmog()
                 )
             end
 
-            if CharacterPreview.CharacterAppearanceSlotFramePool then
-                Util.WrapPoolAcquire(
-                    CharacterPreview.CharacterAppearanceSlotFramePool,
-                    Skin.TransmogAppearanceSlotTemplate
-                )
-            end
-            if CharacterPreview.CharacterIllusionSlotFramePool then
-                Util.WrapPoolAcquire(CharacterPreview.CharacterIllusionSlotFramePool, Skin.TransmogIllusionSlotTemplate)
+            -- Slot pools: in place after SetupSlots (taint audit 2026-10-06).
+            if
+                CharacterPreview.CharacterAppearanceSlotFramePool and
+                    CharacterPreview.CharacterIllusionSlotFramePool and CharacterPreview.SetupSlots
+             then
+                _G.hooksecurefunc(CharacterPreview, "SetupSlots", Hook.TransmogCharacter_SetupSlots)
+                Hook.TransmogCharacter_SetupSlots(CharacterPreview)
             end
 
             -- "Hide Unassigned Slots" checkbox
