@@ -2,28 +2,31 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals
+-- luacheck: globals setmetatable
 
 --[[ Core ]]
 local Aurora = private.Aurora
 local Hook, Skin = Aurora.Hook, Aurora.Skin
-local Util = Aurora.Util
+local Color, Util = Aurora.Color, Aurora.Util
 
 do --[[ AddOns\Blizzard_Channels.lua ]]
-    do --[[ ChannelButton.lua ]]
-        Hook.ChannelButtonHeaderMixin = {}
-        function Hook.ChannelButtonHeaderMixin:Update()
-            local count = self:GetMemberCount()
-            if count > 0 then
-                self.Collapsed.minus:Show()
-                if self:IsCollapsed() then
-                    self.Collapsed.plus:Show()
-                else
-                    self.Collapsed.plus:Hide()
+    do --[[ ChannelList.lua ]]
+        --[[ Channel list headers (taint audit 2026-10-06, B170 follow-up)
+            NOTE: Do NOT replace headerButtonPool.Acquire. The old skin did,
+            so every AddHeaderButton inside ChannelListMixin:Update ran
+            Aurora's closure and the rest of the list build (voice channels,
+            community streams, CommunitiesFrame favourites) ran tainted. The
+            headers are now restyled in place from this post-hook, after
+            Blizzard's Update has finished: colours on the existing Normal and
+            Highlight textures, no new regions, no fields on the button, no
+            per-button hook. Blizzard's own plus/minus atlas stays. ]]
+        local styledHeaders = setmetatable({}, {__mode = "k"})
+        function Hook.ChannelListUpdate(self)
+            for header in self.headerButtonPool:EnumerateActive() do
+                if not styledHeaders[header] then
+                    styledHeaders[header] = true
+                    Skin.ChannelButtonHeaderTemplate(header)
                 end
-            else
-                self.Collapsed.minus:Hide()
-                self.Collapsed.plus:Hide()
             end
         end
     end
@@ -46,22 +49,13 @@ do --[[ AddOns\Blizzard_Channels.xml ]]
         function Skin.ChannelButtonBaseTemplate(Button)
             Skin.FrameTypeButton(Button)
         end
+        -- In place only (see Hook.ChannelListUpdate): a flat band on the
+        -- existing Normal texture and a highlight wash; Blizzard's Update only
+        -- touches NormalTexture's alpha, never its texture.
         function Skin.ChannelButtonHeaderTemplate(Button)
-            _G.hooksecurefunc(Button, "Update", Hook.ChannelButtonHeaderMixin.Update)
-            Skin.ChannelButtonBaseTemplate(Button)
-
-            Button.Collapsed:SetAlpha(0)
-            local minus = Button:CreateTexture(nil, "OVERLAY")
-            minus:SetPoint("TOPLEFT", Button.Collapsed, 0, -3)
-            minus:SetPoint("BOTTOMRIGHT", Button.Collapsed, 0, 3)
-            minus:SetColorTexture(1, 1, 1) -- static: not a theme color
-            Button.Collapsed.minus = minus
-
-            local plus = Button:CreateTexture(nil, "OVERLAY")
-            plus:SetPoint("TOPLEFT", Button.Collapsed, 3, 0)
-            plus:SetPoint("BOTTOMRIGHT", Button.Collapsed, -3, 0)
-            plus:SetColorTexture(1, 1, 1) -- static: not a theme color
-            Button.Collapsed.plus = plus
+            local r, g, b = Color.button:GetRGB()
+            Button.NormalTexture:SetColorTexture(r, g, b, 0.6)
+            Util.SetHighlightColor(Button.HighlightTexture, 0.25)
         end
         function Skin.ChannelButtonTemplate(Button)
             Skin.ChannelButtonBaseTemplate(Button)
@@ -92,18 +86,9 @@ do --[[ AddOns\Blizzard_Channels.xml ]]
     end
     do --[[ ChannelList.xml ]]
         function Skin.ChannelListTemplate(ScrollFrame)
-            -- Hook.ObjectPoolMixin removed in 11.0.0 (private API).
-            -- Wrap the pool's Acquire method to skin frames when first created.
-            do
-                local poolAcquire = ScrollFrame.headerButtonPool.Acquire
-                ScrollFrame.headerButtonPool.Acquire = function(pool, ...)
-                    local frame, isNew = poolAcquire(pool, ...)
-                    if isNew then
-                        Skin.ChannelButtonHeaderTemplate(frame)
-                    end
-                    return frame, isNew
-                end
-            end
+            -- Headers: post-hook on the list's Update, never the pool's
+            -- Acquire (taint audit 2026-10-06, see Hook.ChannelListUpdate).
+            _G.hooksecurefunc(ScrollFrame, "Update", Hook.ChannelListUpdate)
             if private.isRetail then
                 Skin.ScrollFrameTemplate(ScrollFrame)
             else
