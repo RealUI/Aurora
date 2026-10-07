@@ -67,6 +67,18 @@ do --[[ AddOns\Blizzard_HousingDashboard\Blizzard_HousingDashboard.lua ]]
         -- Hide anonymous filigree corners and other decorative regions
         HideDecorativeRegions(self)
     end
+    -- Reward tiles (taint audit 2026-10-06, B170 follow-up): restyled in place
+    -- after Blizzard's SetRewards has filled them, never from the pools'
+    -- Acquire (the old post-hooks added backdrops and an icon border to
+    -- frames SetRewards went on to fill and anchor).
+    function Hook.HousingUpgradeFrameMixin:SetRewards(selectedLevel)
+        for frame in self.rewardPoolLarge:EnumerateActive() do
+            Skin.HouseUpgradeRewardFrameTemplate(frame)
+        end
+        for frame in self.rewardPoolSmall:EnumerateActive() do
+            Skin.HouseUpgradeRewardFrameTemplate(frame)
+        end
+    end
 
     Hook.InitiativesTabMixin = {}
     function Hook.InitiativesTabMixin:RefreshInitiativeTab()
@@ -88,25 +100,25 @@ do --[[ AddOns\Blizzard_HousingDashboard\Blizzard_HousingDashboard.xml ]]
 
         private.SetSkinned(Frame, true)
 
+        -- In place only (pool frames): the existing full-size backgrounds
+        -- become the flat panels; no backdrop, no new regions.
         if Frame.Background then
-            Frame.Background:SetAlpha(0)
+            Frame.Background:SetColorTexture(Color.frame.r, Color.frame.g, Color.frame.b, Color.frame.a)
         end
-        Base.SetBackdrop(Frame, Color.frame)
 
         local PortraitFrame = Frame.PortraitFrame
         if PortraitFrame then
             if PortraitFrame.Background then
-                PortraitFrame.Background:SetAlpha(0)
+                PortraitFrame.Background:SetColorTexture(Color.button:GetRGB())
             end
-            Base.SetBackdrop(PortraitFrame, Color.button)
 
             if PortraitFrame.Portrait then
-                Base.CropIcon(PortraitFrame.Portrait, PortraitFrame)
+                Base.CropIcon(PortraitFrame.Portrait)
             end
         end
 
         if Frame.ValueIncreaseReward and Frame.ValueIncreaseReward.Divider then
-            Frame.ValueIncreaseReward.Divider:SetAlpha(0)
+            Frame.ValueIncreaseReward.Divider:SetTexture("")
         end
     end
 
@@ -260,9 +272,9 @@ function private.AddOns.Blizzard_HousingDashboard()
         ----
         local HouseUpgradeFrame = ContentFrame.HouseUpgradeFrame
         if HouseUpgradeFrame then
+            -- Includes the SetRewards post-hook that skins the reward pools
+            -- in place (taint audit 2026-10-06).
             Util.Mixin(HouseUpgradeFrame, Hook.HousingUpgradeFrameMixin)
-            Util.WrapPoolAcquire(HouseUpgradeFrame.rewardPoolLarge, Skin.HouseUpgradeRewardFrameTemplate)
-            Util.WrapPoolAcquire(HouseUpgradeFrame.rewardPoolSmall, Skin.HouseUpgradeRewardFrameTemplate)
 
             -- Hide background and all decorative art (filigree corners, etc.)
             if HouseUpgradeFrame.Background then HouseUpgradeFrame.Background:SetAlpha(0) end
