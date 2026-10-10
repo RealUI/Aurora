@@ -417,6 +417,11 @@ function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
         if ActivityView.PlayStyleDropdown then
             Skin.DropdownButton(ActivityView.PlayStyleDropdown)
         end
+        -- Forever 1.60.1.70291: the voice chat choice (Discord as a second
+        -- voice provider), the same WowStyle1 template.
+        if ActivityView.VoiceChatDropdown then
+            Skin.DropdownButton(ActivityView.VoiceChatDropdown)
+        end
     end
 
     -- Category buttons are built on demand, so catch them as they are added and
