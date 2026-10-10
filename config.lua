@@ -18,16 +18,12 @@ Config.defaults = {
     banks = true,
     chat = true,
     loot = true,
-    -- Off by default on retail, where most users run Bartender4 or Dominos and
-    -- Aurora's bar theming is redundant. On Forever there is no such
-    -- expectation: Camelot ships the classic-style bar, and the bag bar, micro
-    -- menu and action bar end caps are all gated behind this one flag, so
-    -- defaulting it off left three finished skins dead on that client.
-    --
-    -- Up to 1.60.1.69977 this default was the only value that applied, because
-    -- that client discarded SavedVariables; 70009 keeps them, so it is now an
-    -- ordinary default. Whether Forever should keep it on is still an open call.
-    mainmenubar = private.isForever or false,
+    -- Off by default on every client, where most users run an action bar addon
+    -- and Aurora's bar theming is redundant. Forever defaulted it on while that
+    -- client discarded SavedVariables (up to 1.60.1.69977), because the default
+    -- was the only value that could apply there. 70009 keeps them, so Forever
+    -- users turn it on in the options like everyone else.
+    mainmenubar = false,
     fonts = true,
     tooltips = true,
     chatBubbles = true,
