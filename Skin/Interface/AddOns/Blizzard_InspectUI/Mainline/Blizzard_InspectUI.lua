@@ -152,10 +152,11 @@ function private.AddOns.Blizzard_InspectUI()
     Util.PositionRelative("TOPLEFT", InspectFrame, "BOTTOMLEFT", 20, -1, 1, "Right", tabs)
 
     -- Camelot moves navigation to side tabs, as it does on the character panel:
-    -- InspectUITabs (InspectFrame.ModeTabs) holding InspectFrameModeTab1-2,
-    -- Character and Guild. The two PanelTabButtons above still exist but are
-    -- declared hidden. Built from what exists rather than a fixed count.
-    for i = 1, 2 do
+    -- InspectUITabs (InspectFrame.ModeTabs) holding InspectFrameModeTab1-3,
+    -- Character, PvP and Guild (PvP added in 1.60.1.70291). The PanelTabButtons
+    -- above still exist but are declared hidden. Built from what exists rather
+    -- than a fixed count.
+    for i = 1, 3 do
         local modeTab = _G["InspectFrameModeTab" .. i]
         if modeTab then
             Skin.InspectFrameModeSideTabTemplate(modeTab)
@@ -182,10 +183,14 @@ function private.AddOns.Blizzard_InspectUI()
     Skin.UIPanelButtonTemplate(InspectPaperDollFrame.ViewButton)
 
     local InspectPaperDollItemsFrame = _G.InspectPaperDollItemsFrame
-    -- Camelot reparents InspectTalents from InspectPaperDollItemsFrame up to
-    -- InspectPaperDollFrame. Same button, same template, different owner.
-    Skin.UIPanelButtonTemplate(InspectPaperDollItemsFrame.InspectTalents
-        or InspectPaperDollFrame.InspectTalents)
+    -- Camelot reparented InspectTalents up to InspectPaperDollFrame, then
+    -- deleted it in 1.60.1.70291 (talent inspect moved to a unit-popup entry).
+    -- An unguarded call aborted the rest of this skin.
+    local InspectTalents = InspectPaperDollItemsFrame.InspectTalents
+        or InspectPaperDollFrame.InspectTalents
+    if InspectTalents then
+        Skin.UIPanelButtonTemplate(InspectTalents)
+    end
 
     local bg = InspectFrame.NineSlice:GetBackdropTexture("bg")
     local classBG = InspectPaperDollFrame:CreateTexture(nil, "BORDER")
@@ -267,15 +272,40 @@ function private.AddOns.Blizzard_InspectUI()
     --         InspectPVPFrame         --
     ----====#####################====----
     local InspectPVPFrame = _G.InspectPVPFrame
-    InspectPVPFrame.BG:SetTexCoord(0.00390625, 0.3115234375, 0.34375, 0.87890625)
-    InspectPVPFrame.BG:SetDesaturated(true)
-    InspectPVPFrame.BG:SetBlendMode("ADD")
-    InspectPVPFrame.BG:SetAllPoints(bg)
+    if InspectPVPFrame.Slots then
+        InspectPVPFrame.BG:SetTexCoord(0.00390625, 0.3115234375, 0.34375, 0.87890625)
+        InspectPVPFrame.BG:SetDesaturated(true)
+        InspectPVPFrame.BG:SetBlendMode("ADD")
+        InspectPVPFrame.BG:SetAllPoints(bg)
 
-    InspectPVPFrame.RatedBG:SetPoint("TOPLEFT", InspectPVPFrame, 8, -124)
-    InspectPVPFrame.Slots[1]:SetPoint("TOPRIGHT", InspectPVPFrame, -46, -124)
-    for i = 1, #InspectPVPFrame.Slots do
-        Skin.InspectPvpTalentSlotTemplate(InspectPVPFrame.Slots[i])
+        InspectPVPFrame.RatedBG:SetPoint("TOPLEFT", InspectPVPFrame, 8, -124)
+        InspectPVPFrame.Slots[1]:SetPoint("TOPRIGHT", InspectPVPFrame, -46, -124)
+        for i = 1, #InspectPVPFrame.Slots do
+            Skin.InspectPvpTalentSlotTemplate(InspectPVPFrame.Slots[i])
+        end
+    elseif InspectPVPFrame.MainInfoFrame then
+        -- Camelot (1.60.1.70291) replaces the PvP talent panel with a rank
+        -- panel built like the character sheet's PVPRankFrame: same chrome
+        -- treatment as Camelot\PVPRankFrame.lua. Here NextRewardLevel hangs
+        -- off the progress display, not MainInfoFrame. The faction badge and
+        -- the reward badge are meaningful art and stay.
+        local MainInfoFrame = InspectPVPFrame.MainInfoFrame
+        if MainInfoFrame.Line then
+            MainInfoFrame.Line:SetAlpha(0)
+        end
+
+        local ProgressBar = MainInfoFrame.RankProgressBarDisplay
+        if ProgressBar then
+            if ProgressBar.Bar then
+                ProgressBar.Bar:SetAlpha(0)
+            end
+            if ProgressBar.Background then
+                ProgressBar.Background:SetAlpha(0)
+            end
+            if ProgressBar.NextRewardLevel and Skin.PVPHonorRewardTemplate then
+                Skin.PVPHonorRewardTemplate(ProgressBar.NextRewardLevel)
+            end
+        end
     end
 
     ----====####################====----
