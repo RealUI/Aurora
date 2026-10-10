@@ -278,6 +278,38 @@ local function SkinModernStyle(LFGParentFrame)
     end
 end
 
+local function SkinActivityView(ActivityView)
+    if not ActivityView then return end
+    for _, key in ipairs({"BarLeft", "BarMiddle", "BarRight"}) do
+        if ActivityView[key] then
+            ActivityView[key]:SetAlpha(0)
+        end
+    end
+    if ActivityView.ScrollBar then
+        SkinScrollBar(ActivityView.ScrollBar)
+    end
+    if ActivityView.ScrollBox then
+        Skin.WowScrollBoxList(ActivityView.ScrollBox)
+        _G.hooksecurefunc(ActivityView.ScrollBox, "Update", function(self)
+            self:ForEachFrame(SkinActivityRow)
+        end)
+    end
+    -- Container chrome only — the EditBox inside is secure (see header)
+    if ActivityView.Comment then
+        Skin.UIPanelInputScrollFrameTemplate(ActivityView.Comment)
+    end
+    -- Forever 1.60.1.70205: a WowStyle1 playstyle dropdown that must be
+    -- set before a listing can be posted. Absent on the classic clients.
+    if ActivityView.PlayStyleDropdown then
+        Skin.DropdownButton(ActivityView.PlayStyleDropdown)
+    end
+    -- Forever 1.60.1.70291: the voice chat choice (Discord as a second
+    -- voice provider), the same WowStyle1 template.
+    if ActivityView.VoiceChatDropdown then
+        Skin.DropdownButton(ActivityView.VoiceChatDropdown)
+    end
+end
+
 function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
     local LFGParentFrame = _G.LFGParentFrame
 
@@ -392,37 +424,7 @@ function private.AddOns.Blizzard_GroupFinder_VanillaStyle()
         end
     end
 
-    local ActivityView = Listing.ActivityView
-    if ActivityView then
-        for _, key in ipairs({"BarLeft", "BarMiddle", "BarRight"}) do
-            if ActivityView[key] then
-                ActivityView[key]:SetAlpha(0)
-            end
-        end
-        if ActivityView.ScrollBar then
-            SkinScrollBar(ActivityView.ScrollBar)
-        end
-        if ActivityView.ScrollBox then
-            Skin.WowScrollBoxList(ActivityView.ScrollBox)
-            _G.hooksecurefunc(ActivityView.ScrollBox, "Update", function(self)
-                self:ForEachFrame(SkinActivityRow)
-            end)
-        end
-        -- Container chrome only — the EditBox inside is secure (see header)
-        if ActivityView.Comment then
-            Skin.UIPanelInputScrollFrameTemplate(ActivityView.Comment)
-        end
-        -- Forever 1.60.1.70205: a WowStyle1 playstyle dropdown that must be
-        -- set before a listing can be posted. Absent on the classic clients.
-        if ActivityView.PlayStyleDropdown then
-            Skin.DropdownButton(ActivityView.PlayStyleDropdown)
-        end
-        -- Forever 1.60.1.70291: the voice chat choice (Discord as a second
-        -- voice provider), the same WowStyle1 template.
-        if ActivityView.VoiceChatDropdown then
-            Skin.DropdownButton(ActivityView.VoiceChatDropdown)
-        end
-    end
+    SkinActivityView(Listing.ActivityView)
 
     -- Category buttons are built on demand, so catch them as they are added and
     -- sweep any that already exist (a no-op at load, a re-skin on reload).

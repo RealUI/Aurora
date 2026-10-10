@@ -3,7 +3,6 @@ if private.shouldSkip() then return end
 
 local Aurora = private.Aurora
 local Skin = Aurora.Skin
-local Util = Aurora.Util
 
 function private.AddOns.Blizzard_DelvesDifficultyPicker()
     local DelvesDifficultyPickerFrame = _G.DelvesDifficultyPickerFrame

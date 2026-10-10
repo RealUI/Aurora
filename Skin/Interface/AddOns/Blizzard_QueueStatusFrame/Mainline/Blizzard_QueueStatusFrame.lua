@@ -8,14 +8,13 @@ if private.shouldSkip() then return end
 local Aurora = private.Aurora
 local Skin = Aurora.Skin
 local Util = Aurora.Util
-do --[[ AddOns\Blizzard_QueueStatusFrame\Blizzard_QueueStatusFrame.lua ]]
-    -- The entry role icons are left as Blizzard's atlases (taint audit
-    -- 2026-10-06, B170 follow-up). Aurora's QueueStatusEntry_SetFullDisplay
-    -- post-hook gave each RoleIcon the "icon<ROLE>" texture snapshot, which
-    -- creates border, background and mask textures on the entry and writes
-    -- _auroraBorder/_auroraBG/_auroraMask onto the icon, inside the queue
-    -- frame's update that goes on to measure and lay out the same entry.
-end
+--[[ AddOns\Blizzard_QueueStatusFrame\Blizzard_QueueStatusFrame.lua ]]
+-- The entry role icons are left as Blizzard's atlases (taint audit
+-- 2026-10-06, B170 follow-up). Aurora's QueueStatusEntry_SetFullDisplay
+-- post-hook gave each RoleIcon the "icon<ROLE>" texture snapshot, which
+-- creates border, background and mask textures on the entry and writes
+-- _auroraBorder/_auroraBG/_auroraMask onto the icon, inside the queue
+-- frame's update that goes on to measure and lay out the same entry.
 
 do --[[ AddOns\Blizzard_QueueStatusFrame\Blizzard_QueueStatusFrame.xml ]]
     function Skin.QueueStatusRoleCountTemplate(Frame)
