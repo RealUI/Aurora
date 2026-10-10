@@ -1,4 +1,49 @@
-﻿## [12.1.0.13] ##
+﻿## [12.1.0.14] ##
+### Added ###
+
+  * add: **a reload prompt after a live colour-mode switch** in Aurora's options. Buttons, tabs, check buttons and status bar backdrops keep the old mode's colours until a reload, so the panel now asks for one [all]
+  * add: `Color.SetTokenOverride`, for a host addon to pin a palette colour (RealUI's gradient button style and its Skins colour pickers) so that a colour-mode switch keeps it [all]
+
+### Fixed ###
+
+  * fix: **the `ShouldShowMawBuffs` wrapper was what tainted the objective tracker, and it is removed.** A login taint log showed the scenario tracker's `LayoutContents` reading the replaced global inside the tracker's first update; the next layout write carried that taint into the whole tracker for the session. The `GetAuraDataByIndex()` error the wrapper was added to hide only happens in a tainted tracker. With the wrapper and RealUI's own login source gone, a delve raised no error [mainline/forever]
+  * fix: **opening the world map no longer taints the quest data the tracker reads.** The help tip skin wrote fields onto the help tip Blizzard acquires when the map opens, so the rest of the map open ran tainted, including the world quest pins that create a new quest's cache entry, which the tracker reads next. Help tips are left as Blizzard's, and the help tip pool's `Acquire` is no longer replaced [mainline]
+  * fix: **hovering a quest title in the quest log no longer taints the tracker.** Aurora replaced the global `QuestMapLogTitleButton_OnEnter`, which the title buttons call by name, so every hover ran Aurora code, including the quest cache reads the tracker shares. The replacement is removed, together with an unused `SetTooltipMoney` replacement [mainline/forever]
+  * fix: the channel list's header pool `Acquire` is no longer replaced; its headers are restyled after the list updates [mainline/forever]
+  * fix: the delve companion portrait's `OnEnter` is no longer replaced with a wrapper; the wrapper made the whole hover run tainted [mainline/forever]
+  * fix: `Util.WrapPoolAcquire` post-hooks a pool's `Acquire` with `hooksecurefunc` and skins new frames from a pass over the active ones, instead of replacing `Acquire` with an Aurora function that every Blizzard acquire then ran through [all]
+  * fix: disabled buttons follow the colour mode instead of the Normal mode's grey, and a live switch keeps host-pinned colours, including the gradient button colour [all]
+  * fix: **world-event status bars are skinned again** (gated since August), see Changed [mainline/forever]
+  * fix: **the inspect window is skinned again on Forever build 70291.** That build removes the Talents button from the inspect paperdoll and replaces the PvP tab with a rank panel, and the skin stopped at the missing button, leaving the slots, model and PvP tab stock. The button is skipped when absent, the rank panel gets the same treatment as the character sheet's PvP tab (decorative rule and bar backing cleared, reward badge skinned), and the new third side tab (Guild) is skinned [forever]
+  * fix: on Forever build 70291 the character sheet's new stone strip above the model is hidden, and the group finder's new voice chat dropdown is skinned [forever]
+  * fix: the raid manager's toggle buttons no longer get no-op `OnMouseDown` and `OnMouseUp` scripts, and the housing charter's signature pool is no longer hooked; neither did anything but put Aurora code on Blizzard frames [mainline/forever]
+
+### Changed ###
+
+  * chg: **the objective tracker skin is rewritten to restyle in place.** Headers get a flat dark band on Blizzard's own background texture, white titles and triangle collapse arrows drawn on the existing button textures. Quest, bonus, world quest and timer bars and the Mythic+ timer take Aurora's bar texture and colour, with Blizzard's border and flare art cleared. The "Quest Discovered!" popup is restyled in place; its badge, shine and flash stay Blizzard's. Quest lines, POI, item and find-group buttons, and the scenario and delve section below its header (stage block, criteria bars, Maw buffs, delve traits) stay Blizzard's: styling them is what tainted the tracker. The skin stores nothing on tracker frames and creates no frames or textures on them [mainline/forever]
+  * chg: **the UI widget skin is rewritten and its gate removed.** Status-bar widgets are restyled only in the top-centre container, below the minimap, on the encounter power bar and in the delve difficulty picker, from post-hooks on the widget templates' `Setup`: caps, borders, spark and glows cleared, the background recoloured, Blizzard's fill colour kept. Widgets anywhere else, including tooltips, nameplates and the tracker, are Blizzard's. No widget container is modified any more; the delve picker's modifier icons stay square through the allow-list [mainline/forever]
+  * chg: the Maw buffs container and the delve traits flyout are no longer skinned; both sit inside the scenario tracker [mainline/forever]
+  * chg: **quest log headers are restyled in place** after Blizzard builds the quest log: a flat coloured band on the headers' own textures, the filigree and callings divider cleared. Campaign headers lose their faint emblem. No header pool is wrapped [mainline/forever]
+  * chg: **every tooltip uses the taint-safe tooltip skin** the main tooltip already used: secondary tooltips (item links from chat, reward items inside quest and world quest tooltips, comparison, contribution and garrison tooltips) are borderless with Aurora's background, and no tooltip goes through the NineSlice hook any more. The status bar under the main tooltip is Blizzard's [mainline/forever]
+  * chg: tooltip progress and status bars have their borders cleared and their background recoloured, with 1px dividers; their size and layering are Blizzard's [mainline/forever]
+  * chg: **quest rewards** in the quest frame and the map's quest details are restyled after Blizzard lays them out: a cropped square icon, a flat name strip and Blizzard's quality border. The six reward-pool `Acquire` replacements are gone [mainline/forever]
+  * chg: **toasts and alerts are restyled in place** (achievement, criteria, loot won and upgrade, money, honor, new recipe, pet, mount, toy, cosmetic, warband scene, runeforge, monthly activity, housing, initiative, guild challenge, garrison, digsite, entitlement, RAF, world quest, legendary, scenario, invasion and dungeon completion): a flat strip instead of a bordered box, square icons, Blizzard's glow, shine and text positions, no stripes. Upgrade and new-item toasts keep Blizzard's quality border. The skin no longer re-runs on every alert show [mainline/forever]
+  * chg: pooled frames in the Encounter Journal's Journeys tab, the customization checkboxes, the social tab icon, talent icons, Adventure Map rewards and covenant callings are restyled after Blizzard sets them up instead of on `Acquire` [mainline/forever]
+  * chg: housing bulletin board headers, dashboard rewards, house finder tiles and catalog categories are restyled in place [mainline]
+  * chg: transmog outfit slots lose the backdrop square behind them [all]
+  * chg: the Main Menu Bar option is off by default on Forever, as on every other client. It defaulted on while the Forever client discarded settings; now that they persist, turn it on in Aurora's options. Installs that already saved it keep their setting [forever]
+  * chg: campaign lore dividers are tinted in place [mainline/forever]
+  * chg: PvP results loot and the item belt show a cropped square icon with Blizzard's quality ring or no border; the queue status role icons are Blizzard's [mainline/forever]
+  * chg: the NineSlice hook keeps its re-entry guard in an Aurora table instead of on the frame [mainline/forever]
+
+### Known Issues ###
+
+  * **Upgrading from 12.1.0.10 or older: delete the `Aurora` folder before installing.** A client prefers a suffixed TOC such as `Aurora_Mainline.toc` over `Aurora.toc`, so if the old files are left behind by unzipping over the folder, they keep loading instead of the new one. Addon managers that replace the folder are not affected [all]
+  * Camelot's gamepad addons and the Legacy system's tree page are deliberately left unskinned, as described under 12.1.0.10 [forever]
+  * Hovering some map points of interest, such as a special assignment, can log a secret-value error from the tooltip's widget (`TextWithState.lua:35`), and that tooltip line does not show; under investigation [mainline]
+  * Widgets on nameplates the client marks forbidden cannot be skinned by any addon [mainline]
+
+## [12.1.0.13] ##
 ### Added ###
 
   * add: **the Vanilla-style group finder's playstyle dropdown is skinned.** Build 1.60.1.70205 added it to the listing panel [forever]
@@ -975,7 +1020,8 @@ A hotfix for how 12.1.0.11 was published. The addon files are unchanged.
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.0.13...develop
+[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.0.14...develop
+[12.1.0.14]: https://github.com/RealUI/Aurora/compare/12.1.0.13...12.1.0.14
 [12.1.0.13]: https://github.com/RealUI/Aurora/compare/12.1.0.12...12.1.0.13
 [12.1.0.12]: https://github.com/RealUI/Aurora/compare/12.1.0.11...12.1.0.12
 [12.1.0.11]: https://github.com/RealUI/Aurora/compare/12.1.0.10...12.1.0.11
