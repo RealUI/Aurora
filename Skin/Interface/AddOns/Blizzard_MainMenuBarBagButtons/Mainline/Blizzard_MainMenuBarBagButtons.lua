@@ -127,8 +127,10 @@ local function SkinForeverBagBar()
             Skin.CamelotBagSlotButtonTemplate(button)
         end
 
-        -- Its KeyRingButton is a plain CheckButton with UI-Button-KeyRing art,
-        -- not an ItemButton, so it takes the button treatment instead.
+        -- Since 1.60.1.70291 its KeyRingButton is an ItemButton in
+        -- BagButtonArray, so the loop above skins it and the IsSkinned guard
+        -- skips this. Kept for earlier builds, where it was a plain CheckButton
+        -- with UI-Button-KeyRing art that took the button treatment.
         local KeyRing = GamepadBagBar.KeyRingButton
         if KeyRing and not private.IsSkinned(KeyRing) then
             private.SetSkinned(KeyRing, true)
