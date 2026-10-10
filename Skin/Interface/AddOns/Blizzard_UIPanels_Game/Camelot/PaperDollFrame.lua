@@ -73,6 +73,14 @@ function private.FrameXML.PaperDollFrame()
         _G.CharacterModelFrameBackgroundOverlay:Hide()
     end
 
+    -- 1.60.1.70291: a tiled stone strip with an inner-top edge above the model,
+    -- behind the level text. Static art; the level text stays on its own frame.
+    local stripHost = _G.PaperDollFrame.TopBackgroundStripHost
+    if stripHost then
+        if stripHost.TopBackgroundStrip then stripHost.TopBackgroundStrip:Hide() end
+        if stripHost.TopBackgroundStripBottomEdge then stripHost.TopBackgroundStripBottomEdge:Hide() end
+    end
+
     ------------------------------------------------------------------
     -- Equipment slots: skinned in place, not re-anchored (see header).
     ------------------------------------------------------------------
