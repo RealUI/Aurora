@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals
+-- luacheck: globals next
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -20,8 +20,13 @@ do --[[ AddOns\Blizzard_OverrideActionBar.lua ]]
     Hook.OverrideActionBarMixin = {}
     function Hook.OverrideActionBarMixin:SetSkin(skin)
         -- SetSkin re-applies per-skin atlas art to the dividers; re-assert.
+        self.Divider1:SetColorTexture(1, 1, 1)
         self.Divider2:SetColorTexture(1, 1, 1)
         self.leaveFrame.Divider3:SetColorTexture(1, 1, 1)
+
+        -- Pitch track and marker get the same per-skin art
+        self.PitchBG:SetColorTexture(Color.frame:GetRGB())
+        self.PitchMarker:SetColorTexture(Color.highlight:GetRGB())
     end
     function Hook.OverrideActionBarMixin:CalcSize()
         local anchor
@@ -71,6 +76,33 @@ function private.AddOns.Blizzard_OverrideActionBar()
     leaveFrame.ExitBG:Hide()
     leaveFrame.LeaveButton:ClearAllPoints()
     leaveFrame.LeaveButton:SetPoint("CENTER", leaveFrame.Divider3, "RIGHT", 39, 0)
+
+    -- Pitch controls. SetSkin re-textures every piece through references taken
+    -- at OnLoad (PitchUpUp = the button's NormalTexture, ...), so the button
+    -- textures are faded rather than cleared, and the art is hidden by alpha,
+    -- which SetTexture leaves alone.
+    local pitchFrame = OverrideActionBar.pitchFrame
+    pitchFrame.PitchOverlay:SetAlpha(0)
+    pitchFrame.PitchButtonBG:SetAlpha(0)
+    pitchFrame.Divider1:ClearAllPoints()
+    pitchFrame.Divider1:SetPoint("BOTTOM", pitchFrame, "BOTTOMRIGHT", 0, 13)
+    pitchFrame.Divider1:SetSize(1, 59)
+    pitchFrame.PitchBG:SetWidth(6)
+    pitchFrame.PitchMarker:SetBlendMode("BLEND")
+    pitchFrame.PitchMarker:SetSize(10, 3)
+    for _, button in next, {pitchFrame.PitchUpButton, pitchFrame.PitchDownButton} do
+        button:GetNormalTexture():SetAlpha(0)
+        button:GetPushedTexture():SetAlpha(0)
+        button:GetHighlightTexture():SetAlpha(0)
+        button:SetSize(26, 26)
+        Base.SetBackdrop(button, Color.button)
+        Base.SetHighlight(button)
+
+        local arrow = button:CreateTexture(nil, "ARTWORK")
+        arrow:SetSize(14, 7)
+        arrow:SetPoint("CENTER")
+        Base.SetTexture(arrow, button == pitchFrame.PitchUpButton and "arrowUp" or "arrowDown")
+    end
 
     local xpBar = OverrideActionBar.xpBar
     Skin.FrameTypeStatusBar(xpBar)
