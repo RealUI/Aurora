@@ -1,4 +1,10 @@
-﻿## [12.1.0.14] ##
+﻿## [12.1.0.15] ##
+### Added ###
+
+  * add: vehicle pitch controls skin [mainline/forever]
+
+
+## [12.1.0.14] ##
 ### Added ###
 
   * add: **a reload prompt after a live colour-mode switch** in Aurora's options. Buttons, tabs, check buttons and status bar backdrops keep the old mode's colours until a reload, so the panel now asks for one [all]
@@ -1020,7 +1026,8 @@ A hotfix for how 12.1.0.11 was published. The addon files are unchanged.
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.0.14...develop
+[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.0.15...develop
+[12.1.0.15]: https://github.com/RealUI/Aurora/compare/12.1.0.14...12.1.0.15
 [12.1.0.14]: https://github.com/RealUI/Aurora/compare/12.1.0.13...12.1.0.14
 [12.1.0.13]: https://github.com/RealUI/Aurora/compare/12.1.0.12...12.1.0.13
 [12.1.0.12]: https://github.com/RealUI/Aurora/compare/12.1.0.11...12.1.0.12
