@@ -56,15 +56,15 @@ do --[[ AddOns\Blizzard_PerksProgram.xml ]]
     function Skin.PerksProgramButtonTemplate(Button)
         Skin.SharedButtonLargeTemplate(Button)
     end
-    -- UIButtonTemplate: the whole look, cart included, is the normal atlas
-    -- (buttonArtKit 128-RedButton-ShoppingCart), set once at load. Clearing it
-    -- clears the cart, so the cart comes back as an icon.
-    function Skin.PerksProgramViewCartButton(Button)
+    -- PerksProgramUIButtonTemplate (UIButtonTemplate): the whole look, glyph
+    -- included, is the normal atlas from buttonArtKit, set once at load.
+    -- Clearing it clears the glyph, so the glyph comes back as an icon.
+    function Skin.PerksProgramIconButton(Button, atlas)
         Skin.FrameTypeButton(Button)
-        local cart = Button:CreateTexture(nil, "ARTWORK")
-        cart:SetAtlas("perks-shoppingcart")
-        cart:SetSize(26, 26)
-        cart:SetPoint("CENTER")
+        local icon = Button:CreateTexture(nil, "ARTWORK")
+        icon:SetAtlas(atlas)
+        icon:SetSize(26, 26)
+        icon:SetPoint("CENTER")
     end
 
     function Skin.HeaderSortButtonTemplate(Button)
@@ -159,13 +159,16 @@ function private.AddOns.Blizzard_PerksProgram()
             if cartFrame.Background then
                 Base.StripBlizzardTextures(cartFrame.Background)
             end
-            -- Skin the cart purchase button
-            if cartFrame.PurchaseCartButton then
-                Skin.FrameTypeButton(cartFrame.PurchaseCartButton)
+            if cartFrame.CloseButton then
+                Skin.UIPanelCloseButton(cartFrame.CloseButton)
             end
-            -- Skin the clear cart button
+            if cartFrame.PurchaseCartButton then
+                Skin.PerksProgramButtonTemplate(cartFrame.PurchaseCartButton)
+            end
+            -- Clear cart: like the view cart button, the trash can is part of
+            -- the button art (buttonArtKit 128-RedButton-Delete).
             if cartFrame.ClearCartButton then
-                Skin.FrameTypeButton(cartFrame.ClearCartButton)
+                Skin.PerksProgramIconButton(cartFrame.ClearCartButton, "common-icon-delete")
             end
         end
     end
@@ -186,7 +189,7 @@ function private.AddOns.Blizzard_PerksProgram()
             end
         end
         if FooterFrame.ViewCartButton then
-            Skin.PerksProgramViewCartButton(FooterFrame.ViewCartButton)
+            Skin.PerksProgramIconButton(FooterFrame.ViewCartButton, "perks-shoppingcart")
         end
 
         -- Model preview toggles. Restyle only: their .Text anchors chain the
