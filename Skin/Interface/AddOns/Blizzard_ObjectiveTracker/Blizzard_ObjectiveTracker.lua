@@ -228,7 +228,8 @@ local POPUP_BORDERS = {
     "BorderLeft", "BorderRight", "BorderTop", "BorderBottom",
 }
 -- The quest badge (QuestIconBg, QuestIconBadgeBorder, Exclamation/QuestionMark
--- and Forever's CircleMask), Shine and IconShine stay Blizzard's.
+-- and its CircleMask, on Mainline since 12.1.5), Shine and IconShine stay
+-- Blizzard's.
 local function StylePopUp(block)
     if not block or styledBlocks[block] then return end
     local contents = block.Contents or block.ScrollChild
