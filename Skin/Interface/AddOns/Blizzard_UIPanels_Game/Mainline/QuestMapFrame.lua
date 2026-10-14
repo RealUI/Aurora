@@ -518,8 +518,15 @@ function private.FrameXML.QuestMapFrame()
         local getStory, getCampaign = _G.QuestMapLog_GetStoryTooltip, _G.QuestMapLog_GetCampaignTooltip
         local storyTooltip = getStory and getStory()
         local campaignTooltip = getCampaign and getCampaign()
-        if storyTooltip then Skin.SharedTooltipTemplate(storyTooltip) end
-        if campaignTooltip then Skin.SharedTooltipTemplate(campaignTooltip) end
+        -- Solid, not the frame alpha: they open beside the quest log, over its
+        -- side tabs and the objective tracker, which read through otherwise.
+        local r, g, b = Color.frame:GetRGB()
+        for _, tooltip in next, { storyTooltip, campaignTooltip } do
+            Skin.SharedTooltipTemplate(tooltip)
+            if tooltip.NineSlice then
+                tooltip.NineSlice:SetCenterColor(r, g, b, 1)
+            end
+        end
     end
 
     do -- QuestSessionManagement
