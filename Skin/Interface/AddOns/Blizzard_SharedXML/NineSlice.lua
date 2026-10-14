@@ -166,8 +166,11 @@ do --[[ SharedXML\NineSlice.lua ]]
         else
             if userLayoutName then
                 private.debug("Missing skin for nineslice layout", userLayoutName)
-            elseif private.isDev then
-                _G.print("Missing name for nineslice layout:", container:GetDebugName())
+            else
+                -- An anonymous layout table, e.g. PlayerChoice's kit layouts
+                -- built on the fly. The fallback below handles it; debug log
+                -- only, it used to print to chat on dev builds.
+                private.debug("Missing name for nineslice layout", container:GetDebugName())
             end
 
             if not container.SetBackdropOption then return end
