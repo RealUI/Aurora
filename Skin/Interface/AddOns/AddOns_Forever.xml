@@ -323,7 +323,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_ManagedFrameSystem\Blizzard_ManagedFrameSystem.lua"/-->
     <Script file="Blizzard_MapCanvas\Mainline\Blizzard_MapCanvas.lua"/>
     <!--Script file="Blizzard_MapCanvasSecureUtil\Blizzard_MapCanvasSecureUtil.lua"/-->
-    <!--Script file="Blizzard_MatchCelebrationPartyPoseUI\Blizzard_MatchCelebrationPartyPoseUI.lua"/-->
+    <Script file="Blizzard_MatchCelebrationPartyPoseUI\Blizzard_MatchCelebrationPartyPoseUI.lua"/>
     <Script file="Blizzard_MatchmakingQueueDisplay\Blizzard_MatchmakingQueueDisplay.lua"/>
     <Script file="Blizzard_MawBuffs\Blizzard_MawBuffs.lua"/>
     <!-- This section is added for Blizzard_Menu by the Aurora XML Updater -->
