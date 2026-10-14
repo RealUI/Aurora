@@ -509,8 +509,18 @@ function private.FrameXML.QuestMapFrame()
         QuestsFrame.DetailFrame.BottomDetail:Hide()
         QuestsFrame.DetailFrame.TopDetail:Hide()
     end
-    -- StoryTooltip moved to QuestScrollFrame.StoryTooltip in 11.1.0, inherits TooltipBackdropTemplate
-    -- Skin.FrameTypeFrame(QuestScrollFrame.StoryTooltip)
+    -- Story and campaign tooltips: standalone UIParent children built at the
+    -- quest log's OnLoad (StoryTooltipTemplate since 12.1.5), both on
+    -- TooltipBackdropTemplate. Skinned once, here, through the taint-safe
+    -- tooltip path (border alpha, centre colour, no fields); never from the
+    -- StoryHeaderMixin:ShowTooltip / campaign header OnEnter path (B170).
+    if not private.disabled.tooltips then
+        local getStory, getCampaign = _G.QuestMapLog_GetStoryTooltip, _G.QuestMapLog_GetCampaignTooltip
+        local storyTooltip = getStory and getStory()
+        local campaignTooltip = getCampaign and getCampaign()
+        if storyTooltip then Skin.SharedTooltipTemplate(storyTooltip) end
+        if campaignTooltip then Skin.SharedTooltipTemplate(campaignTooltip) end
+    end
 
     do -- QuestSessionManagement
         local QuestSessionManagement = QuestMapFrame.QuestSessionManagement
