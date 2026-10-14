@@ -137,6 +137,29 @@ do --[[ AddOns\Blizzard_PVPUI.xml ]]
         Button.Ring:Hide()
         Base.CropIcon(Button.Icon)
     end
+    -- The casual and rated queue buttons may not take Skin.FrameTypeButton (see
+    -- below), so their art is cleared with widget calls only. Clear* where the
+    -- client has it: SetNormalTexture("") no longer removes an atlas, which
+    -- left Blizzard's pvpqueue-button art in place. The flat fill is a new
+    -- child texture, not a field on the button.
+    local function ClearQueueButtonArt(Button)
+        if Button.ClearNormalTexture then
+            Button:ClearNormalTexture()
+            Button:ClearPushedTexture()
+            Button:ClearHighlightTexture()
+            Button:ClearDisabledTexture()
+        else
+            Button:SetNormalTexture("")
+            Button:SetPushedTexture("")
+            Button:SetHighlightTexture("")
+            Button:SetDisabledTexture("")
+        end
+
+        local fill = Button:CreateTexture(nil, "BACKGROUND")
+        fill:SetAllPoints()
+        local r, g, b = Color.button:GetRGB()
+        fill:SetColorTexture(r, g, b, Color.frame.a)
+    end
     function Skin.PVPCasualActivityButton(Button)
         -- Taint-safe: Do NOT call Skin.FrameTypeButton here.
         -- These buttons become HonorFrame.BonusFrame.selectedButton, and Blizzard
@@ -144,10 +167,7 @@ do --[[ AddOns\Blizzard_PVPUI.xml ]]
         -- HonorFrame_Queue() → C_PvP.JoinBattlefield() call chain.
         -- Writing to the button table (SetBackdrop, hooksecurefunc, SetButtonColor)
         -- taints it, causing ADDON_ACTION_FORBIDDEN on JoinBattlefield().
-        Button:SetNormalTexture("")
-        Button:SetPushedTexture("")
-        Button:SetHighlightTexture("")
-        Button:SetDisabledTexture("")
+        ClearQueueButtonArt(Button)
 
         Util.SetHighlightColor(Button.SelectedTexture, Color.frame.a)
         Button.SelectedTexture:ClearAllPoints()
@@ -166,10 +186,7 @@ do --[[ AddOns\Blizzard_PVPUI.xml ]]
         -- Taint-safe: Do NOT call Skin.FrameTypeButton here.
         -- These buttons become ConquestFrame.selectedButton, and Blizzard reads
         -- .id from them in the protected ConquestFrameJoinButton_OnClick() path.
-        Button:SetNormalTexture("")
-        Button:SetPushedTexture("")
-        Button:SetHighlightTexture("")
-        Button:SetDisabledTexture("")
+        ClearQueueButtonArt(Button)
 
         Util.SetHighlightColor(Button.SelectedTexture, Color.frame.a)
         Button.SelectedTexture:ClearAllPoints()
