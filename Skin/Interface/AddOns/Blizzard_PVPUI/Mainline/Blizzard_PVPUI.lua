@@ -359,8 +359,9 @@ function private.AddOns.Blizzard_PVPUI()
             btn.RightSeparator:Hide()
         end
     end
-	for _, i in pairs({"RandomTrainingGroundButton"}) do
-        local button = TrainingGroundsFrame.BonusTrainingGroundList[i]
+    -- parentArray, not parentKeys: 12.1.5 renamed RandomTrainingGroundButton to
+    -- RandomTrainingGroundBGButton, and the Arena sibling was never skinned.
+    for _, button in ipairs(TrainingGroundsFrame.BonusTrainingGroundList.BonusTrainingGroundButtons) do
         Skin.PVPCasualStandardButtonTemplate(button)
     end
     Skin.DropdownButton(_G.TrainingGroundsFrameTypeDropdown)
