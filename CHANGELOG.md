@@ -1,4 +1,25 @@
-﻿## [12.1.0.15] ##
+﻿## [12.1.5.0] ##
+### Added ###
+
+  * add: **the quest log's story and campaign tooltips are skinned**, once at load through the taint-safe tooltip path: Blizzard's border cleared, Aurora's background. Nothing is hooked on the story or campaign header hover [mainline/forever]
+  * add: the end-of-match celebration screen is skinned: the model scene and the Leave and extra buttons. Its themed border, title and topper keep Blizzard's texture-kit art, and the score widget stays Blizzard's [mainline/forever]
+  * add: the Trading Post's model preview toggles (Hide Player, Mount Special Animation, Hide Armor, Attack Animation) and its rotate buttons are skinned [mainline]
+
+### Fixed ###
+
+  * fix: **Aurora loads on 12.1.5.** Its retail `RequiredDeps` listed four `Blizzard_Deprecated*` addons that 12.1.5 deletes (the Currency, Item, Pvp and Sound scripts), and a missing required dependency stops an addon loading. The Deprecated dependencies are now classic-only: Blizzard's own addons always load first, and the retail and Forever skins call none of the shims [mainline]
+  * fix: opening the PvP window no longer errors. 12.1.5 renamed the Training Grounds battleground button and the skin stopped there, leaving the type dropdown and the battleground list stock. The skin now walks the button list, which also skins the Arena button for the first time [mainline]
+  * fix: hovering a group finder listing no longer errors. Its class colouring called `C_LFGList.GetSearchResultMemberInfo`, a deprecated shim 12.1.5 deletes, and now uses `GetSearchResultPlayerInfo` [mainline]
+  * fix: renown and unlock toasts: the backdrop spans the faction name and reward text (12.1.5 wraps long faction names at a fixed width), and the top border and bottom glow line stay hidden; the toast's show animation faded them back in [mainline/forever]
+  * fix: reputation category headers on Forever lose Blizzard's bar art under Aurora's backdrop [forever]
+
+### Changed ###
+
+  * chg: Interface 120105 for 12.1.5 [mainline]
+  * chg: `Skin.ListHeaderThreeSliceTemplate` moves to the SharedXML ListTemplates skin. It lived in the housing blueprint skin, which Forever does not load [mainline/forever]
+
+
+## [12.1.0.15] ##
 ### Added ###
 
   * add: vehicle pitch controls skin [mainline/forever]
@@ -1026,72 +1047,73 @@ A hotfix for how 12.1.0.11 was published. The addon files are unchanged.
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.0.15...develop
+[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.5.0...develop
+[12.1.5.0]: https://github.com/RealUI/Aurora/compare/12.1.0.15...12.1.5.0
 [12.1.0.15]: https://github.com/RealUI/Aurora/compare/12.1.0.14...12.1.0.15
 [12.1.0.14]: https://github.com/RealUI/Aurora/compare/12.1.0.13...12.1.0.14
 [12.1.0.13]: https://github.com/RealUI/Aurora/compare/12.1.0.12...12.1.0.13
 [12.1.0.12]: https://github.com/RealUI/Aurora/compare/12.1.0.11...12.1.0.12
 [12.1.0.11]: https://github.com/RealUI/Aurora/compare/12.1.0.10...12.1.0.11
-[12.1.0.10]: https://github.com/Gethe/Aurora/compare/12.1.0.9...12.1.0.10
-[12.1.0.9]: https://github.com/Gethe/Aurora/compare/12.1.0.8...12.1.0.9
-[12.1.0.8]: https://github.com/Gethe/Aurora/compare/12.1.0.7...12.1.0.8
-[12.1.0.7]: https://github.com/Gethe/Aurora/compare/12.1.0.6...12.1.0.7
-[12.1.0.6]: https://github.com/Gethe/Aurora/compare/12.1.0.5...12.1.0.6
-[12.1.0.5]: https://github.com/Gethe/Aurora/compare/12.1.0.4...12.1.0.5
-[12.1.0.4]: https://github.com/Gethe/Aurora/compare/12.1.0.3...12.1.0.4
-[12.1.0.3]: https://github.com/Gethe/Aurora/compare/12.1.0.2...12.1.0.3
-[12.1.0.2]: https://github.com/Gethe/Aurora/compare/12.1.0.1...12.1.0.2
-[12.1.0.1]: https://github.com/Gethe/Aurora/compare/12.1.0.0...12.1.0.1
-[12.1.0.0]: https://github.com/Gethe/Aurora/compare/12.0.7.2...12.1.0.0
-[12.0.7.2]: https://github.com/Gethe/Aurora/compare/12.0.7.1...12.0.7.2
-[12.0.7.1]: https://github.com/Gethe/Aurora/compare/12.0.7.0...12.0.7.1
-[12.0.7.0]: https://github.com/Gethe/Aurora/compare/12.0.5.13...12.0.7.0
-[12.0.5.13]: https://github.com/Gethe/Aurora/compare/12.0.5.12...12.0.5.13
-[12.0.5.12]: https://github.com/Gethe/Aurora/compare/12.0.5.11...12.0.5.12
-[12.0.5.11]: https://github.com/Gethe/Aurora/compare/12.0.5.10...12.0.5.11
-[12.0.5.10]: https://github.com/Gethe/Aurora/compare/12.0.5.9...12.0.5.10
-[12.0.5.9]: https://github.com/Gethe/Aurora/compare/12.0.5.8...12.0.5.9
-[12.0.5.8]: https://github.com/Gethe/Aurora/compare/12.0.5.7...12.0.5.8
-[12.0.5.7]: https://github.com/Gethe/Aurora/compare/12.0.5.6...12.0.5.7
-[12.0.5.6]: https://github.com/Gethe/Aurora/compare/12.0.5.5...12.0.5.6
-[12.0.5.5]: https://github.com/Gethe/Aurora/compare/12.0.5.4...12.0.5.5
-[12.0.5.4]: https://github.com/Gethe/Aurora/compare/12.0.5.3...12.0.5.4
-[12.0.5.3]: https://github.com/Gethe/Aurora/compare/12.0.5.2...12.0.5.3
-[12.0.5.2]: https://github.com/Gethe/Aurora/compare/12.0.5.1...12.0.5.2
-[12.0.5.1]: https://github.com/Gethe/Aurora/compare/12.0.5.0...12.0.5.1
-[12.0.5.0]: https://github.com/Gethe/Aurora/compare/12.0.1.31...12.0.5.0
-[12.0.1.31]: https://github.com/Gethe/Aurora/compare/12.0.1.30...12.0.1.31
-[12.0.1.30]: https://github.com/Gethe/Aurora/compare/12.0.1.29...12.0.1.30
-[12.0.1.29]: https://github.com/Gethe/Aurora/compare/12.0.1.28...12.0.1.29
-[12.0.1.28]: https://github.com/Gethe/Aurora/compare/12.0.1.27...12.0.1.28
-[12.0.1.27]: https://github.com/Gethe/Aurora/compare/12.0.1.26...12.0.1.27
-[12.0.1.26]: https://github.com/Gethe/Aurora/compare/12.0.1.25...12.0.1.26
-[12.0.1.25]: https://github.com/Gethe/Aurora/compare/12.0.1.24...12.0.1.25
-[12.0.1.24]: https://github.com/Gethe/Aurora/compare/12.0.1.23...12.0.1.24
-[12.0.1.23]: https://github.com/Gethe/Aurora/compare/12.0.1.22...12.0.1.23
-[12.0.1.22]: https://github.com/Gethe/Aurora/compare/12.0.1.21...12.0.1.22
-[12.0.1.21]: https://github.com/Gethe/Aurora/compare/12.0.1.20...12.0.1.21
-[12.0.1.20]: https://github.com/Gethe/Aurora/compare/12.0.1.19...12.0.1.20
-[12.0.1.19]: https://github.com/Gethe/Aurora/compare/12.0.1.18...12.0.1.19
-[12.0.1.18]: https://github.com/Gethe/Aurora/compare/12.0.1.17...12.0.1.18
-[12.0.1.17]: https://github.com/Gethe/Aurora/compare/12.0.1.16...12.0.1.17
-[12.0.1.16]: https://github.com/Gethe/Aurora/compare/12.0.1.15...12.0.1.16
-[12.0.1.15]: https://github.com/Gethe/Aurora/compare/12.0.1.14...12.0.1.15
-[12.0.1.14]: https://github.com/Gethe/Aurora/compare/12.0.1.13...12.0.1.14
-[12.0.1.13]: https://github.com/Gethe/Aurora/compare/12.0.1.12...12.0.1.13
-[12.0.1.12]: https://github.com/Gethe/Aurora/compare/12.0.1.11...12.0.1.12
-[12.0.1.11]: https://github.com/Gethe/Aurora/compare/12.0.1.10...12.0.1.11
-[12.0.1.10]: https://github.com/Gethe/Aurora/compare/12.0.1.9...12.0.1.10
-[12.0.1.9]: https://github.com/Gethe/Aurora/compare/12.0.1.8...12.0.1.9
-[12.0.1.8]: https://github.com/Gethe/Aurora/compare/12.0.1.7...12.0.1.8
-[12.0.1.7]: https://github.com/Gethe/Aurora/compare/12.0.1.6...12.0.1.7
-[12.0.1.6]: https://github.com/Gethe/Aurora/compare/12.0.1.5...12.0.1.6
-[12.0.1.5]: https://github.com/Gethe/Aurora/compare/12.0.1.4...12.0.1.5
-[12.0.1.4]: https://github.com/Gethe/Aurora/compare/12.0.1.3...12.0.1.4
-[12.0.1.3]: https://github.com/Gethe/Aurora/compare/12.0.1.2...12.0.1.3
-[12.0.1.2]: https://github.com/Gethe/Aurora/compare/12.0.1.1...12.0.1.2
-[12.0.1.1]: https://github.com/Gethe/Aurora/compare/12.0.1.0...12.0.1.1
-[12.0.1.0]: https://github.com/Gethe/Aurora/compare/12.0.0.2...12.0.1.0
-[12.0.0.2]: https://github.com/Gethe/Aurora/compare/12.0.0.1...12.0.0.2
-[12.0.0.1]: https://github.com/Gethe/Aurora/compare/12.0.0.0...12.0.0.1
-[12.0.0.0]: https://github.com/Gethe/Aurora/compare/11.2.7.2...12.0.0.0
+[12.1.0.10]: https://github.com/RealUI/Aurora/compare/12.1.0.9...12.1.0.10
+[12.1.0.9]: https://github.com/RealUI/Aurora/compare/12.1.0.8...12.1.0.9
+[12.1.0.8]: https://github.com/RealUI/Aurora/compare/12.1.0.7...12.1.0.8
+[12.1.0.7]: https://github.com/RealUI/Aurora/compare/12.1.0.6...12.1.0.7
+[12.1.0.6]: https://github.com/RealUI/Aurora/compare/12.1.0.5...12.1.0.6
+[12.1.0.5]: https://github.com/RealUI/Aurora/compare/12.1.0.4...12.1.0.5
+[12.1.0.4]: https://github.com/RealUI/Aurora/compare/12.1.0.3...12.1.0.4
+[12.1.0.3]: https://github.com/RealUI/Aurora/compare/12.1.0.2...12.1.0.3
+[12.1.0.2]: https://github.com/RealUI/Aurora/compare/12.1.0.1...12.1.0.2
+[12.1.0.1]: https://github.com/RealUI/Aurora/compare/12.1.0.0...12.1.0.1
+[12.1.0.0]: https://github.com/RealUI/Aurora/compare/12.0.7.2...12.1.0.0
+[12.0.7.2]: https://github.com/RealUI/Aurora/compare/12.0.7.1...12.0.7.2
+[12.0.7.1]: https://github.com/RealUI/Aurora/compare/12.0.7.0...12.0.7.1
+[12.0.7.0]: https://github.com/RealUI/Aurora/compare/12.0.5.13...12.0.7.0
+[12.0.5.13]: https://github.com/RealUI/Aurora/compare/12.0.5.12...12.0.5.13
+[12.0.5.12]: https://github.com/RealUI/Aurora/compare/12.0.5.11...12.0.5.12
+[12.0.5.11]: https://github.com/RealUI/Aurora/compare/12.0.5.10...12.0.5.11
+[12.0.5.10]: https://github.com/RealUI/Aurora/compare/12.0.5.9...12.0.5.10
+[12.0.5.9]: https://github.com/RealUI/Aurora/compare/12.0.5.8...12.0.5.9
+[12.0.5.8]: https://github.com/RealUI/Aurora/compare/12.0.5.7...12.0.5.8
+[12.0.5.7]: https://github.com/RealUI/Aurora/compare/12.0.5.6...12.0.5.7
+[12.0.5.6]: https://github.com/RealUI/Aurora/compare/12.0.5.5...12.0.5.6
+[12.0.5.5]: https://github.com/RealUI/Aurora/compare/12.0.5.4...12.0.5.5
+[12.0.5.4]: https://github.com/RealUI/Aurora/compare/12.0.5.3...12.0.5.4
+[12.0.5.3]: https://github.com/RealUI/Aurora/compare/12.0.5.2...12.0.5.3
+[12.0.5.2]: https://github.com/RealUI/Aurora/compare/12.0.5.1...12.0.5.2
+[12.0.5.1]: https://github.com/RealUI/Aurora/compare/12.0.5.0...12.0.5.1
+[12.0.5.0]: https://github.com/RealUI/Aurora/compare/12.0.1.31...12.0.5.0
+[12.0.1.31]: https://github.com/RealUI/Aurora/compare/12.0.1.30...12.0.1.31
+[12.0.1.30]: https://github.com/RealUI/Aurora/compare/12.0.1.29...12.0.1.30
+[12.0.1.29]: https://github.com/RealUI/Aurora/compare/12.0.1.28...12.0.1.29
+[12.0.1.28]: https://github.com/RealUI/Aurora/compare/12.0.1.27...12.0.1.28
+[12.0.1.27]: https://github.com/RealUI/Aurora/compare/12.0.1.26...12.0.1.27
+[12.0.1.26]: https://github.com/RealUI/Aurora/compare/12.0.1.25...12.0.1.26
+[12.0.1.25]: https://github.com/RealUI/Aurora/compare/12.0.1.24...12.0.1.25
+[12.0.1.24]: https://github.com/RealUI/Aurora/compare/12.0.1.23...12.0.1.24
+[12.0.1.23]: https://github.com/RealUI/Aurora/compare/12.0.1.22...12.0.1.23
+[12.0.1.22]: https://github.com/RealUI/Aurora/compare/12.0.1.21...12.0.1.22
+[12.0.1.21]: https://github.com/RealUI/Aurora/compare/12.0.1.20...12.0.1.21
+[12.0.1.20]: https://github.com/RealUI/Aurora/compare/12.0.1.19...12.0.1.20
+[12.0.1.19]: https://github.com/RealUI/Aurora/compare/12.0.1.18...12.0.1.19
+[12.0.1.18]: https://github.com/RealUI/Aurora/compare/12.0.1.17...12.0.1.18
+[12.0.1.17]: https://github.com/RealUI/Aurora/compare/12.0.1.16...12.0.1.17
+[12.0.1.16]: https://github.com/RealUI/Aurora/compare/12.0.1.15...12.0.1.16
+[12.0.1.15]: https://github.com/RealUI/Aurora/compare/12.0.1.14...12.0.1.15
+[12.0.1.14]: https://github.com/RealUI/Aurora/compare/12.0.1.13...12.0.1.14
+[12.0.1.13]: https://github.com/RealUI/Aurora/compare/12.0.1.12...12.0.1.13
+[12.0.1.12]: https://github.com/RealUI/Aurora/compare/12.0.1.11...12.0.1.12
+[12.0.1.11]: https://github.com/RealUI/Aurora/compare/12.0.1.10...12.0.1.11
+[12.0.1.10]: https://github.com/RealUI/Aurora/compare/12.0.1.9...12.0.1.10
+[12.0.1.9]: https://github.com/RealUI/Aurora/compare/12.0.1.8...12.0.1.9
+[12.0.1.8]: https://github.com/RealUI/Aurora/compare/12.0.1.7...12.0.1.8
+[12.0.1.7]: https://github.com/RealUI/Aurora/compare/12.0.1.6...12.0.1.7
+[12.0.1.6]: https://github.com/RealUI/Aurora/compare/12.0.1.5...12.0.1.6
+[12.0.1.5]: https://github.com/RealUI/Aurora/compare/12.0.1.4...12.0.1.5
+[12.0.1.4]: https://github.com/RealUI/Aurora/compare/12.0.1.3...12.0.1.4
+[12.0.1.3]: https://github.com/RealUI/Aurora/compare/12.0.1.2...12.0.1.3
+[12.0.1.2]: https://github.com/RealUI/Aurora/compare/12.0.1.1...12.0.1.2
+[12.0.1.1]: https://github.com/RealUI/Aurora/compare/12.0.1.0...12.0.1.1
+[12.0.1.0]: https://github.com/RealUI/Aurora/compare/12.0.0.2...12.0.1.0
+[12.0.0.2]: https://github.com/RealUI/Aurora/compare/12.0.0.1...12.0.0.2
+[12.0.0.1]: https://github.com/RealUI/Aurora/compare/12.0.0.0...12.0.0.1
+[12.0.0.0]: https://github.com/RealUI/Aurora/compare/11.2.7.2...12.0.0.0
