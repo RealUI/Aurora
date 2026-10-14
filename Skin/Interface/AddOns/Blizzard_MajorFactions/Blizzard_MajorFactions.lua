@@ -47,71 +47,49 @@ do --[[ AddOns\Blizzard_MajorFactions.xml ]]
     end
 end
 
-function private.AddOns.Blizzard_MajorFactions()
-    ------------------------------------
-    -- Renown toast (MajorFactionsRenownToast)
-    -- Inherits MajorFactionCelebrationBannerTemplate (DIALOG strata)
-    ------------------------------------
-    -- TopBorder and GlowLineBottom: Hide, not SetAlpha(0). The banner's ShowAnim
-    -- fades both to alpha 1, and no Blizzard code shows them.
-    local renownToast = _G.MajorFactionsRenownToast
-    if renownToast then
-        Skin.FrameTypeFrame(renownToast)
-        -- The frame is 128 wide; its RewardDescription is 256. Widen the
-        -- backdrop to the text, not the frame.
-        renownToast:SetBackdropOption("offsets", {
-            left = -74,
-            right = -74,
-            top = 0,
-            bottom = 0,
-        })
+-- MajorFactionCelebrationBannerTemplate (renown and unlock toasts, DIALOG
+-- strata). The frame is only 128x128; the visible panel is its ToastBG,
+-- 275x240 and centred 10px above the frame's centre, and the title, icons and
+-- text are laid out on that panel. So the Aurora backdrop takes ToastBG's
+-- geometry and ToastBG is hidden. Hide, not SetAlpha(0), for everything the
+-- banner's ShowAnim fades in (ToastBG, TopBorder, GlowLineBottom, the reward
+-- ring): the animation sets alpha, and no Blizzard code shows them.
+local function SkinCelebrationBanner(toast)
+    Skin.FrameTypeFrame(toast)
+    toast:SetBackdropOption("offsets", {
+        left = -74,
+        right = -74,
+        top = -66,
+        bottom = -46,
+    })
 
-        -- Strip decorative border textures from the celebration banner
-        if renownToast.TopBorder then
-            renownToast.TopBorder:Hide()
-        end
-        if renownToast.GlowLineBottom then
-            renownToast.GlowLineBottom:Hide()
-        end
-
-        -- Crop the reward icon
-        if renownToast.RewardIcon then
-            Base.CropIcon(renownToast.RewardIcon, renownToast)
-        end
-
-        -- Crop the top faction icon from the banner template
-        if renownToast.TopIcon then
-            Base.CropIcon(renownToast.TopIcon, renownToast)
+    for _, key in next, { "ToastBG", "TopBorder", "GlowLineBottom" } do
+        if toast[key] then
+            toast[key]:Hide()
         end
     end
 
-    ------------------------------------
-    -- Unlock toast (MajorFactionUnlockToast)
-    -- Inherits MajorFactionCelebrationBannerTemplate (DIALOG strata)
-    ------------------------------------
+    if toast.TopIcon then
+        Base.CropIcon(toast.TopIcon, toast)
+    end
+end
+
+function private.AddOns.Blizzard_MajorFactions()
+    local renownToast = _G.MajorFactionsRenownToast
+    if renownToast then
+        SkinCelebrationBanner(renownToast)
+
+        -- Square reward icon; its round ring goes with the round mask
+        if renownToast.RewardIcon then
+            Base.CropIcon(renownToast.RewardIcon, renownToast)
+        end
+        if renownToast.RewardIconRing then
+            renownToast.RewardIconRing:Hide()
+        end
+    end
+
     local unlockToast = _G.MajorFactionUnlockToast
     if unlockToast then
-        Skin.FrameTypeFrame(unlockToast)
-        -- 12.1.5 fixes FactionName at 220 wide (long names wrap) on a 128-wide
-        -- frame, so the name ran past both sides of the backdrop.
-        unlockToast:SetBackdropOption("offsets", {
-            left = -56,
-            right = -56,
-            top = 0,
-            bottom = 0,
-        })
-
-        -- Strip decorative border textures from the celebration banner
-        if unlockToast.TopBorder then
-            unlockToast.TopBorder:Hide()
-        end
-        if unlockToast.GlowLineBottom then
-            unlockToast.GlowLineBottom:Hide()
-        end
-
-        -- Crop the top faction icon from the banner template
-        if unlockToast.TopIcon then
-            Base.CropIcon(unlockToast.TopIcon, unlockToast)
-        end
+        SkinCelebrationBanner(unlockToast)
     end
 end
