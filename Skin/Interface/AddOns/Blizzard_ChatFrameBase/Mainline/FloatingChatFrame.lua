@@ -154,9 +154,10 @@ do --[[ SharedXML\FloatingChatFrame.xml ]]
             -- Flash carries that same atlas as an ADD-blended overlay at
             -- useAtlasSize — the large pale triangle still reported after the
             -- swap above. SetAlpha(0) cannot hold it: ChatFrameMixin:OnUpdate
-            -- runs UIFrameFlash on it for as long as the frame is scrolled up
-            -- (ChatFrameOverrides.lua), and the fade manager rewrites alpha
-            -- every frame — which is why it only appeared *after* a scroll.
+            -- plays its FlashAnim (Alpha animations; UIFrameFlash before 12.1.5)
+            -- for as long as the frame is scrolled up (ChatFrameOverrides.lua),
+            -- and that rewrites alpha every frame — which is why it only
+            -- appeared *after* a scroll.
             -- Restyle instead of hiding, so the unread-below alert survives
             -- and all three arrows finally read as one set.
             -- Anchor BEFORE Base.SetTexture: "arrowDown" is a white
