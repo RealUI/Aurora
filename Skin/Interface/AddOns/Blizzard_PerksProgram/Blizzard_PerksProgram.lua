@@ -186,6 +186,17 @@ function private.AddOns.Blizzard_PerksProgram()
                 Skin.PerksProgramCheckboxTemplate(toggle)
             end
         end
+
+        -- Model rotate buttons (PerksModelSceneControlButtonTemplate): the
+        -- perks-button-up art goes, the arrow Icon stays.
+        local rotate = FooterFrame.RotateButtonContainer
+        if rotate then
+            for _, key in next, { "RotateLeftButton", "RotateRightButton" } do
+                if rotate[key] then
+                    Skin.FrameTypeButton(rotate[key])
+                end
+            end
+        end
     end
 
     ------------------------------------
