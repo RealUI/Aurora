@@ -149,7 +149,9 @@ do --[[ FrameXML\LFGList.lua ]]
         end
         if start then
             for i = 1, searchResultData.numMembers do
-                local _, classToken = _G.C_LFGList.GetSearchResultMemberInfo(resultID, i)
+                -- GetSearchResultMemberInfo was a Blizzard_DeprecatedLFG shim, deleted in 12.1.5
+                local memberInfo = _G.C_LFGList.GetSearchResultPlayerInfo(resultID, i)
+                local classToken = memberInfo and memberInfo.classFilename
                 local classColor = classToken and _G.CUSTOM_CLASS_COLORS[classToken]
                 if classColor then
                     _G[name..(start+i)]:SetTextColor(classColor.r, classColor.g, classColor.b)
