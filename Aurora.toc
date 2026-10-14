@@ -5,7 +5,8 @@
 ## Notes: Minimalistic window theme.
 ## Author: Haleth/Lightsword, Gethe, Hanshi/arnvid
 ## Version: 12.1.0.15
-## RequiredDeps: Blizzard_Deprecated, Blizzard_DeprecatedCurrencyScript, Blizzard_DeprecatedGuildScript, Blizzard_DeprecatedItemScript, Blizzard_DeprecatedPvpScript, Blizzard_DeprecatedSoundScript, Blizzard_DeprecatedSpellScript [AllowLoadGameType standard, classic]
+## RequiredDeps: Blizzard_Deprecated, Blizzard_DeprecatedGuildScript, Blizzard_DeprecatedSpellScript [AllowLoadGameType standard]
+## RequiredDeps: Blizzard_Deprecated, Blizzard_DeprecatedCurrencyScript, Blizzard_DeprecatedGuildScript, Blizzard_DeprecatedItemScript, Blizzard_DeprecatedPvpScript, Blizzard_DeprecatedSoundScript, Blizzard_DeprecatedSpellScript [AllowLoadGameType classic]
 ## OptionalDeps: Ace3, LibTextDump-1.0, BugSack, WagoAnalytics
 ## LoadWith: Blizzard_EncounterJournal [AllowLoadGameType standard]
 ## SavedVariables: AuroraConfig
@@ -23,9 +24,11 @@
 # the camelot token treat an unknown AllowLoadGameType as a match. The other
 # tokens (standard, classic, mists, tbc, vanilla) are known to every client.
 #
-# RequiredDeps skips Forever, which lacks several of the Blizzard_Deprecated*
-# shims. LoadWith is retail-only: Blizzard_EncounterJournal never loads on
-# Forever, and the classic flavors never had the line.
+# RequiredDeps: retail 12.1.5 deleted the Currency, Item, Pvp and Sound
+# Blizzard_Deprecated* shims, so its line names only the three it still ships;
+# the classic flavors keep all seven. Forever has no line. LoadWith is
+# retail-only: Blizzard_EncounterJournal never loads on Forever, and the
+# classic flavors never had the line.
 
 libs\Libs.xml
 Skin\skin.xml
