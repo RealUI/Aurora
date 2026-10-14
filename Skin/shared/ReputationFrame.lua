@@ -149,14 +149,26 @@ do --[[ FrameXML\ReputationFrame.xml ]]
     -- ReputationHeaderTemplate / ReputationEntryTemplate / ReputationSubHeader-
     -- Template, so the legacy ReputationBar1..N buttons below no longer exist.
     function Skin.ReputationHeaderTemplate(Button)
-        -- Options_ListExpand_* trio, same as the Housing list headers. Guarded
-        -- because the shared helper lives in another module's file.
+        -- Options_ListExpand_* trio, same as the Housing list headers. Defined
+        -- in Blizzard_SharedXML/Mainline/ListTemplates.lua; guarded because
+        -- the classic manifests do not load that file.
         if Skin.ListHeaderThreeSliceTemplate then
             Skin.ListHeaderThreeSliceTemplate(Button)
         end
 
         for _, region in _G.next, (Button.HighlightTextureRegions or {}) do
             region:SetAlpha(0)
+        end
+
+        -- Forever's Camelot header has no three-slice: one unnamed
+        -- common-button-list-collapseExpand texture each in BACKGROUND and
+        -- HIGHLIGHT. Matched by atlas, so StateIcon and the name stay.
+        if not Button.Left then
+            for _, region in _G.next, { Button:GetRegions() } do
+                if region.GetAtlas and region:GetAtlas() == "common-button-list-collapseExpand" then
+                    region:SetAlpha(0)
+                end
+            end
         end
 
         Base.SetBackdrop(Button, Color.button)
