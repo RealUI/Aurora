@@ -60,6 +60,34 @@ do --[[ AddOns\Blizzard_PerksProgram.lua ]]
         end
     end
 
+    -- Product list add/remove cart toggle. UpdateCartState re-applies its
+    -- 128-redbutton-cart-add/minus art, glyph included, on every change, so
+    -- the art is cleared again each time; a flat button with the cart icon
+    -- and a plus/minus badge stands in. Icons live in a weak table.
+    local cartToggleBadges = _G.setmetatable({}, { __mode = "k" })
+    Hook.ProductCartToggleButtonMixin = {}
+    function Hook.ProductCartToggleButtonMixin:UpdateCartState(itemInCart)
+        local badge = cartToggleBadges[self]
+        if not badge then
+            Skin.FrameTypeButton(self)
+            local cart = self:CreateTexture(nil, "ARTWORK")
+            cart:SetAtlas("perks-shoppingcart")
+            cart:SetSize(20, 20)
+            cart:SetPoint("CENTER")
+
+            badge = self:CreateTexture(nil, "OVERLAY")
+            badge:SetSize(12, 12)
+            badge:SetPoint("TOPRIGHT", -2, -2)
+            cartToggleBadges[self] = badge
+        end
+
+        self:ClearNormalTexture()
+        self:ClearPushedTexture()
+        self:ClearDisabledTexture()
+        self:ClearHighlightTexture()
+        badge:SetAtlas(itemInCart and "common-icon-minus" or "common-icon-plus")
+    end
+
     -- The ensemble header row's gold brace; the name and price stay.
     Hook.PerksProgramSetItemDetailsScrollHeaderMixin = {}
     function Hook.PerksProgramSetItemDetailsScrollHeaderMixin:InitHeader()
@@ -128,6 +156,7 @@ function private.AddOns.Blizzard_PerksProgram()
     -- they pick up the post-hooks.
     Util.Mixin(_G.PerksProgramScrollItemDetailsMixin, Hook.PerksProgramScrollItemDetailsMixin)
     Util.Mixin(_G.PerksProgramSetItemDetailsScrollHeaderMixin, Hook.PerksProgramSetItemDetailsScrollHeaderMixin)
+    Util.Mixin(_G.ProductCartToggleButtonMixin, Hook.ProductCartToggleButtonMixin)
 
     local PerksProgramFrame = _G.PerksProgramFrame
     if not PerksProgramFrame then return end
