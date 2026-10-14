@@ -110,6 +110,13 @@ do --[[ FrameXML\LFGList.lua ]]
         invitedeclined = true,
         timedout = true,
     }
+    -- Applicant rows come from the viewer's ScrollBox pool; skin each once
+    -- from the per-row update (Skin.LFGListApplicantTemplate was never called).
+    function Hook.LFGListApplicationViewer_UpdateApplicant(button, id)
+        if private.IsSkinned(button) then return end
+        private.SetSkinned(button, true)
+        Skin.LFGListApplicantTemplate(button)
+    end
     function Hook.LFGListApplicationViewer_UpdateApplicantMember(member, appID, memberIdx, status, pendingStatus)
         if not pendingStatus and grayedOutStatus[status] then
             -- grayedOut
@@ -188,6 +195,8 @@ do --[[ FrameXML\LFGList.xml ]]
         Skin.LFGListApplicantMemberTemplate(Button.Member1)
         Skin.UIMenuButtonStretchTemplate(Button.DeclineButton)
         Skin.UIMenuButtonStretchTemplate(Button.InviteButton)
+        -- the green tick variant; its Icon and the decline X keep their colours
+        Skin.UIMenuButtonStretchTemplate(Button.InviteButtonSmall)
     end
     function Skin.LFGListRoleButtonTemplate(Button)
         Base.SetTexture(Button:GetNormalTexture(), "icon"..Button.role)
@@ -235,6 +244,7 @@ function private.FrameXML.LFGList()
     _G.hooksecurefunc("LFGListCategorySelection_AddButton", Hook.LFGListCategorySelection_AddButton)
     _G.hooksecurefunc("LFGListGroupDataDisplayEnumerate_Update", Hook.LFGListGroupDataDisplayEnumerate_Update)
     _G.hooksecurefunc("LFGListApplicationViewer_UpdateRoleIcons", Hook.LFGListApplicationViewer_UpdateRoleIcons)
+    _G.hooksecurefunc("LFGListApplicationViewer_UpdateApplicant", Hook.LFGListApplicationViewer_UpdateApplicant)
     _G.hooksecurefunc("LFGListApplicationViewer_UpdateApplicantMember", Hook.LFGListApplicationViewer_UpdateApplicantMember)
     _G.hooksecurefunc("LFGListApplicantMember_OnEnter", Hook.LFGListApplicantMember_OnEnter)
     _G.hooksecurefunc("LFGListUtil_SetSearchEntryTooltip", Hook.LFGListUtil_SetSearchEntryTooltip)
