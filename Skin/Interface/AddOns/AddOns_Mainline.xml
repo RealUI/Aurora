@@ -186,24 +186,14 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_DeprecatedBattleNet\Blizzard_DeprecatedBattleNet.lua"/-->
     <!--Script file="Blizzard_DeprecatedChatInfo\Blizzard_DeprecatedChatInfo.lua"/-->
     <!--Script file="Blizzard_DeprecatedCombatLog\Blizzard_DeprecatedCombatLog.lua"/-->
-    <!--Script file="Blizzard_DeprecatedCurrencyScript\Blizzard_DeprecatedCurrencyScript.lua"/-->
-    <!--Script file="Blizzard_DeprecatedGlue\Blizzard_DeprecatedGlue.lua"/-->
     <!--Script file="Blizzard_DeprecatedGuildScript\Blizzard_DeprecatedGuildScript.lua"/-->
     <!--Script file="Blizzard_DeprecatedInstanceEncounter\Blizzard_DeprecatedInstanceEncounter.lua"/-->
-    <!--Script file="Blizzard_DeprecatedItemScript\Blizzard_DeprecatedItemScript.lua"/-->
-    <!--Script file="Blizzard_DeprecatedItemSocketInfo\Blizzard_DeprecatedItemSocketInfo.lua"/-->
-    <!--Script file="Blizzard_DeprecatedLFG\Blizzard_DeprecatedLFG.lua"/-->
     <!--Script file="Blizzard_DeprecatedPartyInfo\Blizzard_DeprecatedPartyInfo.lua"/-->
-    <!--Script file="Blizzard_DeprecatedPetInfo\Blizzard_DeprecatedPetInfo.lua"/-->
-    <!--Script file="Blizzard_DeprecatedPvpScript\Blizzard_DeprecatedPvpScript.lua"/-->
     <!--Script file="Blizzard_DeprecatedRaidWarning\Blizzard_DeprecatedRaidWarning.lua"/-->
-    <!--Script file="Blizzard_DeprecatedSoundScript\Blizzard_DeprecatedSoundScript.lua"/-->
     <!--Script file="Blizzard_DeprecatedSpecialization\Blizzard_DeprecatedSpecialization.lua"/-->
     <!--Script file="Blizzard_DeprecatedSpellBook\Blizzard_DeprecatedSpellBook.lua"/-->
     <!--Script file="Blizzard_DeprecatedSpellScript\Blizzard_DeprecatedSpellScript.lua"/-->
-    <!--Script file="Blizzard_DeprecatedTradeInfo\Blizzard_DeprecatedTradeInfo.lua"/-->
     <!--Script file="Blizzard_DeprecatedUnitScript\Blizzard_DeprecatedUnitScript.lua"/-->
-    <!--Script file="Blizzard_DeprecatedWorldElapsedTimerTypes\Blizzard_DeprecatedWorldElapsedTimerTypes.lua"/-->
     <!--Script file="Blizzard_Dispatcher\Blizzard_Dispatcher.lua"/-->
     <!--Script file="Blizzard_DurabilityFrame\Blizzard_DurabilityFrame.lua"/-->
     <!--Script file="Blizzard_EditMode\Blizzard_EditMode.lua"/-->
@@ -623,6 +613,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_SharedXML\Shared\Localization.lua"/-->
     <!--Script file="Blizzard_SharedXML\ListTemplates.lua"/-->
     <!--Script file="Blizzard_SharedXML\MoneyFormatter.lua"/-->
+    <!--Script file="Blizzard_SharedXML\MarchingAnts.lua"/-->
     <!-- End of section added for Blizzard_SharedXML by the Aurora XML Updater -->
     <!-- This section is added for Blizzard_SharedXMLBase by the Aurora XML Updater -->
     <!--Script file="Blizzard_SharedXMLBase\Compat.lua"/-->
@@ -662,6 +653,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_SharedXMLBase\AnchorUtil.lua"/-->
     <!--Script file="Blizzard_SharedXMLBase\CurveConstants.lua"/-->
     <!--Script file="Blizzard_SharedXMLBase\ForbiddenAspectTemplates.lua"/-->
+    <!--Script file="Blizzard_SharedXMLBase\TimerUtil.lua"/-->
     <!-- End of section added for Blizzard_SharedXMLBase by the Aurora XML Updater -->
     <!--Script file="Blizzard_SharedXMLGame\Blizzard_SharedXMLGame.lua"/-->
     <!--Script file="Blizzard_SimpleCheckout\Blizzard_SimpleCheckout.lua"/-->
@@ -699,6 +691,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_TransmogShared\Blizzard_TransmogShared.lua"/-->
     <!--Script file="Blizzard_TutorialManager\Blizzard_TutorialManager.lua"/-->
     <!--Script file="Blizzard_Tutorials\Blizzard_Tutorials.lua"/-->
+    <!--Script file="Blizzard_TutorialTemplates\Blizzard_TutorialTemplates.lua"/-->
     <!--Script file="Blizzard_UIErrorsFrame\Blizzard_UIErrorsFrame.lua"/-->
     <!--Script file="Blizzard_UIFrameManager\Blizzard_UIFrameManager.lua"/-->
     <!--Script file="Blizzard_UIModes\Blizzard_UIModes.lua"/-->
