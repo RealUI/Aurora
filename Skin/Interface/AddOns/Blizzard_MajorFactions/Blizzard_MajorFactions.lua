@@ -57,6 +57,14 @@ function private.AddOns.Blizzard_MajorFactions()
     local renownToast = _G.MajorFactionsRenownToast
     if renownToast then
         Skin.FrameTypeFrame(renownToast)
+        -- The frame is 128 wide; its RewardDescription is 256. Widen the
+        -- backdrop to the text, not the frame.
+        renownToast:SetBackdropOption("offsets", {
+            left = -74,
+            right = -74,
+            top = 0,
+            bottom = 0,
+        })
 
         -- Strip decorative border textures from the celebration banner
         if renownToast.TopBorder then
@@ -84,6 +92,14 @@ function private.AddOns.Blizzard_MajorFactions()
     local unlockToast = _G.MajorFactionUnlockToast
     if unlockToast then
         Skin.FrameTypeFrame(unlockToast)
+        -- 12.1.5 fixes FactionName at 220 wide (long names wrap) on a 128-wide
+        -- frame, so the name ran past both sides of the backdrop.
+        unlockToast:SetBackdropOption("offsets", {
+            left = -56,
+            right = -56,
+            top = 0,
+            bottom = 0,
+        })
 
         -- Strip decorative border textures from the celebration banner
         if unlockToast.TopBorder then
