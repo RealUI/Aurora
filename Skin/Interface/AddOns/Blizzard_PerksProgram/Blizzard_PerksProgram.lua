@@ -33,6 +33,18 @@ do --[[ AddOns\Blizzard_PerksProgram.lua ]]
     -- while the item is the one being previewed, where Blizzard shows its
     -- gold border. Borders live in a weak table, not on the row.
     local itemIconBorders = _G.setmetatable({}, { __mode = "k" })
+
+    -- RemoveFromCartButtonTemplate: the hover X on cart rows and ensemble
+    -- headers (auctionhouse-ui-filter-redx, set in XML only). Aurora's close
+    -- button, sized down to sit in the row's corner.
+    local function SkinRemoveFromCart(container)
+        local button = container and container.RemoveFromListButton
+        if not button or private.IsSkinned(button) then return end
+        private.SetSkinned(button, true)
+        button:SetSize(20, 20)
+        Skin.UIPanelCloseButton(button)
+    end
+
     local function SkinItemRow(row)
         if private.IsSkinned(row) then return itemIconBorders[row] end
         private.SetSkinned(row, true)
@@ -44,6 +56,7 @@ do --[[ AddOns\Blizzard_PerksProgram.lua ]]
         row.IconBorder:SetAlpha(0) -- Blizzard re-sets its atlas, never its alpha
         if row.TopBraceTexture then row.TopBraceTexture:Hide() end
         if row.BottomBraceTexture then row.BottomBraceTexture:Hide() end
+        SkinRemoveFromCart(row.RemoveFromCartItemButton)
 
         itemIconBorders[row] = Base.CropIcon(row.Icon, row)
         return itemIconBorders[row]
@@ -94,6 +107,7 @@ do --[[ AddOns\Blizzard_PerksProgram.lua ]]
         if self.TopBraceTexture then
             self.TopBraceTexture:Hide()
         end
+        SkinRemoveFromCart(self.RemoveFromCartItemButton)
     end
 end
 
