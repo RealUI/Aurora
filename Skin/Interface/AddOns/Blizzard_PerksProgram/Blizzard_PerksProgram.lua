@@ -51,8 +51,20 @@ do --[[ AddOns\Blizzard_PerksProgram.xml ]]
         end
     end
 
+    -- SharedButtonLargeTemplate: the red three-slice art comes from Left,
+    -- Center and Right, which Skin.FrameTypeButton alone leaves in place.
     function Skin.PerksProgramButtonTemplate(Button)
+        Skin.SharedButtonLargeTemplate(Button)
+    end
+    -- UIButtonTemplate: the whole look, cart included, is the normal atlas
+    -- (buttonArtKit 128-RedButton-ShoppingCart), set once at load. Clearing it
+    -- clears the cart, so the cart comes back as an icon.
+    function Skin.PerksProgramViewCartButton(Button)
         Skin.FrameTypeButton(Button)
+        local cart = Button:CreateTexture(nil, "ARTWORK")
+        cart:SetAtlas("perks-shoppingcart")
+        cart:SetSize(26, 26)
+        cart:SetPoint("CENTER")
     end
 
     function Skin.HeaderSortButtonTemplate(Button)
@@ -165,13 +177,16 @@ function private.AddOns.Blizzard_PerksProgram()
     if FooterFrame then
         local buttons = {
             "PurchaseButton", "RefundButton", "LeaveButton",
-            "ViewCartButton", "AddToCartButton", "RemoveFromCartButton",
+            "AddToCartButton", "RemoveFromCartButton",
         }
         for _, key in next, buttons do
             local btn = FooterFrame[key]
             if btn then
-                Skin.FrameTypeButton(btn)
+                Skin.PerksProgramButtonTemplate(btn)
             end
+        end
+        if FooterFrame.ViewCartButton then
+            Skin.PerksProgramViewCartButton(FooterFrame.ViewCartButton)
         end
 
         -- Model preview toggles. Restyle only: their .Text anchors chain the
