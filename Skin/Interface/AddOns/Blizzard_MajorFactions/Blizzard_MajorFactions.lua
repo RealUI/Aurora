@@ -52,16 +52,18 @@ function private.AddOns.Blizzard_MajorFactions()
     -- Renown toast (MajorFactionsRenownToast)
     -- Inherits MajorFactionCelebrationBannerTemplate (DIALOG strata)
     ------------------------------------
+    -- TopBorder and GlowLineBottom: Hide, not SetAlpha(0). The banner's ShowAnim
+    -- fades both to alpha 1, and no Blizzard code shows them.
     local renownToast = _G.MajorFactionsRenownToast
     if renownToast then
         Skin.FrameTypeFrame(renownToast)
 
         -- Strip decorative border textures from the celebration banner
         if renownToast.TopBorder then
-            renownToast.TopBorder:SetAlpha(0)
+            renownToast.TopBorder:Hide()
         end
         if renownToast.GlowLineBottom then
-            renownToast.GlowLineBottom:SetAlpha(0)
+            renownToast.GlowLineBottom:Hide()
         end
 
         -- Crop the reward icon
@@ -85,10 +87,10 @@ function private.AddOns.Blizzard_MajorFactions()
 
         -- Strip decorative border textures from the celebration banner
         if unlockToast.TopBorder then
-            unlockToast.TopBorder:SetAlpha(0)
+            unlockToast.TopBorder:Hide()
         end
         if unlockToast.GlowLineBottom then
-            unlockToast.GlowLineBottom:SetAlpha(0)
+            unlockToast.GlowLineBottom:Hide()
         end
 
         -- Crop the top faction icon from the banner template
