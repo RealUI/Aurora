@@ -3,7 +3,7 @@ if private.shouldSkip() then return end
 
 local Aurora = private.Aurora
 local Base, Hook, Skin = Aurora.Base, Aurora.Hook, Aurora.Skin
-local Color = Aurora.Color
+local Color, Util = Aurora.Color, Aurora.Util
 
 do --[[ AddOns\Blizzard_PerksProgram.lua ]]
     -- Skin a product button acquired from the ScrollBox element factory.
@@ -23,6 +23,48 @@ do --[[ AddOns\Blizzard_PerksProgram.lua ]]
     function Hook.PerksProgramProductsScrollBoxUpdate(scrollBox)
         for _, child in next, { scrollBox.ScrollTarget:GetChildren() } do
             SkinProductButton(child)
+        end
+    end
+
+    -- Cart and ensemble item rows (PerksProgramItemDetailsScrollButtonTemplate
+    -- and its cart/set variants). Pooled, so restyled in place from the row's
+    -- own refresh: a flat row instead of the pet-list art, a square icon, no
+    -- gold ensemble brace. The icon's 1px border takes the highlight colour
+    -- while the item is the one being previewed, where Blizzard shows its
+    -- gold border. Borders live in a weak table, not on the row.
+    local itemIconBorders = _G.setmetatable({}, { __mode = "k" })
+    local function SkinItemRow(row)
+        if private.IsSkinned(row) then return itemIconBorders[row] end
+        private.SetSkinned(row, true)
+
+        local r, g, b = Color.button:GetRGB()
+        row.BackgroundTexture:SetColorTexture(r, g, b, 0.3)
+        r, g, b = Color.highlight:GetRGB()
+        row.HighlightTexture:SetColorTexture(r, g, b, 0.15)
+        row.IconBorder:SetAlpha(0) -- Blizzard re-sets its atlas, never its alpha
+        if row.TopBraceTexture then row.TopBraceTexture:Hide() end
+        if row.BottomBraceTexture then row.BottomBraceTexture:Hide() end
+
+        itemIconBorders[row] = Base.CropIcon(row.Icon, row)
+        return itemIconBorders[row]
+    end
+
+    Hook.PerksProgramScrollItemDetailsMixin = {}
+    function Hook.PerksProgramScrollItemDetailsMixin:UpdatePreviewStatusIcon()
+        local border = SkinItemRow(self)
+        if not border then return end
+        if self.enabled and self.elementData and self.elementData.selected then
+            border:SetColorTexture(Color.highlight:GetRGB())
+        else
+            border:SetColorTexture(0, 0, 0)
+        end
+    end
+
+    -- The ensemble header row's gold brace; the name and price stay.
+    Hook.PerksProgramSetItemDetailsScrollHeaderMixin = {}
+    function Hook.PerksProgramSetItemDetailsScrollHeaderMixin:InitHeader()
+        if self.TopBraceTexture then
+            self.TopBraceTexture:Hide()
         end
     end
 end
@@ -82,6 +124,11 @@ do --[[ AddOns\Blizzard_PerksProgram.xml ]]
 end
 
 function private.AddOns.Blizzard_PerksProgram()
+    -- Rows are created from these mixins later, when a list first fills, so
+    -- they pick up the post-hooks.
+    Util.Mixin(_G.PerksProgramScrollItemDetailsMixin, Hook.PerksProgramScrollItemDetailsMixin)
+    Util.Mixin(_G.PerksProgramSetItemDetailsScrollHeaderMixin, Hook.PerksProgramSetItemDetailsScrollHeaderMixin)
+
     local PerksProgramFrame = _G.PerksProgramFrame
     if not PerksProgramFrame then return end
 
