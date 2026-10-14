@@ -20,15 +20,8 @@ local Color = Aurora.Color
     Skin.* functions defined here.
 ]]
 
-do --[[ Blizzard_SharedXML\ListTemplates.xml ]]
-    -- Options_ListExpand_* three-slice header (same shape serves the CDM
-    -- group-buff filter sections)
-    function Skin.ListHeaderThreeSliceTemplate(Frame)
-        if Frame.Left then Frame.Left:SetAlpha(0) end
-        if Frame.Middle then Frame.Middle:SetAlpha(0) end
-        if Frame.Right then Frame.Right:SetAlpha(0) end
-    end
-end
+-- Skin.ListHeaderThreeSliceTemplate (the collection's group headers) lives in
+-- Blizzard_SharedXML/Mainline/ListTemplates.lua.
 
 do --[[ Blizzard_HousingBlueprintFrameTemplates.xml ]]
     function Skin.HousingBlueprintBaseFrameTemplate(Frame)
