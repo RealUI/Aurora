@@ -223,7 +223,9 @@ do --[[ SharedXML\SharedUIPanelTemplates.lua ]]
 
         Hook.ThreeSliceButtonMixin = {}
         function Hook.ThreeSliceButtonMixin:UpdateButton(buttonState)
+            -- Blizzard re-sets all three slices on every state change
             self.Left:SetTexture("")
+            self.Center:SetTexture("")
             self.Right:SetTexture("")
 
             self:SetButtonColor((self:GetButtonColor()))
