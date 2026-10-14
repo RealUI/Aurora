@@ -42,6 +42,13 @@ do --[[ AddOns\Blizzard_PerksProgram.xml ]]
 
     function Skin.PerksProgramCheckboxTemplate(CheckButton)
         Skin.FrameTypeCheckButton(CheckButton)
+
+        -- checkmark-minimal keeps its atlas size and centre anchor; recolour only
+        local check = CheckButton:GetCheckedTexture()
+        if check then
+            check:SetDesaturated(true)
+            check:SetVertexColor(Color.highlight:GetRGB())
+        end
     end
 
     function Skin.PerksProgramButtonTemplate(Button)
@@ -164,6 +171,19 @@ function private.AddOns.Blizzard_PerksProgram()
             local btn = FooterFrame[key]
             if btn then
                 Skin.FrameTypeButton(btn)
+            end
+        end
+
+        -- Model preview toggles. Restyle only: their .Text anchors chain the
+        -- toggles to each other, and 12.1.5 drives them from the model scene.
+        local toggles = {
+            "TogglePlayerPreview", "ToggleMountSpecial",
+            "ToggleHideArmor", "ToggleAttackAnimation",
+        }
+        for _, key in next, toggles do
+            local toggle = FooterFrame[key]
+            if toggle then
+                Skin.PerksProgramCheckboxTemplate(toggle)
             end
         end
     end
