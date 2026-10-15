@@ -4,7 +4,8 @@ if private.shouldSkip() then return end
 --[[ Lua Globals ]]
 -- luacheck: globals
 
-do --[[ FrameXML\WarCampaignTemplates.xml ]]
+-- do
+     --[[ FrameXML\WarCampaignTemplates.xml ]]
     -- CampaignTooltipTemplate: skinned through the taint-safe tooltip path in
     -- QuestMapFrame.lua (Skin.SharedTooltipTemplate, solid background). The old
     -- FrameTypeFrame skin here was never called and is removed.
@@ -18,7 +19,7 @@ do --[[ FrameXML\WarCampaignTemplates.xml ]]
     -- B38: the collapse button keeps its stock plus/minus icon.
     -- CampaignHeaderMinimalTemplate: restyled in place from
     -- Hook.QuestLogQuests_Update (QuestMapFrame.lua).
-end
+-- end
 
 function private.FrameXML.WarCampaignTemplates()
 end
