@@ -1,4 +1,25 @@
-﻿## [12.1.5.0] ##
+﻿## [12.1.5.1] ##
+### Added ###
+
+  * add: **the Trading Post is skinned throughout.** The cart lists and ensemble item lists have flat rows and square icons; the item being previewed has its icon border in the highlight colour, where Blizzard shows a gold border; the gold ensemble outline is gone. Product rows' add/remove cart button is a flat button with a plus or minus badge, and the cart's remove-item X uses Aurora's close button [mainline]
+
+### Fixed ###
+
+  * fix: **the PvP window's activity buttons** (Quick Match bonus list, special events, Rated and Training Grounds) lose Blizzard's button art. Their skin cleared it with `SetNormalTexture("")`, which no longer removes an atlas; it now uses `ClearNormalTexture` and its siblings, still with nothing written onto the buttons, so queueing stays untainted. A flat fill stands in for the art [mainline]
+  * fix: three-slice buttons clear their middle slice too, not only the ends, so no red middle stays behind (the Trading Post's buttons, the AddOn list, the Barbershop) [mainline/forever]
+  * fix: the Trading Post's footer buttons (Leave, Purchase, Add to Cart, Refund) and the cart's buy, close and clear-cart buttons are skinned; the view-cart and clear-cart buttons keep their cart and trash icons [mainline]
+  * fix: group finder applicant rows on your own listing are skinned, including the invite tick and the decline button [mainline]
+  * fix: renown and unlock toasts use one Aurora backdrop the size of Blizzard's toast panel, which they replace, so the title, icons and text all sit inside it; the reward icon is square without its round ring [mainline/forever]
+
+### Changed ###
+
+  * chg: the quest log's story and campaign tooltips have a solid background instead of the frame alpha; they open over the quest log's side tabs and the objective tracker, which read through otherwise [mainline/forever]
+  * chg: `X-Min-Interface` is 120105 [mainline]
+  * chg: a nineslice layout with no name is noted in the debug log instead of chat on dev builds [shared]
+  * chg: the unused `Skin.CampaignTooltipTemplate` is removed [mainline/forever]
+
+
+## [12.1.5.0] ##
 ### Added ###
 
   * add: **the quest log's story and campaign tooltips are skinned**, once at load through the taint-safe tooltip path: Blizzard's border cleared, Aurora's background. Nothing is hooked on the story or campaign header hover [mainline/forever]
@@ -1047,7 +1068,8 @@ A hotfix for how 12.1.0.11 was published. The addon files are unchanged.
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.5.0...develop
+[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.5.1...develop
+[12.1.5.1]: https://github.com/RealUI/Aurora/compare/12.1.5.0...12.1.5.1
 [12.1.5.0]: https://github.com/RealUI/Aurora/compare/12.1.0.15...12.1.5.0
 [12.1.0.15]: https://github.com/RealUI/Aurora/compare/12.1.0.14...12.1.0.15
 [12.1.0.14]: https://github.com/RealUI/Aurora/compare/12.1.0.13...12.1.0.14
