@@ -4,15 +4,10 @@ if private.shouldSkip() then return end
 --[[ Lua Globals ]]
 -- luacheck: globals
 
---[[ Core ]]
-local Aurora = private.Aurora
-local Skin = Aurora.Skin
-
 do --[[ FrameXML\WarCampaignTemplates.xml ]]
-    function Skin.CampaignTooltipTemplate(Frame)
-        Skin.FrameTypeFrame(Frame)
-        Skin.InternalEmbeddedItemTooltipTemplate(Frame.ItemTooltip)
-    end
+    -- CampaignTooltipTemplate: skinned through the taint-safe tooltip path in
+    -- QuestMapFrame.lua (Skin.SharedTooltipTemplate, solid background). The old
+    -- FrameTypeFrame skin here was never called and is removed.
     -- CampaignHeaderDisplayTemplate, CampaignHeaderTemplate: no frame-time
     -- skin. The quest log's campaign headers are pooled and restyled in place
     -- from Hook.QuestLogQuests_Update, the campaign overview's header from its
