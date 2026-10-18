@@ -1,4 +1,24 @@
-﻿## [12.1.5.1] ##
+﻿## [12.1.5.2] ##
+### Added ###
+
+  * add: the guild Preferred Play tab (locale and datacenter settings) is skinned and joins the Communities side tabs; its dropdowns and Apply buttons are skinned [forever]
+  * add: the new-character keyboard and mouse intro's OK and Skip Tutorial buttons are skinned [mainline/forever]
+
+### Fixed ###
+
+  * fix: **pet battle tooltips stay skinned on Forever 1.60.1.70450.** Forever now ships its own floating pet battle tooltip, so the Mainline skin no longer loads there, and the battle pet tooltip skin, which still does, would have called a template skin that no longer existed. A Camelot copy of the skin covers both [forever]
+  * fix: the hunter stable's 70450 redesign is skinned: the header and footer plates, dividers and slot frames are hidden while the lock and pet icons stay, and the experience bar, which lost its skin when Blizzard changed its type, uses the progress bar skin [forever]
+  * fix: progress bars (skills, reputation, professions, pet experience) line up with their backdrop again; 70450 insets the fill 6 px from each side [forever]
+  * fix: close and maximize/minimize buttons keep their 24 px size on Forever, where 70450 grew them to 28 px [forever]
+  * fix: the group finder's close button uses the default-anchors close button skin, matching the template it now inherits [forever]
+
+### Changed ###
+
+  * chg: skin manifests regenerated for Forever 1.60.1.70450 and retail 12.1.5.70448 [forever/mainline]
+  * chg: the unused `Skin.PetExpStatusBarTemplate` and `Skin.PetStableLoyaltyLevelTemplate` are removed; 70450 dropped both templates [forever]
+
+
+## [12.1.5.1] ##
 ### Added ###
 
   * add: **the Trading Post is skinned throughout.** The cart lists and ensemble item lists have flat rows and square icons; the item being previewed has its icon border in the highlight colour, where Blizzard shows a gold border; the gold ensemble outline is gone. Product rows' add/remove cart button is a flat button with a plus or minus badge, and the cart's remove-item X uses Aurora's close button [mainline]
