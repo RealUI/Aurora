@@ -42,10 +42,15 @@ do --[[ SharedXML\ProgressBars\ColoredProgressBar.xml ]]
             end
         end
 
+        -- Since 70450 the fill runs inside a FillArea child inset 6px from
+        -- each side (the padding of the now-hidden common-stat-bar-BG), and
+        -- SetFillPercent measures FillArea, so the backdrop follows it.
+        local inset = Frame.FillArea and 6 or 0
+
         Base.SetBackdrop(Frame, Color.button, Color.frame.a)
         Frame:SetBackdropOption("offsets", {
-            left = -1,
-            right = -2,
+            left = inset - 1,
+            right = inset - 2,
             top = -1,
             bottom = -1,
         })
