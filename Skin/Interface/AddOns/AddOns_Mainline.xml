@@ -391,7 +391,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_MovePad\Blizzard_MovePad.lua"/-->
     <Script file="Blizzard_NamePlates\Mainline\Blizzard_NamePlates.lua"/>
     <!--Script file="Blizzard_Narration\Blizzard_Narration.lua"/-->
-    <!--Script file="Blizzard_NewPlayerExperience\Blizzard_NewPlayerExperience.lua"/-->
+    <Script file="Blizzard_NewPlayerExperience\Blizzard_NewPlayerExperience.lua"/>
     <Script file="Blizzard_NewPlayerExperienceGuide\Blizzard_NewPlayerExperienceGuide.lua"/>
     <!--Script file="Blizzard_Notification\Blizzard_Notification.lua"/-->
     <!--Script file="Blizzard_ObjectAPI\Blizzard_ObjectAPI.lua"/-->

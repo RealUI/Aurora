@@ -13,6 +13,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_ActionBar\Shared\ActionButtonSpellAlerts.lua"/-->
     <!--Script file="Blizzard_ActionBar\Mainline\AssistedCombatManager.lua"/-->
     <!--Script file="Blizzard_ActionBar\Shared\ActionButton.lua"/-->
+    <!--Script file="Blizzard_ActionBar\Camelot\ActionButtonOverrides.lua"/--><!-- additive -->
     <!--Script file="Blizzard_ActionBar\Mainline\ActionButtonOverrides.lua"/-->
     <!--Script file="Blizzard_ActionBar\Shared\ActionButtonComponentTemplate.lua"/-->
     <!--Script file="Blizzard_ActionBar\Mainline\ActionButtonTemplate.lua"/-->
@@ -27,11 +28,13 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_ActionBar\Shared\StanceBar.lua"/-->
     <!--Script file="Blizzard_ActionBar\Mainline\StanceBar.lua"/-->
     <!--Script file="Blizzard_ActionBar\Shared\ExtraActionBar.lua"/-->
+    <!--Script file="Blizzard_ActionBar\Camelot\ExtraActionBarOverrides.lua"/--><!-- replacement -->
     <!--Script file="Blizzard_ActionBar\Shared\PossessActionBar.lua"/-->
     <!--Script file="Blizzard_ActionBar\Mainline\PossessActionBar.lua"/-->
     <!--Script file="Blizzard_ActionBar\Shared\PetActionBar.lua"/-->
     <Script file="Blizzard_ActionBar\Mainline\PetActionBar.lua"/>
     <!--Script file="Blizzard_ActionBar\Shared\MultiCastActionBarFrame.lua"/-->
+    <!--Script file="Blizzard_ActionBar\Camelot\MultiCastActionBarOverrides.lua"/--><!-- replacement -->
     <!--Script file="Blizzard_ActionBar\Shared\SpellFlyout.lua"/-->
     <!--Script file="Blizzard_ActionBar\Shared\Localization.lua"/-->
     <!-- End of section added for Blizzard_ActionBar by the Aurora XML Updater -->
@@ -87,6 +90,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_ChatFrame\Shared\TextToSpeechCommands.lua"/-->
     <!--Script file="Blizzard_ChatFrame\Shared\TextToSpeechFrame.lua"/-->
     <!--Script file="Blizzard_ChatFrame\Shared\TextToSpeech.lua"/-->
+    <!--Script file="Blizzard_ChatFrame\Camelot\ChatConfigFrameOverrides.lua"/--><!-- replacement -->
     <Script file="Blizzard_ChatFrame\Mainline\ChatConfigFrame.lua"/>
     <!--Script file="Blizzard_ChatFrame\Shared\ClassTalentHelper.lua"/-->
     <!--Script file="Blizzard_ChatFrame\Mainline\Localization.lua"/-->
@@ -111,13 +115,16 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_ChatFrameBase\Shared\ChatFrame.lua"/-->
     <!--Script file="Blizzard_ChatFrameBase\Mainline\ChatFrameEditBoxOverrides.lua"/-->
     <!--Script file="Blizzard_ChatFrameBase\Mainline\ChatFrameUtilOverrides.lua"/-->
+    <!--Script file="Blizzard_ChatFrameBase\Camelot\ChatFrameUtilOverrides.lua"/--><!-- additive -->
     <!--Script file="Blizzard_ChatFrameBase\Mainline\ChatFrameOverrides.lua"/-->
+    <!--Script file="Blizzard_ChatFrameBase\Camelot\ChatFrameOverrides.lua"/--><!-- additive -->
     <!--Script file="Blizzard_ChatFrameBase\Mainline\ChatFrameEditBox.lua"/-->
     <!--Script file="Blizzard_ChatFrameBase\Mainline\ChatFrameMenuButton.lua"/-->
     <Script file="Blizzard_ChatFrameBase\Mainline\ChatFrame.lua"/>
     <!--Script file="Blizzard_ChatFrameBase\Shared\ChatAlertFrameMixin.lua"/-->
     <!--Script file="Blizzard_ChatFrameBase\Mainline\ChannelFrameButtonMixin.lua"/-->
     <!--Script file="Blizzard_ChatFrameBase\Shared\FloatingChatFrame.lua"/-->
+    <!--Script file="Blizzard_ChatFrameBase\Shared\FloatingChatFrameGame.lua"/-->
     <Script file="Blizzard_ChatFrameBase\Mainline\FloatingChatFrame.lua"/>
     <!--Script file="Blizzard_ChatFrameBase\Shared\MacroExecutionManager.lua"/-->
     <!--Script file="Blizzard_ChatFrameBase\Shared\ChatFrameSetup.lua"/-->
@@ -244,7 +251,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="Blizzard_FrameXML\Mainline\SharedPetBattleTemplates.lua"/>
     <Script file="Blizzard_FrameXML\Mainline\LootHistory.lua"/>
     <!--Script file="Blizzard_FrameXML\Camelot\LootHistory.lua"/--><!-- additive -->
-    <Script file="Blizzard_FrameXML\Mainline\FloatingPetBattleTooltip.lua"/>
+    <Script file="Blizzard_FrameXML\Camelot\FloatingPetBattleTooltip.lua"/><!-- replacement -->
     <Script file="Blizzard_FrameXML\Mainline\BattlePetTooltip.lua"/>
     <!--Script file="Blizzard_FrameXML\LossOfControlFrame.lua"/-->
     <!--Script file="Blizzard_FrameXML\ArtifactToasts.lua"/-->
@@ -280,6 +287,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_Gamepad\Blizzard_Gamepad.lua"/-->
     <!--Script file="Blizzard_GamepadActionBars\Blizzard_GamepadActionBars.lua"/-->
     <!--Script file="Blizzard_GamepadSharedUtility\Blizzard_GamepadSharedUtility.lua"/-->
+    <!--Script file="Blizzard_GamepadSharedUtilitySecure\Blizzard_GamepadSharedUtilitySecure.lua"/-->
     <!--Script file="Blizzard_GamepadSmartNavigation\Blizzard_GamepadSmartNavigation.lua"/-->
     <!--Script file="Blizzard_GamepadSoftCursor\Blizzard_GamepadSoftCursor.lua"/-->
     <!--Script file="Blizzard_GamepadTargeting\Blizzard_GamepadTargeting.lua"/-->
@@ -351,7 +359,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!--Script file="Blizzard_MovePad\Blizzard_MovePad.lua"/-->
     <Script file="Blizzard_NamePlates\Mainline\Blizzard_NamePlates.lua"/>
     <!--Script file="Blizzard_Narration\Blizzard_Narration.lua"/-->
-    <!--Script file="Blizzard_NewPlayerExperience\Blizzard_NewPlayerExperience.lua"/-->
+    <Script file="Blizzard_NewPlayerExperience\Blizzard_NewPlayerExperience.lua"/>
     <Script file="Blizzard_NewPlayerExperienceGuide\Blizzard_NewPlayerExperienceGuide.lua"/>
     <!--Script file="Blizzard_Notification\Blizzard_Notification.lua"/-->
     <!--Script file="Blizzard_ObjectAPI\Blizzard_ObjectAPI.lua"/-->
