@@ -289,6 +289,12 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
     end
     function Skin.UIPanelCloseButtonDefaultAnchors(Button)
         Skin.UIPanelCloseButton(Button)
+        if private.isForever then
+            -- Camelot's OnLoad sizes it 28x28 since 70450; keep retail's 24
+            -- so the fixed backdrop offsets give the same box.
+            Button:SetSize(24, 24)
+            Button:ClearAllPoints()
+        end
         Button:SetPoint("TOPRIGHT", 1.2, 0)
     end
     function Skin.UIPanelGoldButtonTemplate(Button)
@@ -1164,6 +1170,10 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
     end
 
     function Skin.MaximizeMinimizeButtonFrameTemplate(Frame)
+        if private.isForever then
+            -- Camelot's OnLoad sizes the frame 28x28 since 70450; keep retail's 24.
+            Frame:SetSize(24, 24)
+        end
         for _, name in next, {"MaximizeButton", "MinimizeButton"} do
             local Button = Frame[name]
             Skin.FrameTypeButton(Button)
