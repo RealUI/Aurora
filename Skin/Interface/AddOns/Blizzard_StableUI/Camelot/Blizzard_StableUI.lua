@@ -21,7 +21,7 @@ local Color, Util = Aurora.Color, Aurora.Util
 -- and a global PetStablePurchaseButton. Camelot keeps the vanilla *names* and
 -- rebuilds the panel on modern templates -- PortraitFrameTemplate, a ModelScene
 -- with a ModelSceneControlFrameTemplate, SmallMoneyFrameTemplate, a
--- StatusTrackingBar-based exp bar -- which is the usual Camelot trap: retail
+-- ColoredProgressBar exp bar -- which is the usual Camelot trap: retail
 -- vocabulary under classic names.
 
 do --[[ AddOns\Blizzard_StableUI.xml ]]
@@ -37,14 +37,13 @@ do --[[ AddOns\Blizzard_StableUI.xml ]]
             Base.CropIcon(icon, CheckButton)
         end
 
-        -- UI-Quickslot2 ring and the UI-EmptySlot backing, both oversized and
-        -- offset so they sit outside the button's own rect.
-        local normal = name and _G[name .. "NormalTexture"]
-        if normal then
-            normal:SetAlpha(0)
-        end
-        if CheckButton.background then
-            CheckButton.background:SetAlpha(0)
+        -- Slot frames since 70450: stabled / current / locked atlases the
+        -- mixin toggles per slot state, so alpha rather than Hide. lockIcon
+        -- and genericPetIcon carry the state and stay.
+        for _, key in next, {"unlockedBackground", "currentBackground", "lockedBackground"} do
+            if CheckButton[key] then
+                CheckButton[key]:SetAlpha(0)
+            end
         end
 
         Base.SetBackdrop(CheckButton, Color.button)
@@ -66,41 +65,6 @@ do --[[ AddOns\Blizzard_StableUI.xml ]]
             Util.SetHighlightColor(checked, 0.5)
         end
     end
-
-    function Skin.PetStableLoyaltyLevelTemplate(Frame)
-        if not Frame then return end
-
-        -- One UI-HUD-UnitFrame-Target-PortraitOn-Boss-IconRing texture behind
-        -- levelText. The ring is chrome; the number is the content.
-        for _, region in next, {Frame:GetRegions()} do
-            if region:IsObjectType("Texture") then
-                region:SetAlpha(0)
-            end
-        end
-    end
-
-    -- PetExpStatusBarTemplate is declared in Blizzard_StatusTrackingBar, which
-    -- has no Aurora skin on any flavor, so it is registered here -- the only
-    -- surface that instantiates it. Skin.StatusTrackingBarTemplate comes from
-    -- Blizzard_ActionBarController\Mainline, which is active on Forever.
-    function Skin.PetExpStatusBarTemplate(Frame)
-        if not Frame then return end
-
-        if Skin.StatusTrackingBarTemplate and Frame.StatusBar then
-            Skin.StatusTrackingBarTemplate(Frame)
-        end
-
-        -- The overlay is two halves of UI-MainMenuBar-Dwarf framing the bar.
-        -- xpText sits on the same layer and must survive.
-        local overlay = Frame.overlay
-        if overlay then
-            for _, region in next, {overlay:GetRegions()} do
-                if region:IsObjectType("Texture") then
-                    region:SetAlpha(0)
-                end
-            end
-        end
-    end
 end
 
 function private.AddOns.Blizzard_StableUI()
@@ -108,6 +72,19 @@ function private.AddOns.Blizzard_StableUI()
     if not PetStableFrame then return end
 
     Skin.PortraitFrameTemplate(PetStableFrame)
+
+    -- 70450 panel chrome: subheader and footer plates (both declared
+    -- parentKey="Background", so only the globals reach both), the footer's
+    -- inside-frame border and the two horizontal dividers.
+    for _, texture in next, {
+        _G.TopBackground,
+        _G.BottomBackground,
+        PetStableFrame.insideFrameBottom,
+        PetStableFrame.TopDividerFrame and PetStableFrame.TopDividerFrame.horzDivider,
+        PetStableFrame.BottomDividerFrame and PetStableFrame.BottomDividerFrame.horzDivider,
+    } do
+        texture:SetAlpha(0)
+    end
 
     ----====#####################====----
     --            Pet slots            --
@@ -140,8 +117,8 @@ function private.AddOns.Blizzard_StableUI()
         end
 
         -- PetShadow is a perks-char-shadow drop shadow under the model. The
-        -- Background texture carries no file in XML and is set at runtime, so
-        -- it is left to Blizzard.
+        -- Background (ui-stables-pet-model-bg) is the scene's backdrop, the
+        -- content behind the pet, so it is left to Blizzard.
         if modelScene.PetShadow then
             modelScene.PetShadow:SetAlpha(0)
         end
@@ -150,8 +127,8 @@ function private.AddOns.Blizzard_StableUI()
         -- Meaningful art, kept, in line with the PVPRankFrame badges.
     end
 
-    Skin.PetExpStatusBarTemplate(PetStableFrame.expBar)
-    Skin.PetStableLoyaltyLevelTemplate(PetStableFrame.loyaltyLevel)
+    -- PetExpColoredProgressBarTemplate since 70450; loyalty is plain text now.
+    Skin.ColoredProgressBarTemplate(PetStableFrame.expBar)
 
     ----====#####################====----
     --          Money frames           --
