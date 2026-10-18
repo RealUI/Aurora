@@ -849,12 +849,29 @@ function private.AddOns.Blizzard_Communities()
     Skin.CommunitiesFrameTabTemplate(CommunitiesFrame.RosterTab)
     Skin.CommunitiesFrameTabTemplate(CommunitiesFrame.GuildBenefitsTab)
     Skin.CommunitiesFrameTabTemplate(CommunitiesFrame.GuildInfoTab)
-    Util.PositionRelative("TOPLEFT", CommunitiesFrame, "TOPRIGHT", 1, -40, 5, "Down", {
+    local sideTabs = {
         CommunitiesFrame.ChatTab,
         CommunitiesFrame.RosterTab,
         CommunitiesFrame.GuildBenefitsTab,
         CommunitiesFrame.GuildInfoTab,
-    })
+    }
+
+    -- WoW Forever: guild preferred play (locale and datacenter), a fifth tab
+    -- under GuildInfoTab. Not on retail.
+    local preferredPlayTab = CommunitiesFrame.GuildPreferredPlaySettingsTab
+    if preferredPlayTab then
+        Skin.CommunitiesFrameTabTemplate(preferredPlayTab)
+        sideTabs[#sideTabs + 1] = preferredPlayTab
+    end
+    Util.PositionRelative("TOPLEFT", CommunitiesFrame, "TOPRIGHT", 1, -40, 5, "Down", sideTabs)
+
+    local preferredPlay = CommunitiesFrame.GuildPreferredPlaySettingsFrame
+    if preferredPlay then
+        Skin.DropdownButton(preferredPlay.LocaleDropdown)
+        Skin.UIPanelButtonTemplate(preferredPlay.LocaleApplyButton)
+        Skin.DropdownButton(preferredPlay.DatacenterDropdown)
+        Skin.UIPanelButtonTemplate(preferredPlay.DatacenterApplyButton)
+    end
 
     Skin.StreamDropDownMenuTemplate(CommunitiesFrame.StreamDropdown)
     Skin.GuildMemberListDropDownMenuTemplate(CommunitiesFrame.GuildMemberListDropdown)
