@@ -13,7 +13,7 @@ One package and one TOC, `Aurora.toc`, cover five clients. Each client loads onl
 
 | Client | Interface | Load directive | Skin manifest |
 | ------ | --------- | -------------- | ------------- |
-| Retail (Midnight 12.1.x) | `120100` | `[AllowLoadGameType standard]` | `AddOns_Mainline.xml` |
+| Retail (Midnight 12.1.x) | `120105` | `[AllowLoadGameType standard]` | `AddOns_Mainline.xml` |
 | WoW Forever (1.60.x beta) | `16001` | `[AllowLoadGameType camelot]` | `AddOns_Forever.xml` |
 | Mists of Pandaria Classic | `50504` | `[AllowLoadGameType mists]` | `AddOns_Mists.xml` |
 | Burning Crusade Classic | `20506` | `[AllowLoadGameType tbc]` | `AddOns_TBC.xml` |
