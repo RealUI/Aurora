@@ -248,8 +248,9 @@ local function SkinModernStyle(LFGParentFrame)
     })
 
     -- Named now ($parentCloseButton), so the unnamed-child sweep misses it.
+    -- Inherits UIPanelCloseButtonDefaultAnchors since Forever 70450.
     if _G.LFGParentFrameCloseButton then
-        Skin.UIPanelCloseButton(_G.LFGParentFrameCloseButton)
+        Skin.UIPanelCloseButtonDefaultAnchors(_G.LFGParentFrameCloseButton)
     end
 
     -- The bottom Tab1-3 are hidden in modern style; these right-side tabs
