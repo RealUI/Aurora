@@ -82,6 +82,20 @@ do --[[ AddOns\Blizzard_LegacyRewardTrack.xml ]]
 
         Base.SetBackdrop(Frame, Color.button)
         Base.CropIcon(Frame.Icon, Frame)
+
+        -- Highlight (70532) is the card-plate atlas drawn additively on hover,
+        -- which would bring back the plate faded out above. Blizzard only
+        -- toggles it with SetShown, so the alpha holds. The card is a Frame,
+        -- so Base.SetHighlight (it calls IsEnabled) does not apply.
+        if Frame.Highlight then
+            Frame.Highlight:SetAlpha(0)
+            Frame:HookScript("OnEnter", function(card)
+                card:SetBackdropBorderColor(Color.highlight, 1)
+            end)
+            Frame:HookScript("OnLeave", function(card)
+                card:SetBackdropBorderColor(Color.button, 1)
+            end)
+        end
     end
 end
 
