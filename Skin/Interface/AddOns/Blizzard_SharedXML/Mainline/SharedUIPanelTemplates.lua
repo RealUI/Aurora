@@ -236,18 +236,23 @@ end
 do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
     function Skin.UIPanelHideButtonNoScripts(Button)
         Skin.FrameTypeButton(Button)
+        -- The old 4/11/10/5 offsets fit the 32px button this template had
+        -- before 11.1.5. It is 24px now and every user sizes it to 20, so
+        -- those offsets left a 5px box with the 11px dash hanging out of it.
+        -- Symmetric insets, and a dash sized from the box, fit any size.
         Button:SetBackdropOption("offsets", {
             left = 4,
-            right = 11,
-            top = 10,
-            bottom = 5,
+            right = 4,
+            top = 4,
+            bottom = 4,
         })
 
         local bg = Button:GetBackdropTexture("bg")
         local hline = Button:CreateTexture()
         hline:SetColorTexture(1, 1, 1) -- static: not a theme color
-        hline:SetSize(11, 1)
+        hline:SetHeight(1)
         hline:SetPoint("BOTTOMLEFT", bg, 3, 3)
+        hline:SetPoint("BOTTOMRIGHT", bg, -3, 3)
         Button._auroraTextures = {hline}
     end
     function Skin.UIPanelCloseButton(Button)

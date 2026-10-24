@@ -33,15 +33,15 @@ local function WipeDialogBorderTextures(border)
     end
 end
 
--- Skin.UIPanelHideButtonNoScripts draws its box inset 11px from the button's
--- right and 10px from its top; Blizzard's TOPRIGHT -1,-1 anchor was made for
--- the ornate border, so on Aurora's flat one the box hung over the edge.
--- Re-anchor to the border backdrop so the box sits 4px inside its corner.
+-- Skin.UIPanelHideButtonNoScripts draws its box inset 4px inside the button;
+-- Blizzard's TOPRIGHT -1,-1 anchor was made for the ornate border, so on
+-- Aurora's flat one the box hung over the edge. Pin the button's corner to the
+-- border backdrop's so the box sits 4px inside it.
 local function AnchorHideButton(button, border)
     local bg = border and border.GetBackdropTexture and border:GetBackdropTexture("bg")
     if not (button and bg) then return end
     button:ClearAllPoints()
-    button:SetPoint("TOPRIGHT", bg, "TOPRIGHT", 11 - 4, 10 - 4)
+    button:SetPoint("TOPRIGHT", bg, "TOPRIGHT", 0, 0)
 end
 
 local LEGACY_BUTTON_TEXTURE_KEYS = {
