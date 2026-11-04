@@ -119,8 +119,10 @@ do --[[ FrameXML\ContainerFrame.xml ]]
         -- (bags-item-slot64, a rounded tile) and calls icon:SetAtlas, which
         -- carries its own texcoords and so undoes Base.CropIcon. That is what
         -- left the bag grid looking round-cornered. A filled slot takes
-        -- icon:SetTexture instead, which does not touch texcoords, so only the
-        -- atlas path needs handling.
+        -- icon:SetTexture instead, so only the atlas path needs handling here;
+        -- the texcoord reset Blizzard adds after SetTexture (Forever 70755,
+        -- retail 12.1.7) is Base.KeepIconCrop's job, set up by
+        -- Skin.FrameTypeItemButton.
         --
         -- Hide it rather than crop it: the rounding is inside the atlas art, so
         -- cropping only trims it, and Aurora's own backdrop already *is* the
@@ -163,6 +165,15 @@ do --[[ FrameXML\ContainerFrame.xml ]]
             -- Slots that were already empty when this ran will not see either
             -- hook until their next update, so settle the current state too.
             SetEmpty(icon:GetAtlas() ~= nil or icon:GetTexture() == nil)
+        end
+
+        -- Camelot's combined bag draws the owning bag's icon in empty slots, on
+        -- its own texture across the whole button. Keep it inside Aurora's slot.
+        local EmptyBagIcon = ItemButton.EmptyBagIcon
+        if icon and EmptyBagIcon then
+            Base.CropIcon(EmptyBagIcon)
+            EmptyBagIcon:ClearAllPoints()
+            EmptyBagIcon:SetAllPoints(icon)
         end
 
         if private.isRetail then
