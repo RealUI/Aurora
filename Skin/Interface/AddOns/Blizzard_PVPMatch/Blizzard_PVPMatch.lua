@@ -84,7 +84,64 @@ do --[[ AddOns\Blizzard_PVPMatch.xml ]]
     end
 end
 
+-- Forever 70755 gives both frames Camelot layouts: a NineSlice child instead of
+-- the art SetupArtwork swaps on retail, no inset border pieces, no loot pool and
+-- no requeue button. Only the scroll and tab keys carry over, so Forever takes
+-- its own path. Its background art has no parentKey, so it is found by atlas.
+local camelotArt = {
+    ["UI-Character-Info-Stat-BG"] = true,
+    ["UI-Character-Info-Stat-StoneBG3"] = true,
+    ["UI-Character-Info-ScrollLine"] = true,
+}
+local function HideCamelotArt(Frame)
+    for _, region in next, {Frame:GetRegions()} do
+        if region.GetAtlas and camelotArt[region:GetAtlas()] then
+            region:Hide()
+        end
+    end
+end
+local function SkinCamelotPanel(Frame, CloseButton, Content, ScrollCategories, ScrollBox, ScrollBar, TabGroup, tabs)
+    -- The panel backdrop follows the scroll box rule above: nothing is written
+    -- onto Frame. It sits at Frame's own level, not behind the NineSlice, whose
+    -- template sets frameLevel 500 and would put it over the whole table.
+    Frame.NineSlice:SetAlpha(0)
+    local bg = _G.CreateFrame("Frame", nil, Frame)
+    bg:SetAllPoints()
+    bg:SetFrameLevel(Frame:GetFrameLevel())
+    Base.SetBackdrop(bg, Color.frame, Util.GetFrameAlpha())
+
+    Skin.UIPanelCloseButtonDefaultAnchors(CloseButton)
+
+    HideCamelotArt(Content)
+    HideCamelotArt(ScrollCategories)
+    BackdropBehind(ScrollBox)
+    Skin.MinimalScrollBar(ScrollBar)
+
+    for _, tab in ipairs(tabs) do
+        Skin.PanelTabButtonTemplate(tab)
+    end
+    Util.PositionRelative("TOPLEFT", TabGroup, "BOTTOMLEFT", 20, 49, 1, "Right", tabs)
+end
+
 function private.AddOns.Blizzard_PVPMatch()
+    if private.isForever then
+        local results = _G.PVPMatchResults
+        local resultsContent = results.content
+        local resultsTabs = resultsContent.tabContainer.tabGroup
+        SkinCamelotPanel(results, results.CloseButton, resultsContent, resultsContent.scrollCategories,
+            resultsContent.scrollBox, resultsContent.scrollBar, resultsTabs,
+            {resultsTabs.tab1, resultsTabs.tab2, resultsTabs.tab3})
+        Skin.SharedButtonTemplate(results.buttonContainer.leaveButton)
+
+        local scoreboard = _G.PVPMatchScoreboard
+        local scoreContent = scoreboard.Content
+        local scoreTabs = scoreContent.TabContainer.TabGroup
+        SkinCamelotPanel(scoreboard, scoreboard.ClosePanelButton, scoreContent, scoreContent.ScrollCategories,
+            scoreContent.ScrollBox, scoreContent.ScrollBar, scoreTabs,
+            {scoreTabs.Tab1, scoreTabs.Tab2, scoreTabs.Tab3})
+        return
+    end
+
     ----====#####################====----
     --         PVPMatchResults         --
     ----====#####################====----

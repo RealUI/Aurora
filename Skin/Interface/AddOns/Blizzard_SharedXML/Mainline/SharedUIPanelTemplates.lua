@@ -1263,6 +1263,9 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
     function Skin.BigRedThreeSliceButtonTemplate(Button)
         Skin.ThreeSliceButtonTemplate(Button)
     end
+    function Skin.SharedButtonTemplate(Button)
+        Skin.BigRedThreeSliceButtonTemplate(Button)
+    end
     function Skin.SharedButtonLargeTemplate(Button)
         Skin.BigRedThreeSliceButtonTemplate(Button)
     end
