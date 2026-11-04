@@ -14,6 +14,12 @@ do --[[ AddOns\Blizzard_ProfessionsBook ]]
     function Skin.ProfessionButtonTemplate(CheckButton)
         Base.CropIcon(CheckButton.IconTexture, CheckButton)
 
+        -- Camelot's spell buttons carry a gold Professions-Slot-Frame atlas on
+        -- OVERLAY, which would draw over the squared icon.
+        if CheckButton.IconBorder then
+            CheckButton.IconBorder:Hide()
+        end
+
         -- $parentNameFrame only resolves for a named button. Camelot's
         -- profession cards declare their spell buttons with a parentKey and no
         -- name, so GetName() is nil there and the concat below threw.
