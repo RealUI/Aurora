@@ -59,7 +59,7 @@ flavors = {
         'skin_dirs': ['Mists', 'Classic'],
         'adp': 50,
     },
-    # WoW Forever (1.60.x, client folder _classic_beta_, upstream branch
+    # WoW Forever (1.60.x, client folder _forever_, upstream branch
     # `forever`). Despite the 1.x version it is NOT a classic-family client:
     # Blizzard built it on the Mainline architecture with a 'Camelot' game
     # overlay ([Family] = Mainline, [Game] = Camelot, gametype tokens
