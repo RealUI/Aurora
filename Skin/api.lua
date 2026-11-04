@@ -121,6 +121,33 @@ function Base.CropIcon(texture, parent)
         return iconBorder
     end
 end
+
+--[[ Base.KeepIconCrop(_texture_)
+Keeps an item button's icon cropped after Blizzard resets its texture
+coordinates. Since Forever 70755 and retail 12.1.7, `SetItemButtonTexture`
+calls `icon:SetTexCoord(0, 1, 0, 1)` straight after `SetTexture`, which undoes a
+`Base.CropIcon` made at skin time on every texture change. Call this once
+alongside that crop on any icon `GetItemButtonIconTexture` can return.
+
+The hook acts only on the full reset, so the crop it applies cannot re-enter it.
+It passes no parent to `Base.CropIcon`: this runs on every texture change, and a
+parent would create a border texture each time.
+
+**Args:**
+* `texture` - the icon to keep cropped _(Texture)_
+--]]
+local keptCrops = _G.setmetatable({}, {__mode = "k"})
+local function ReapplyCrop(texture, left, right, top, bottom)
+    if left == 0 and right == 1 and top == 0 and bottom == 1 then
+        Base.CropIcon(texture)
+    end
+end
+function Base.KeepIconCrop(texture)
+    if not texture or not private.isRetail or keptCrops[texture] then return end
+
+    keptCrops[texture] = true
+    _G.hooksecurefunc(texture, "SetTexCoord", ReapplyCrop)
+end
 function Base.CropCircularIcon(icon, parent)
     icon:SetMask("")
     local frame = parent or icon:GetParent()

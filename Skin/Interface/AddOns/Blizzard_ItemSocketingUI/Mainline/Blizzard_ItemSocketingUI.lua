@@ -97,6 +97,7 @@ do --[[ AddOns\Blizzard_ItemSocketingUI.xml ]]
         }, {bg = Button.Background})
 
         Base.CropIcon(Button.Icon)
+        Base.KeepIconCrop(Button.Icon)
         Button.Icon:ClearAllPoints()
         Button.Icon:SetPoint("TOPLEFT", 1, -1)
         Button.Icon:SetPoint("BOTTOMRIGHT", -1, 1)

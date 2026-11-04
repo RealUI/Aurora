@@ -199,6 +199,7 @@ do --[[ FrameXML\ItemButtonTemplate.xml ]]
 
         local bg = Button:GetBackdropTexture("bg")
         Base.CropIcon(Button.icon)
+        Base.KeepIconCrop(Button.icon)
         Button.icon:SetPoint("TOPLEFT", bg, 1, -1)
         Button.icon:SetPoint("BOTTOMRIGHT", bg, -1, 1)
 
@@ -213,6 +214,7 @@ do --[[ FrameXML\ItemButtonTemplate.xml ]]
     end
     function Skin.CircularGiantItemButtonTemplate(Button)
         Base.CropIcon(Button.Icon)
+        Base.KeepIconCrop(Button.Icon)
 
         Base.SetBackdrop(Button, Color.black, Color.frame.a)
         Button:SetBackdropOption("offsets", {
@@ -229,6 +231,7 @@ do --[[ FrameXML\ItemButtonTemplate.xml ]]
         Button.EmptyBackground:Hide()
 
         Base.CropIcon(Button.Icon)
+        Base.KeepIconCrop(Button.Icon)
         Base.CreateBackdrop(Button, {
             bgFile = [[Interface\PaperDoll\UI-Backpack-EmptySlot]],
             tile = false,
@@ -296,6 +299,7 @@ do --[[ FrameXML\ItemButtonTemplate.xml ]]
 
         local bg = Button:GetBackdropTexture("bg")
         Base.CropIcon(Button.Icon)
+        Base.KeepIconCrop(Button.Icon)
         Button.Icon:SetPoint("TOPLEFT", bg, 1, -1)
         Button.Icon:SetPoint("BOTTOMRIGHT", bg, -1, 1)
 
@@ -324,6 +328,7 @@ do --[[ FrameXML\ItemButtonTemplate.xml ]]
 
         local bg = Button:GetBackdropTexture("bg")
         Base.CropIcon(Button.Icon)
+        Base.KeepIconCrop(Button.Icon)
         Button.Icon:SetPoint("TOPLEFT", bg, 1, -1)
         Button.Icon:SetPoint("BOTTOMRIGHT", bg, -1, 1)
 

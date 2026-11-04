@@ -35,6 +35,7 @@ do --[[ AddOns\Blizzard_StableUI.xml ]]
         local icon = name and _G[name .. "IconTexture"]
         if icon then
             Base.CropIcon(icon, CheckButton)
+            Base.KeepIconCrop(icon)
         end
 
         -- Slot frames since 70450: stabled / current / locked atlases the

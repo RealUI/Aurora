@@ -78,6 +78,7 @@ function private.AddOns.Blizzard_ItemInteractionUI()
         ItemSlot.Icon:SetPoint("TOPLEFT", 1, -1)
         ItemSlot.Icon:SetPoint("BOTTOMRIGHT", -1, 1)
         Base.CropIcon(ItemSlot.Icon)
+        Base.KeepIconCrop(ItemSlot.Icon)
 
         ItemSlot.GlowOverlay:SetAlpha(0)
     end

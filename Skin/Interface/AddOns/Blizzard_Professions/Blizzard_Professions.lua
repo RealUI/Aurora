@@ -30,11 +30,17 @@ do --[[ AddOns\Blizzard_Professions ]]
         Button:ClearNormalTexture()
         Base.SetBackdrop(Button, Color.black, Color.frame.a)
         Button._auroraIconBorder = Button
-        if Button.Icon then Base.CropIcon(Button.Icon) end
+        if Button.Icon then
+            Base.CropIcon(Button.Icon)
+            Base.KeepIconCrop(Button.Icon)
+        end
         -- The ItemButton intrinsic draws item textures on the lowercase `icon`
         -- child (SetItem path); the template's `Icon` is only assigned
         -- manually (currencies). Crop both (B40).
-        if Button.icon then Base.CropIcon(Button.icon) end
+        if Button.icon then
+            Base.CropIcon(Button.icon)
+            Base.KeepIconCrop(Button.icon)
+        end
         -- B40: match the action bar treatment on the state textures
         Base.CropIcon(Button:GetPushedTexture())
         Base.CropIcon(Button:GetHighlightTexture())

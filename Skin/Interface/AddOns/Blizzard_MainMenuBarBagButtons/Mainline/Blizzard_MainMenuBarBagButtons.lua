@@ -92,6 +92,7 @@ do --[[ FrameXML\MainMenuBarBagButtons.xml ]]
         end
 
         Restyle()
+        Base.KeepIconCrop(ItemButton.icon)
         if ItemButton.UpdateTextures then
             _G.hooksecurefunc(ItemButton, "UpdateTextures", Restyle)
         end

@@ -183,6 +183,7 @@ do --[[ FrameXML\QuestInfo.xml ]]
         styled[Button] = true
 
         Base.CropIcon(Button.Icon)
+        Base.KeepIconCrop(Button.Icon)
         if Button.NameFrame then
             SetNameBand(Button)
         end
