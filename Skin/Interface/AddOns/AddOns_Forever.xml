@@ -10,6 +10,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <!-- This section is added for Blizzard_ActionBar by the Aurora XML Updater -->
     <!--Script file="Blizzard_ActionBar\Shared\ActionButtonUtil.lua"/-->
     <!--Script file="Blizzard_ActionBar\Mainline\ActionButtonUtilOverrides.lua"/-->
+    <!--Script file="Blizzard_ActionBar\Camelot\ActionButtonUtilOverrides.lua"/--><!-- additive -->
     <!--Script file="Blizzard_ActionBar\Shared\ActionButtonSpellAlerts.lua"/-->
     <!--Script file="Blizzard_ActionBar\Mainline\AssistedCombatManager.lua"/-->
     <!--Script file="Blizzard_ActionBar\Shared\ActionButton.lua"/-->
