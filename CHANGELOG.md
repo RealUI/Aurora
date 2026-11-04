@@ -1,4 +1,20 @@
-﻿## [12.1.5.2] ##
+﻿## [12.1.5.3] ##
+### Fixed ###
+
+  * fix: **the PvP scoreboard and match results are skinned on Forever.** Build 70755 gave both frames new layouts, so the old skin failed without an error and left them stock. Forever now has its own skin for them, including the results window's Leave button [forever]
+  * fix: **item icons stay cropped.** Forever 70755 resets an item button's texture coordinates on every icon change, which undid Aurora's crop and brought back each icon's built-in border. `Base.KeepIconCrop` re-applies it on bags, vendors, quest rewards and the other item buttons. The 12.1.7 PTR has the same reset, so retail is covered ahead of that patch [mainline/forever]
+  * fix: empty slots in combined bags draw the bag's icon inside the slot, cropped, instead of uncropped across the whole button [forever]
+  * fix: the gold border on the profession cards' spell buttons is hidden; it drew over the square icons [forever]
+  * fix: the swing timer's bar art stays hidden; since 70532 Forever resets its alpha on every swing [forever]
+  * fix: reward track cards hide Blizzard's new hover highlight, which brought back the card plate, and light up their border on hover instead [forever]
+  * fix: the minimize button on the ready popups fits its 20 px size, where the box was 5 px tall and the dash hung outside it [mainline]
+
+### Changed ###
+
+  * chg: skin manifests regenerated for Forever 1.60.1.70790 [forever]
+
+
+## [12.1.5.2] ##
 ### Added ###
 
   * add: the guild Preferred Play tab (locale and datacenter settings) is skinned and joins the Communities side tabs; its dropdowns and Apply buttons are skinned [forever]
@@ -1088,7 +1104,9 @@ A hotfix for how 12.1.0.11 was published. The addon files are unchanged.
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.5.1...develop
+[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.5.3...develop
+[12.1.5.3]: https://github.com/RealUI/Aurora/compare/12.1.5.2...12.1.5.3
+[12.1.5.2]: https://github.com/RealUI/Aurora/compare/12.1.5.1...12.1.5.2
 [12.1.5.1]: https://github.com/RealUI/Aurora/compare/12.1.5.0...12.1.5.1
 [12.1.5.0]: https://github.com/RealUI/Aurora/compare/12.1.0.15...12.1.5.0
 [12.1.0.15]: https://github.com/RealUI/Aurora/compare/12.1.0.14...12.1.0.15
