@@ -347,11 +347,14 @@ function private.FrameXML.MailFrame()
         -- and the count does not hold on Forever -- select(9, ...) returned nil
         -- and took the rest of this skin with it. Match on the texture instead,
         -- which covers both halves and does not care how many regions precede
-        -- them.
-        for _, region in next, {_G.OpenMailFrame:GetRegions()} do
-            if region:IsObjectType("Texture") then
-                local texture = region:GetTexture()
-                if type(texture) == "string" and texture:lower():find("ui%-classtrainer%-horizontalbar") then
+        -- them. GetTexture() hands back a fileID, not the path the XML names,
+        -- so match against the named left half's own value: the old path
+        -- match never fired and the divider stayed up over the attachments.
+        local barLeft = _G.OpenMailHorizontalBarLeft
+        local barTexture = barLeft and barLeft:GetTexture()
+        if barTexture then
+            for _, region in next, {_G.OpenMailFrame:GetRegions()} do
+                if region:IsObjectType("Texture") and region:GetTexture() == barTexture then
                     region:Hide()
                 end
             end
