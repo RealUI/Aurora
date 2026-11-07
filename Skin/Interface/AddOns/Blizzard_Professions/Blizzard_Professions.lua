@@ -388,19 +388,30 @@ function private.AddOns.Blizzard_Professions()
     -- from GetButtonTemplate(), which runs *after* this skin, so the guards
     -- below simply found nil and skipped them. Hook the creation point as well;
     -- the sweep below still covers the case where controls already exist.
+    --
+    -- The template is the page's own choice: GetButtonTemplate() is
+    -- UIPanelButtonTemplate on Mainline but SharedButtonSmallTemplate on
+    -- Camelot (Camelot\Blizzard_ProfessionsCrafting.lua:28), a three-slice
+    -- whose pieces are Left/Center/Right and are re-set on every state change.
+    -- The UIPanelButton skin hides Left/Right once and never touches Center,
+    -- so on Forever the red Center plate and the re-set end caps showed
+    -- through. Skin with the skin that matches the template.
+    local function SkinCreateButton(page, button)
+        if not button then return end
+        local template = page.GetButtonTemplate and page:GetButtonTemplate()
+        local skin = template and Skin[template] or Skin.UIPanelButtonTemplate
+        skin(button)
+    end
+
     if CraftingPage.CreateControls then
         _G.hooksecurefunc(CraftingPage, "CreateControls", function(self)
-            Skin.UIPanelButtonTemplate(self.CreateButton)
-            Skin.UIPanelButtonTemplate(self.CreateAllButton)
+            SkinCreateButton(self, self.CreateButton)
+            SkinCreateButton(self, self.CreateAllButton)
         end)
     end
 
-    if CraftingPage.CreateButton then
-        Skin.UIPanelButtonTemplate(CraftingPage.CreateButton)
-    end
-    if CraftingPage.CreateAllButton then
-        Skin.UIPanelButtonTemplate(CraftingPage.CreateAllButton)
-    end
+    SkinCreateButton(CraftingPage, CraftingPage.CreateButton)
+    SkinCreateButton(CraftingPage, CraftingPage.CreateAllButton)
     if CraftingPage.ViewGuildCraftersButton then
         Skin.UIPanelButtonTemplate(CraftingPage.ViewGuildCraftersButton)
     end
