@@ -105,6 +105,14 @@ do --[[ AddOns\Blizzard_Communities.xml ]]
             Skin.InsetFrameTemplate(Frame.InsetFrame)
             Skin.MinimalScrollBar(Frame.ScrollBar)
 
+            -- Blizzard lifts this inset to frame level 100 in its OnLoad so its
+            -- border art paints over the rows (CommunitiesMemberList.xml:363).
+            -- Aurora's inset carries a backdrop instead, and from up there it
+            -- covered every name in the roster ("member list too dark").
+            -- Drop it back under the ScrollBox; the frame is plain chrome and
+            -- Blizzard never sets its level again.
+            Frame.InsetFrame:SetFrameLevel(Frame:GetFrameLevel())
+
             -- Not the ScrollBox: `Base.SetBackdrop` on the frame that runs
             -- `secureexecuterange` over the member initializers is what made
             -- memberInfo fields come back as secret values.
