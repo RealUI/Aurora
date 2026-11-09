@@ -1,4 +1,13 @@
-﻿## [12.1.5.3] ##
+﻿## [12.1.5.4] ##
+### Fixed ###
+
+  * fix: **guild and community roster names are no longer dimmed.** Blizzard raises the member list's inset above the rows so its border draws over them, and with Aurora's backdrop on it the inset covered every name. It now sits under the list [mainline/forever]
+  * fix: **trainer list rows are skinned.** Only the skill step button had the skin, so every row kept Blizzard's dark row plate. Forever's category headers get a flat backdrop [mainline/forever]
+  * fix: the divider above an open letter's attachments is hidden. The skin matched it by texture path, but `GetTexture()` returns a file ID, so the match never fired [mainline/forever]
+  * fix: the profession window's Create and Create All buttons are skinned to match the template the page uses. On Forever that is `SharedButtonSmallTemplate`, whose red center plate and end caps showed through the old skin [forever]
+
+
+## [12.1.5.3] ##
 ### Fixed ###
 
   * fix: **the PvP scoreboard and match results are skinned on Forever.** Build 70755 gave both frames new layouts, so the old skin failed without an error and left them stock. Forever now has its own skin for them, including the results window's Leave button [forever]
@@ -1104,7 +1113,8 @@ A hotfix for how 12.1.0.11 was published. The addon files are unchanged.
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.5.3...develop
+[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.5.4...develop
+[12.1.5.4]: https://github.com/RealUI/Aurora/compare/12.1.5.3...12.1.5.4
 [12.1.5.3]: https://github.com/RealUI/Aurora/compare/12.1.5.2...12.1.5.3
 [12.1.5.2]: https://github.com/RealUI/Aurora/compare/12.1.5.1...12.1.5.2
 [12.1.5.1]: https://github.com/RealUI/Aurora/compare/12.1.5.0...12.1.5.1
