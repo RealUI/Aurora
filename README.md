@@ -14,7 +14,7 @@ One package and one TOC, `Aurora.toc`, cover five clients. Each client loads onl
 | Client | Interface | Load directive | Skin manifest |
 | ------ | --------- | -------------- | ------------- |
 | Retail (Midnight 12.1.x) | `120105` | `[AllowLoadGameType standard]` | `AddOns_Mainline.xml` |
-| WoW Forever (1.60.x beta) | `16001` | `[AllowLoadGameType camelot]` | `AddOns_Forever.xml` |
+| WoW Forever (1.60.x) | `16001` | `[AllowLoadGameType camelot]` | `AddOns_Forever.xml` |
 | Mists of Pandaria Classic | `50504` | `[AllowLoadGameType mists]` | `AddOns_Mists.xml` |
 | Burning Crusade Classic | `20506` | `[AllowLoadGameType tbc]` | `AddOns_TBC.xml` |
 | Classic Era (1.15.x) | `11509` | `[AllowLoadGameType vanilla]` | `AddOns_Vanilla.xml` |
@@ -96,7 +96,7 @@ Developer Notes
 
 **`GameTooltip_InsertFrame`**: Aurora does not replace this global, and should not. Releases up to 12.1.0.12 replaced it to guard secret `Round()` inputs on the loot history roll tooltips. The cost was trinket upgrades: the replacement wrote `insertedFrames` on the item upgrade preview tooltip, and on confirm Blizzard read that tainted field one call before `C_ItemUpgrade.UpgradeItem()`, which was then refused for any item whose effect text reached the truncation branch. The secret values only appeared because the loot history already ran tainted, from Aurora's own overrides there, which are gone. An A/B with Blizzard's original confirmed both sides: trinket upgrades go through and the LFR loot history is clean.
 
-**`ShouldShowMawBuffs`**: Aurora wraps this global so that it returns `false` while `C_Secrets.ShouldAurasBeSecret()` is true. Blizzard's version calls `C_UnitAuras.GetAuraDataByIndex("player", 1, "MAW")` without a guard, and that call throws when auras are secret and the execution is tainted. Its callers are inside the objective tracker's update and layout code, so the throw breaks the delve and LFR stage blocks partway through layout. Owning the global has a taint cost on the scenario tracker's `UNIT_AURA` path. The wrapper was removed once after several clean runs, and the error returned in the next delve, so clean runs do not show it is unneeded. It can go once the objective tracker skin stops tainting that layout code.
+**`ShouldShowMawBuffs`**: Aurora does not wrap this global, and must not again. From 12.1.0.8 to 12.1.0.13 it did, to hide a throw from `C_UnitAuras.GetAuraDataByIndex("player", 1, "MAW")` in the objective tracker's delve and LFR stage blocks. A login taint log showed the wrapper caused the problem it was meant to hide: the scenario tracker reads the global on every layout, from its first update at login, and reading an addon-written global taints that execution, which then spread to the whole tracker's layout state. The throw only happens when the tracker is already tainted. The objective tracker skin rewrite (Aurora 12.1.0.14) removed that taint, so the wrapper is gone; fix taint at its source rather than by replacing a Blizzard global.
 
 
 Bug Reports
