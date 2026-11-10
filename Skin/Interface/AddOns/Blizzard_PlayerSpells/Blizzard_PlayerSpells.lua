@@ -390,6 +390,63 @@ do  -- PlayerSpellsFrame.SpecFrame
             Base.CropIcon(Frame.Icon, Frame)
         end
     end
+
+    -- B221: Blizzard_SpellSearch\Blizzard_SpellSearchTemplates.xml, shared by
+    -- the spellbook and talents search boxes on retail and Forever. Aurora had
+    -- no skin for it, so the preview list kept Blizzard's _search-rowbg rows,
+    -- the blue search-highlight glow and the UI-Frame bevelled border.
+    -- Blizzard_SpellSearch has no skin file of its own; it loads with
+    -- Blizzard_PlayerSpells, its only consumer.
+    local function SkinSearchRow(Button)
+        Button:ClearNormalTexture()
+        Button:ClearPushedTexture()
+        -- Blizzard only ever Show/Hide/SetShown's this, never re-sets the
+        -- atlas, so the flat colour sticks.
+        Util.SetHighlightColor(Button.HighlightTexture, 0.2)
+    end
+    function Skin.SpellSearchPreviewResultTemplate(Button)
+        if not Button or private.IsSkinned(Button) then return end
+        private.SetSkinned(Button, true)
+
+        SkinSearchRow(Button)
+        Button.IconFrame:SetTexture("")
+        Base.CropIcon(Button.Icon, Button)
+    end
+    function Skin.SpellSearchSuggestedResultButtonTemplate(Button)
+        if not Button or private.IsSkinned(Button) then return end
+        private.SetSkinned(Button, true)
+
+        -- The magnifying-glass Icon is a glyph, not art; it stays.
+        SkinSearchRow(Button)
+    end
+
+    -- Result rows come from the ScrollBox's view pool.
+    function Hook.SpellSearchPreviewAcquired(owner, frame)
+        Skin.SpellSearchPreviewResultTemplate(frame)
+    end
+    -- Suggested rows ("Missing from action bar", "Assisted Combat spells")
+    -- come from a CreateFramePool the mixin acquires in UpdateResultsDisplay,
+    -- lazily, so they do not exist at skin time.
+    function Hook.SpellSearchPreviewUpdateResultsDisplay(self)
+        for button in self.suggestedResultButtonsPool:EnumerateActive() do
+            Skin.SpellSearchSuggestedResultButtonTemplate(button)
+        end
+    end
+
+    function Skin.SpellSearchPreviewContainerTemplate(Frame)
+        if not Frame or private.IsSkinned(Frame) then return end
+        private.SetSkinned(Frame, true)
+
+        Skin.FrameTypeFrame(Frame)
+        for _, key in next, {"Background", "BorderAnchor", "BotRightCorner", "BottomBorder", "LeftBorder", "RightBorder"} do
+            if Frame[key] then
+                Frame[key]:SetTexture("")
+            end
+        end
+
+        _G.ScrollUtil.AddAcquiredFrameCallback(Frame.ScrollBox, Hook.SpellSearchPreviewAcquired, Frame)
+        _G.hooksecurefunc(Frame, "UpdateResultsDisplay", Hook.SpellSearchPreviewUpdateResultsDisplay)
+    end
 end
 
 function private.AddOns.Blizzard_PlayerSpells()
@@ -549,6 +606,7 @@ function private.AddOns.Blizzard_PlayerSpells()
     Skin.UIPanelButtonTemplate(TalentsFrame.ApplyButton)
     Skin.UIPanelButtonTemplate(TalentsFrame.InspectCopyButton)
     Skin.SearchBoxTemplate(TalentsFrame.SearchBox)
+    Skin.SpellSearchPreviewContainerTemplate(TalentsFrame.SearchPreviewContainer) -- B221
     if TalentsFrame.LoadSystem and TalentsFrame.LoadSystem.Dropdown then
         Skin.DropdownButton(TalentsFrame.LoadSystem.Dropdown)
     end
@@ -770,11 +828,24 @@ function private.AddOns.Blizzard_PlayerSpells()
     if SpellBookFrame.HelpPlateButton then SpellBookFrame.HelpPlateButton:Hide() end
 
     Skin.SearchBoxTemplate(SpellBookFrame.SearchBox)
+    Skin.SpellSearchPreviewContainerTemplate(SpellBookFrame.SearchPreviewContainer) -- B221
     -- SpellBookSettingsDropdownTemplate inherits UIPanelArrowDropdownButtonTemplate,
     -- not WowStyle1DropdownTemplate, so Skin.DropdownButton was the wrong skin
     -- and left the gold arrow in place.
     if SpellBookFrame.SettingsDropdown then
         Skin.UIPanelArrowDropdownButtonTemplate(SpellBookFrame.SettingsDropdown)
+
+        -- B221: Camelot's SpellBookSearchBoxTemplate anchors the search box
+        -- RIGHT to the dropdown's LEFT at y=4, lifting it to suit Blizzard's
+        -- art. Aurora centres both backdrops on their frames (the box's 20px
+        -- backdrop on its 30px frame, the arrow on its 15x16 frame), so the
+        -- arrow read 4px low. Drop the lift. The anchor is XML-only --
+        -- UpdateAttic moves the dropdown and ResizeSearchBox only sets the
+        -- width -- so this holds. Retail's anchor already has y=0.
+        if private.isForever then
+            SpellBookFrame.SearchBox:ClearAllPoints()
+            SpellBookFrame.SearchBox:SetPoint("RIGHT", SpellBookFrame.SettingsDropdown, "LEFT", -5, 0)
+        end
     end
 
     -- Not a fixed 1..3: Camelot builds the category tabs from the character's
