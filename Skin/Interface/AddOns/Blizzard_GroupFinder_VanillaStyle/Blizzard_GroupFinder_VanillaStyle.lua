@@ -54,7 +54,8 @@ end
     NOT touched: the LFGListingComment EditBox (Blizzard secure-references it
     and disables SetText/paste — anti-automation hardening; only its
     UIPanelInputScrollFrameTemplate container is skinned), the role icon
-    buttons and gear OptionsButtons (meaningful icon art), and the LFG eye
+    buttons and gear OptionsButtons (meaningful icon art; Forever's modern
+    style restyles the Browse gear, see SkinBrowseSearchRow), and the LFG eye
     animation (active-queue indicator).
 ]]
 
@@ -233,6 +234,33 @@ local function SkinWhoList()
     end
 end
 
+-- B222: Browse's search row (Mainline\Blizzard_LFGVanilla_Browse.xml:490-595).
+-- The dropdowns are WowStyle1 (25 tall, Blizzard_Menu\Mainline\MenuTemplates.xml),
+-- but the refresh button is a 32x32 square and the LFGOptionsButton gear is a
+-- 16x16 pinned to the panel's TOPRIGHT (-12, -32), about 15px above the row.
+-- Both are plain, non-secure buttons that Blizzard never re-anchors in code.
+local function SkinBrowseSearchRow(Browse)
+    local refresh, options = Browse.RefreshButton, Browse.OptionsButton
+    if refresh then
+        refresh:SetSize(25, 25) -- B222: dropdown height; still LEFT-anchored to ActivityDropdown
+    end
+    if options then
+        -- B222: an Aurora button in line with the row, like the gear dropdowns
+        -- Aurora skins elsewhere (UIPanelIconDropdownButtonTemplate, e.g.
+        -- Blizzard_HousingBulletinBoard's GearDropdown): Skin.DropdownButton
+        -- plus the flat questlog-icon-setting gear in place of OptionsIcon-Brown.
+        Skin.DropdownButton(options)
+        options:SetSize(25, 25)
+        options:ClearAllPoints()
+        options:SetPoint("LEFT", refresh or Browse.ActivityDropdown, "RIGHT", 9, 0)
+        if options.Icon then
+            options.Icon:SetAtlas("questlog-icon-setting", true)
+            options.Icon:ClearAllPoints()
+            options.Icon:SetPoint("CENTER") -- OnMouseDown/Up nudge it via AdjustPointsOffset
+        end
+    end
+end
+
 -- Modern style only (Forever): the parts of the 70009 restyle outside the
 -- three panels' chrome. Kept out of the addon function for the complexity limit.
 local function SkinModernStyle(LFGParentFrame)
@@ -260,6 +288,7 @@ local function SkinModernStyle(LFGParentFrame)
     Skin.LargeSideTabButtonTemplate(LFGParentFrame.WhoListingTab)
 
     StripPanel(_G.LFGBrowseFrame)
+    SkinBrowseSearchRow(_G.LFGBrowseFrame)
 
     local Listing = _G.LFGListingFrame
     StripPanel(Listing)
