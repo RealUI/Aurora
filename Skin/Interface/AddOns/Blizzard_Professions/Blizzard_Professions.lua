@@ -49,24 +49,13 @@ do --[[ AddOns\Blizzard_Professions ]]
     Hook.ProfessionsRecipeListCategoryMixin = {}
     function Hook.ProfessionsRecipeListCategoryMixin:Init(node)
         if not private.IsSkinned(self) then
-            -- ProfessionsRecipeListCategoryTemplate inherits
-            -- ListHeaderVisualTemplate, whose three-slice is Left/Middle/Right
-            -- (Options_ListExpand_*) with a HighlightLeft/Middle/Right set over
-            -- it. The old keys here -- LeftPiece/RightPiece/CenterPiece --
-            -- exist nowhere in that template, so these headers were never
-            -- actually skinned. **Not a Camelot difference: the template is
-            -- byte-identical in both trees, so this was equally broken on
-            -- retail.**
-            for _, key in next, {"Left", "Middle", "Right"} do
-                local region = self[key]
-                if region then region:SetAlpha(0) end
-            end
-
-            -- The highlight trio keeps its job and loses Blizzard's art.
-            for _, key in next, {"HighlightLeft", "HighlightMiddle", "HighlightRight"} do
-                local region = self[key]
-                if region then Util.SetHighlightColor(region, 0.2) end
-            end
+            -- B220: ProfessionsRecipeListCategoryTemplate inherits
+            -- ListHeaderVisualTemplate, whose brown bar is the button's own
+            -- NormalTexture. The Left/Middle/Right and HighlightLeft/Middle/
+            -- Right keys this hook used to hide belong to
+            -- ListHeaderThreeSliceTemplate, a different template, so the
+            -- category headers kept Blizzard's bar on retail and Forever.
+            Skin.ListHeaderVisualTemplate(self)
 
             private.SetSkinned(self, true)
         end
