@@ -276,6 +276,11 @@ function private.AddOns.Blizzard_WorldMap()
     -- CloseButton: dark square with X icon.
     if BorderFrame.CloseButton then
         StyleTitleButton(BorderFrame.CloseButton, "\195\151")  -- × (U+00D7)
+        -- B219: Forever's Camelot OnLoad anchors the close button TOPRIGHT 0,3,
+        -- so it stuck out above the frame. Sit it inside the title bar corner,
+        -- where the inset boxes of the other Aurora close buttons sit.
+        BorderFrame.CloseButton:ClearAllPoints()
+        BorderFrame.CloseButton:SetPoint("TOPRIGHT", BorderFrame, "TOPRIGHT", -3, -3)
     end
 
     -- MaximizeMinimize: dark squares with arrow icons matching the old Aurora
@@ -283,6 +288,12 @@ function private.AddOns.Blizzard_WorldMap()
     -- diagonal + corner bars; we approximate with Unicode arrows.
     local maxMin = BorderFrame.MaximizeMinimizeFrame
     if maxMin then
+        -- B219: both buttons are setAllPoints children, so StyleTitleButton's
+        -- 22x22 never applied to them; they filled the frame (24 on retail, 28
+        -- from Forever's Camelot OnLoad), which made + larger than the close ×.
+        -- Size the frame itself to match the close button.
+        maxMin:SetSize(22, 22)
+
         -- ASCII only. These icons are drawn as TEXT (see StyleTitleButton), so
         -- they are limited to what RealUI's font actually contains: arrows
         -- (U+2197/2199) and geometric shapes (U+25B2/25BC) both rendered as the
