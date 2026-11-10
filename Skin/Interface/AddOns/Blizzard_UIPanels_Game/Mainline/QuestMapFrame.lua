@@ -405,6 +405,45 @@ do --[[ FrameXML\QuestMapFrame.xml ]]
 end
 
 function private.FrameXML.QuestMapFrame()
+    ------------------
+    -- DetailsFrame --
+    ------------------
+    -- B216: the quest details page goes first. This whole function runs
+    -- under the one pcall in Skin/init.lua's file loop, so an error anywhere
+    -- above the details block (popup, the SkinQuestMapFrameTabs walk over
+    -- every QuestMapFrame descendant, story header, tooltips, session bar)
+    -- skipped it without a message, and the page kept Blizzard's red buttons,
+    -- header band and reward band (seen on Forever). This block only touches
+    -- the details frame's own XML keys, identical on retail and Forever.
+    local DetailsFrame = _G.QuestMapFrame.DetailsFrame
+    local bg, overlay, _, _ = DetailsFrame:GetRegions()
+
+    bg:Hide()
+    overlay:Hide()
+    local BorderFrame = DetailsFrame.BorderFrame
+    BorderFrame:Hide()
+
+    local BackFrame = DetailsFrame.BackFrame
+    Base.StripBlizzardTextures(BackFrame)
+    Skin.UIPanelButtonTemplate(BackFrame.BackButton)
+
+    local RewardsFrameContainer = DetailsFrame.RewardsFrameContainer
+    local RewardsFrame = RewardsFrameContainer.RewardsFrame
+    Base.StripBlizzardTextures(RewardsFrame)
+    Skin.ScrollFrameTemplate(DetailsFrame.ScrollFrame)
+
+    Skin.UIPanelButtonTemplate(_G.QuestFrameCompleteButton)
+    local QuestFrameCompleteButtonLeft, QuestFrameCompleteButtonRight = select(6, _G.QuestFrameCompleteButton:GetRegions())
+    QuestFrameCompleteButtonLeft:Hide()
+    QuestFrameCompleteButtonRight:Hide()
+
+    Skin.UIPanelButtonTemplate(DetailsFrame.AbandonButton)
+    Skin.UIPanelButtonTemplate(DetailsFrame.ShareButton)
+    local ShareButtonLeft, ShareButtonRight = select(6, DetailsFrame.ShareButton:GetRegions())
+    ShareButtonLeft:Hide()
+    ShareButtonRight:Hide()
+    Skin.UIPanelButtonTemplate(DetailsFrame.TrackButton)
+
     ------------------------------
     -- QuestLogPopupDetailFrame --
     ------------------------------
@@ -543,34 +582,7 @@ function private.FrameXML.QuestMapFrame()
         QuestSessionManagement.BG:SetColorTexture(Color.frame.r, Color.frame.g, Color.frame.b, 0.5)
     end
 
-    local DetailsFrame = QuestMapFrame.DetailsFrame
-    local bg, overlay, _, _ = DetailsFrame:GetRegions()
-
-    bg:Hide()
-    overlay:Hide()
-    local BorderFrame = DetailsFrame.BorderFrame
-    BorderFrame:Hide()
-
-    local BackFrame = DetailsFrame.BackFrame
-    Base.StripBlizzardTextures(BackFrame)
-    Skin.UIPanelButtonTemplate(BackFrame.BackButton)
-
-    local RewardsFrameContainer = DetailsFrame.RewardsFrameContainer
-    local RewardsFrame = RewardsFrameContainer.RewardsFrame
-    Base.StripBlizzardTextures(RewardsFrame)
-    Skin.ScrollFrameTemplate(DetailsFrame.ScrollFrame)
-
-    Skin.UIPanelButtonTemplate(_G.QuestFrameCompleteButton)
-    local QuestFrameCompleteButtonLeft, QuestFrameCompleteButtonRight = select(6, _G.QuestFrameCompleteButton:GetRegions())
-    QuestFrameCompleteButtonLeft:Hide()
-    QuestFrameCompleteButtonRight:Hide()
-
-    Skin.UIPanelButtonTemplate(DetailsFrame.AbandonButton)
-    Skin.UIPanelButtonTemplate(DetailsFrame.ShareButton)
-    local ShareButtonLeft, ShareButtonRight = select(6, DetailsFrame.ShareButton:GetRegions())
-    ShareButtonLeft:Hide()
-    ShareButtonRight:Hide()
-    Skin.UIPanelButtonTemplate(DetailsFrame.TrackButton)
+    -- B216: the details frame is skinned first, at the top of this function.
     Skin.CampaignOverviewTemplate(QuestMapFrame.QuestsFrame.CampaignOverview)
 
     local MapLegend = QuestMapFrame.MapLegend
