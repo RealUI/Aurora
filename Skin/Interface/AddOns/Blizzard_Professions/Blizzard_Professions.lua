@@ -131,10 +131,55 @@ do --[[ AddOns\Blizzard_Professions ]]
     end
 end
 
+-- B220: the professions book's rank bars. Routing these through
+-- Skin.ColoredProgressBarTemplate drew the box on the frame rect, but
+-- ProfessionsRankBarTemplate draws its Fill at TOPLEFT (overrideFillAnchorLeft,
+-- -3) and centres Rank.Text 3px below the frame (Rank anchors LEFT/RIGHT y=-3),
+-- so fill and text sat low out of the box, and the Flare it hid once is re-shown
+-- by Update on every profession change. Same treatment as the crafting page's
+-- RankBar below: the stylized flipbook Fill and Flare go, and a flat fill driven
+-- by a hook on Update takes their place. The box is centred on Rank.Text and is
+-- 20 tall to match the unlearn button.
 function Skin.ProfessionsRankBarTemplate(Frame)
-    if Frame and Skin.ColoredProgressBarTemplate then
-        Skin.ColoredProgressBarTemplate(Frame)
+    if not Frame then return end
+
+    if Frame.Background then Frame.Background:SetAlpha(0) end
+    if Frame.Border then Frame.Border:SetAlpha(0) end
+    if Frame.Fill then Frame.Fill:Hide() end
+    if Frame.Flare then Frame.Flare:Hide() end
+
+    Base.SetBackdrop(Frame, Color.button, Color.frame.a)
+    Frame:SetBackdropOption("offsets", {
+        left = 0,
+        right = 0,
+        top = 2,
+        bottom = -4,
+    })
+
+    -- One pixel inside the backdrop edge on every side.
+    local fill = Frame:CreateTexture(nil, "ARTWORK")
+    fill:SetColorTexture(Color.blue:GetRGB())
+    fill:SetPoint("TOPLEFT", 1, -3)
+    fill:SetPoint("BOTTOMLEFT", 1, -3)
+    fill:Hide()
+
+    local function SetRatio(bar)
+        local ratio = bar.ratio or 0
+        local width = (bar:GetWidth() - 2) * ratio
+        if width > 0 then
+            fill:SetWidth(width)
+            fill:Show()
+        else
+            fill:Hide()
+        end
     end
+
+    _G.hooksecurefunc(Frame, "Update", function(self)
+        if self.Fill then self.Fill:Hide() end
+        if self.Flare then self.Flare:Hide() end
+        SetRatio(self)
+    end)
+    SetRatio(Frame)
 end
 
 -- Camelot folds the professions book into ProfessionsFrame as a page
@@ -159,7 +204,22 @@ local function SkinProfessionCard(Frame)
     if Frame.Background then Frame.Background:SetAlpha(0) end
     if Frame.Overlay then Frame.Overlay:SetAlpha(0) end
 
-    Base.SetBackdrop(Frame, Color.button)
+    -- B220: Color.button filled every card opaque grey, which made the book the
+    -- one grey window in the UI; Color.frame is the normal panel colour.
+    Base.SetBackdrop(Frame, Color.frame)
+
+    -- B220: the card templates overlap their neighbours (PrimaryProfession2
+    -- sits 5px up into PrimaryProfession1, the secondaries 4px up into
+    -- PrimaryProfession2 and 6px into each other) to tuck the art's soft
+    -- edges together, so full-rect borders ran as doubled lines a few pixels
+    -- apart. These insets leave an even 3px gap between every pair and line
+    -- the outer edges of the primary and secondary rows up (3 x 225 - 12 =
+    -- 663 against the primaries' 664).
+    if Frame.isPrimary then
+        Frame:SetBackdropOption("offsets", {left = 5, right = 5, top = 4, bottom = 4})
+    else
+        Frame:SetBackdropOption("offsets", {left = 5, right = 4, top = 3, bottom = 4})
+    end
 
     if Frame.missingHeader then
         Frame.missingHeader:SetTextColor(Color.white:GetRGB())
@@ -177,9 +237,7 @@ local function SkinProfessionCard(Frame)
     end
 
     -- ProfessionsRankBarTemplate is a Frame with a masked Fill, not a
-    -- StatusBar -- the same shape as Camelot's ColoredProgressBarTemplate, and
-    -- the same trap: Skin.FrameTypeStatusBar would throw on it. The green Fill
-    -- is left alone: it is skill progress, not chrome.
+    -- StatusBar, so Skin.FrameTypeStatusBar would throw on it.
     if Frame.StatusBar then
         Skin.ProfessionsRankBarTemplate(Frame.StatusBar)
     end
@@ -189,6 +247,12 @@ local function SkinProfessionCard(Frame)
     -- the affordance and is kept; it just needs a frame under it.
     if Frame.UnlearnButton then
         Skin.FrameTypeButton(Frame.UnlearnButton)
+        -- B220: Blizzard's y=-4 lines the button up with the stock bar art;
+        -- -3 centres it on the skinned bar box (both 20 tall).
+        if Frame.StatusBar then
+            Frame.UnlearnButton:ClearAllPoints()
+            Frame.UnlearnButton:SetPoint("LEFT", Frame.StatusBar, "RIGHT", 4, -3)
+        end
     end
 end
 
