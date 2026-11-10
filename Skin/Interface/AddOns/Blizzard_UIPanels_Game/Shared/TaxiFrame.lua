@@ -1,6 +1,8 @@
 local _, private = ...
 if private.shouldSkip() then return end
-if private.isRetail then return end
+-- B224: Forever shows this same TaxiFrame for its classic taxi maps
+-- (uiMapSystem Taxi), but isRetail is also true there; only retail skips
+if private.isRetail and not private.isForever then return end
 
 --[[ Lua Globals ]]
 -- luacheck: globals
@@ -14,6 +16,8 @@ local Util = Aurora.Util
     BasicFrameTemplateWithInset (no TaxiMerchant/TaxiCloseButton globals the
     old skin expected; verified against wow-ui-source-classic). Era/TBC use
     the Classic\ file instead — same registration key, never co-loaded.
+    Forever (Camelot) loads the identical Shared\TaxiFrame.xml on the
+    Mainline BasicFrameTemplateWithInset (B224).
 ]]
 
 function private.FrameXML.TaxiFrame()
