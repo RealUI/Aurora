@@ -40,7 +40,14 @@ do --[[ SocialUISharedTemplates.xml ]]
     end
 
     function Skin.SocialUIActionButtonTemplate(Button)
-        -- SharedButtonTemplate with the 128-RedButton art kit
+        -- SharedButtonTemplate with the 128-RedButton art kit.
+        -- B223: ThreeSliceButtonMixin re-sets the three slices on every state
+        -- change, so hiding them once left "Add New Friend" red on Forever.
+        -- The shared skin hooks UpdateButton and clears them each time.
+        if Skin.SharedButtonTemplate then
+            Skin.SharedButtonTemplate(Button)
+            return
+        end
         if Button.Left then Button.Left:SetAlpha(0) end
         if Button.Center then Button.Center:SetAlpha(0) end
         if Button.Right then Button.Right:SetAlpha(0) end
