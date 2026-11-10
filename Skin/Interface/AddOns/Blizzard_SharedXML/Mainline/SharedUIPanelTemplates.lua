@@ -1111,6 +1111,16 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         "Center",
     }
     function Skin.InputBoxNineSliceTemplate(EditBox)
+        -- B223: hide any Blizzard pieces BEFORE the backdrop exists. Aurora's
+        -- backdrop is itself a nine-slice under these same keys, so hiding
+        -- afterwards hid Aurora's own border and fill (borderless search box).
+        for _, pieceName in _G.ipairs(nineSlicePieces) do
+            local piece = Util.GetNineSlicePiece(EditBox, pieceName)
+            if piece then
+                piece:Hide()
+            end
+        end
+
         Skin.FrameTypeEditBox(EditBox)
 
         local yOfs = _G.math.floor(EditBox:GetHeight() / 2 + .5) - 10
@@ -1120,13 +1130,6 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
             top = yOfs,
             bottom = yOfs,
         })
-
-        for _, pieceName in _G.ipairs(nineSlicePieces) do
-            local piece = Util.GetNineSlicePiece(EditBox, pieceName)
-            if piece then
-                piece:Hide()
-            end
-        end
     end
     function Skin.InputBoxInstructionsNineSliceTemplate(EditBox)
         Skin.InputBoxNineSliceTemplate(EditBox)
