@@ -291,6 +291,22 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         end
 
         Button._auroraTextures = cross
+
+        -- B219: on Forever, UIPanelCloseButtonDefaultAnchors' Camelot OnLoad
+        -- (Blizzard_SharedXML/Camelot/SharedUIPanelTemplates.lua:1) sizes the
+        -- button 28x28 and anchors it TOPRIGHT 0,3. Most skins reach it through
+        -- this function, not the DefaultAnchors one below, so the close box was
+        -- bigger than the 24px max/min box beside it and stuck out 3px above
+        -- the frame. The Camelot file loads before the XML, so the frame's copy
+        -- of OnLoad is the mixin's: that identifies the template.
+        if private.isForever then
+            local mixin = _G.UIPanelCloseButtonDefaultAnchorsMixin
+            if mixin and Button.OnLoad and Button.OnLoad == mixin.OnLoad then
+                Button:SetSize(24, 24)
+                Button:ClearAllPoints()
+                Button:SetPoint("TOPRIGHT", 1.2, 0)
+            end
+        end
     end
     function Skin.UIPanelCloseButtonDefaultAnchors(Button)
         Skin.UIPanelCloseButton(Button)
