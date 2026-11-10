@@ -99,10 +99,110 @@ do --[[ AddOns\Blizzard_LegacyRewardTrack.xml ]]
     end
 end
 
+do --[[ AddOns\Blizzard_LegacyChallenge*.xml, Blizzard_LegacySystemTemplates.xml ]]
+    -- Pooled rows are tracked here, not with private.SetSkinned: Aurora's
+    -- Hook.AchievementTemplateMixin:Init (which the legacy cards inherit)
+    -- recolours any IsSkinned card through its NineSlice, and these have none.
+    local skinned = _G.setmetatable({}, {__mode = "k"})
+
+    -- LegacyChallengeCategoryTemplate is a ListHeaderVisualTemplate whose
+    -- RefreshCardArt re-sets both atlases on every Init and SetSelected, so
+    -- the flat colours go back on after each call. Parents keep the header
+    -- band; leaves get a quieter band, and the selected leaf the highlight.
+    local function SetCategoryArt(button)
+        local normal = button:GetNormalTexture()
+        local highlight = button:GetHighlightTexture()
+        if normal then
+            if button.collapsable then
+                local r, g, b = Color.button:GetRGB()
+                normal:SetColorTexture(r, g, b, 0.6)
+            elseif button.selected then
+                local r, g, b = Color.highlight:GetRGB()
+                normal:SetColorTexture(r, g, b, 0.5)
+            else
+                local r, g, b = Color.button:GetRGB()
+                normal:SetColorTexture(r, g, b, 0.3)
+            end
+        end
+        if highlight then
+            local r, g, b = Color.highlight:GetRGB()
+            highlight:SetColorTexture(r, g, b, 0.25)
+        end
+    end
+    function Skin.LegacyChallengeCategoryTemplate(Button)
+        if not skinned[Button] then
+            skinned[Button] = true
+            _G.hooksecurefunc(Button, "RefreshCardArt", SetCategoryArt)
+        end
+        SetCategoryArt(Button)
+    end
+
+    -- Card border: the highlight while selected or hovered, otherwise plain.
+    local function SetCardBorder(card)
+        local lit = card:IsMouseOver() or (card.IsSelected and card:IsSelected())
+        card:SetBackdropBorderColor(lit and Color.highlight or Color.button, 1)
+    end
+    function Skin.LegacyChallengeTemplate(EventButton)
+        if skinned[EventButton] then
+            SetCardBorder(EventButton)
+            return
+        end
+        skinned[EventButton] = true
+
+        -- RefreshStateArt and Saturate/Desaturate re-set these atlases and
+        -- toggle them with SetShown; alpha 0 holds through both.
+        for _, key in next, {"Background", "BackgroundTop", "BackgroundMiddle", "BackgroundBottom", "SelectedOverlay", "TitleBar"} do
+            if EventButton[key] then
+                EventButton[key]:SetAlpha(0)
+            end
+        end
+        Base.SetBackdrop(EventButton, Color.frame)
+
+        local Icon = EventButton.Icon
+        if Icon and Icon.texture then
+            if Icon.frame then Icon.frame:SetAlpha(0) end
+            Base.CropIcon(Icon.texture, Icon)
+        end
+
+        _G.hooksecurefunc(EventButton, "RefreshStateArt", SetCardBorder)
+        EventButton:HookScript("OnEnter", SetCardBorder)
+        EventButton:HookScript("OnLeave", SetCardBorder)
+        SetCardBorder(EventButton)
+    end
+
+    -- Objective rows: Background is a static atlas Blizzard only shows or
+    -- hides, so one flat tint holds. Counted criteria use the point bar.
+    function Skin.LegacyChallengeCriteriaTemplate(Frame)
+        if skinned[Frame] then return end
+        skinned[Frame] = true
+
+        if Frame.Background then
+            local r, g, b = Color.button:GetRGB()
+            Frame.Background:SetColorTexture(r, g, b, 0.5)
+        end
+        if Frame.ProgressBarBackground then
+            Frame.ProgressBarBackground:SetAlpha(0)
+        end
+        Skin.LegacyProgressBarTemplate(Frame.ProgressBar)
+    end
+end
+
 local function SkinScrollArea(Frame)
     if not Frame then return end
     Skin.WowScrollBoxList(Frame.ScrollBox)
     Skin.MinimalScrollBar(Frame.ScrollBar)
+end
+
+-- Rows are built by the list views' factories; skin each after Blizzard's
+-- initializer has run (same path as the Social UI and trainer lists).
+local function SkinScrollRows(ScrollBox, skinRow)
+    if not ScrollBox then return end
+    if _G.ScrollUtil and _G.ScrollUtil.AddInitializedFrameCallback then
+        _G.ScrollUtil.AddInitializedFrameCallback(ScrollBox, function(_, row)
+            skinRow(row)
+        end, ScrollBox)
+    end
+    ScrollBox:ForEachFrame(skinRow)
 end
 
 function private.AddOns.Blizzard_LegacySystem()
@@ -152,8 +252,47 @@ function private.AddOns.Blizzard_LegacySystem()
     ----====#####################====----
     local ChallengesPage = LegacySystemFrame.ChallengesPage
     if ChallengesPage then
-        SkinScrollArea(ChallengesPage.CategoryList)
-        SkinScrollArea(ChallengesPage.DetailPane)
+        -- Legacy-Challenge-BG, the brown plate behind the whole page.
+        if ChallengesPage.Background then
+            ChallengesPage.Background:SetAlpha(0)
+        end
+
+        local CategoryList = ChallengesPage.CategoryList
+        SkinScrollArea(CategoryList)
+        if CategoryList then
+            if CategoryList.SearchBox then
+                Skin.SearchBoxTemplate(CategoryList.SearchBox)
+            end
+            if CategoryList.FilterDropdown then
+                Skin.FilterButton(CategoryList.FilterDropdown)
+            end
+            SkinScrollRows(CategoryList.ScrollBox, function(row)
+                if row.RefreshCardArt then
+                    Skin.LegacyChallengeCategoryTemplate(row)
+                end
+            end)
+        end
+
+        local DetailPane = ChallengesPage.DetailPane
+        SkinScrollArea(DetailPane)
+        if DetailPane then
+            SkinScrollRows(DetailPane.ScrollBox, function(row)
+                if row.RefreshStateArt then
+                    Skin.LegacyChallengeTemplate(row)
+                end
+            end)
+        end
+
+        -- One shared objectives frame, reparented to the selected card;
+        -- its criteria come from a pool, so skin them after each Display.
+        local Objectives = _G.LegacyChallengeObjectives
+        if Objectives and Objectives.criteriaPool then
+            _G.hooksecurefunc(Objectives, "Display", function(self)
+                for criteria in self.criteriaPool:EnumerateActive() do
+                    Skin.LegacyChallengeCriteriaTemplate(criteria)
+                end
+            end)
+        end
 
         Skin.LegacyChallengePointSummaryTemplate(ChallengesPage.LegacyChallengePointSummary)
 
