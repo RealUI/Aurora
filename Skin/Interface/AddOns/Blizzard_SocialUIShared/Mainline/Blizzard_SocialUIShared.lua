@@ -33,10 +33,9 @@ do --[[ SocialUISharedTemplates.xml ]]
     end
 
     function Skin.SocialUIScrollableHeaderTemplate(Frame)
-        -- ListHeaderVisualTemplate art (three-slice family)
-        if Frame.Left then Frame.Left:SetAlpha(0) end
-        if Frame.Middle then Frame.Middle:SetAlpha(0) end
-        if Frame.Right then Frame.Right:SetAlpha(0) end
+        -- B223: the brown bar is ListHeaderVisualTemplate's NormalTexture, not
+        -- a Left/Middle/Right three-slice (none exist on this template).
+        Skin.ListHeaderVisualTemplate(Frame)
     end
 
     function Skin.SocialUIActionButtonTemplate(Button)
