@@ -28,11 +28,27 @@ do --[[ SocialUITemplates.xml ]]
     -- (taint audit 2026-10-06, B170 follow-up).
     function Skin.SocialUITabTemplate(Button)
         -- LargeSideTabButtonTemplate + a Count fontstring
-        if Button.Background then Button.Background:SetAlpha(0) end
+        -- B223: alpha-zeroing Background left bare icons. Recolour Blizzard's
+        -- own regions instead (no new textures): Background becomes the flat
+        -- button fill, and selection/hover lose the tab silhouette, matching
+        -- Skin.LargeSideTabButtonTemplate. Only the regions are re-anchored,
+        -- never the tab itself.
+        if Button.Background then
+            local fill = Color.Lightness(Color.button, -0.3)
+            Button.Background:ClearAllPoints()
+            Button.Background:SetAllPoints(Button)
+            Button.Background:SetColorTexture(fill.r, fill.g, fill.b, 1)
+        end
         if Button.SelectedTexture then
-            -- flatten but keep Blizzard's selection show/hide meaningful
-            Button.SelectedTexture:SetDesaturated(true)
-            Button.SelectedTexture:SetVertexColor(Color.highlight:GetRGB())
+            -- Blizzard still shows/hides it on selection (SetChecked)
+            Button.SelectedTexture:ClearAllPoints()
+            Button.SelectedTexture:SetAllPoints(Button)
+            Util.SetHighlightColor(Button.SelectedTexture, 0.5)
+        end
+        if Button.HighlightTexture then
+            Button.HighlightTexture:ClearAllPoints()
+            Button.HighlightTexture:SetAllPoints(Button)
+            Util.SetHighlightColor(Button.HighlightTexture, 0.2)
         end
         if Button.Icon then
             Base.CropIcon(Button.Icon)
@@ -83,11 +99,25 @@ function private.AddOns.Blizzard_SocialUI()
     local bar = SocialUIFrame.BattleNetBar
     if bar then
         if bar.Background then bar.Background:SetAlpha(0) end
-        if bar.BattleNetBackground then bar.BattleNetBackground:SetAlpha(0) end
         local controls = bar.ControlsContainer
         if controls then
-            if controls.OnlineStatusDropdown then
-                Skin.DropdownButton(controls.OnlineStatusDropdown)
+            -- B223: BattleNetBackground lives on ControlsContainer, not the
+            -- bar, so the old bar.BattleNetBackground check never matched and
+            -- Blizzard's blue battletag strip stayed.
+            if controls.BattleNetBackground then controls.BattleNetBackground:SetAlpha(0) end
+            local status = controls.OnlineStatusDropdown
+            if status then
+                Skin.DropdownButton(status)
+                -- B223: 54px wide and showing only a presence icon, the
+                -- shared ARTWORK arrow at RIGHT -8 does not show on this one.
+                -- Pin it above the OVERLAY text, inside the right edge.
+                local arrow = status._auroraArrow
+                if arrow then
+                    arrow:ClearAllPoints()
+                    arrow:SetPoint("RIGHT", -6, 0)
+                    arrow:SetDrawLayer("OVERLAY", 7)
+                    arrow:Show()
+                end
             end
             if controls.BattleNetMenuButton then
                 Skin.SocialCardActionButtonTemplate(controls.BattleNetMenuButton)
