@@ -134,8 +134,11 @@ end
 do --[[ AddOns\Blizzard_AchievementUI.xml ]]
     Hook.AchievementTemplateMixin = {}
     function Hook.AchievementTemplateMixin:Init(elementData)
-        -- Re-apply icon skinning since Blizzard's Init restores Icon.frame texture/visibility each call
-        if self.Icon then
+        -- Re-apply icon skinning since Blizzard's Init restores Icon.frame texture/visibility each call.
+        -- Forever's LegacyChallengeTemplateMixin is built from this mixin and calls this Init too,
+        -- but its icon is LegacyChallengeIconFrameTemplate (masked texture + frame, no bling).
+        -- Only an achievement icon has bling, so that is the test; legacy cards keep their art.
+        if self.Icon and self.Icon.bling then
             Skin.AchievementIconFrameTemplate(self.Icon)
         end
         -- Re-apply TitleBar colour. On pool re-use Saturate/Desaturate already runs via our
