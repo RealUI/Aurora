@@ -90,10 +90,22 @@ function private.FrameXML.TradeFrame()
     Skin.UIPanelButtonTemplate(_G.TradeFrameCancelButton)
 
     --[[ Player ]]--
-    _G.TradeFramePlayerNameText:SetPoint("TOPLEFT")
+    -- Same box as the recipient's name below. A bare SetPoint("TOPLEFT")
+    -- anchored to the name's parent header frame, not the trade frame, so
+    -- the two names sat at different heights.
+    _G.TradeFramePlayerNameText:ClearAllPoints()
+    _G.TradeFramePlayerNameText:SetPoint("TOPLEFT", _G.TradeFrame, "TOPLEFT", 0, 0)
     _G.TradeFramePlayerNameText:SetPoint("BOTTOMRIGHT", _G.TradeFrame, "TOPLEFT", 172, -29)
 
+    -- The item slots start at -70 here (SkinTradeItems), above Blizzard's
+    -- money input (-61 down to about -81), so the gold fields sat on the first
+    -- slot. Mirror the recipient's money box: one row under the title bar.
     Skin.InsetFrameTemplate(_G.TradePlayerInputMoneyInset)
+    _G.TradePlayerInputMoneyInset:ClearAllPoints()
+    _G.TradePlayerInputMoneyInset:SetPoint("TOPLEFT", 5, -(private.FRAME_TITLE_HEIGHT + 13))
+    _G.TradePlayerInputMoneyInset:SetSize(160, 22)
+    _G.TradePlayerInputMoneyFrame:ClearAllPoints()
+    _G.TradePlayerInputMoneyFrame:SetPoint("TOPLEFT", 11, -(private.FRAME_TITLE_HEIGHT + 16))
 
     SkinHighlightFrames("Player")
     SkinTradeItems("Player")
