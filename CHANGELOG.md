@@ -1,4 +1,24 @@
-﻿## [12.1.5.4] ##
+﻿## [12.1.5.5] ##
+### Added ###
+
+  * add: **the Legacy Challenges page is skinned.** The page plate is hidden, the category list gets flat bands with the selected entry in the highlight colour, and challenge cards get an Aurora backdrop whose border lights up when selected or hovered, with a square icon. The search box and filter are skinned [forever]
+  * add: `Skin.ListHeaderVisualTemplate`, a flat band for the shared collapsible list header, used by the Friends list and the recipe list [mainline/forever]
+
+### Fixed ###
+
+  * fix: **opening Legacy Challenges no longer errors** with `Blizzard_AchievementUI.lua:345: attempt to index field 'bling'`. Forever's challenge cards reuse the achievement row code but have no achievement icon, and the icon skin now skips them [mainline/forever]
+  * fix: **the trade window's gold fields no longer sit on the first slot**, and both names share one line [mainline/forever]
+  * fix: **the Friends window is skinned throughout:** flat cards with Aurora invite and summon buttons, flat side tabs, the status dropdown keeps its arrow, the search box keeps its border, and the list headers and the Add New Friend button lose Blizzard's art. Search boxes built from nine-slice pieces keep their border on retail too [mainline/forever]
+  * fix: the quest details page is skinned first, so an error earlier in the quest map skin can no longer leave it stock [mainline/forever]
+  * fix: the spellbook's search suggestions are skinned, and the filter dropdown lines up with the search box [mainline/forever]
+  * fix: the professions book drops its grey fill and doubled borders, its rank bars are flat and line up with the unlearn button, and the recipe list's category headers lose their brown bar [forever]
+  * fix: the flight master map is skinned; its skin exited early on retail, and Forever counts as retail there [forever]
+  * fix: close buttons are back to 24 px inside the frame corner [forever]
+  * fix: the world map's expand button matches its close button, both inside the title bar corner [mainline/forever]
+  * fix: the Looking For Group refresh and settings buttons line up with the filter box, with a flat settings icon [forever]
+
+
+## [12.1.5.4] ##
 ### Fixed ###
 
   * fix: **guild and community roster names are no longer dimmed.** Blizzard raises the member list's inset above the rows so its border draws over them, and with Aurora's backdrop on it the inset covered every name. It now sits under the list [mainline/forever]
@@ -1113,7 +1133,8 @@ A hotfix for how 12.1.0.11 was published. The addon files are unchanged.
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.5.4...develop
+[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.5.5...develop
+[12.1.5.5]: https://github.com/RealUI/Aurora/compare/12.1.5.4...12.1.5.5
 [12.1.5.4]: https://github.com/RealUI/Aurora/compare/12.1.5.3...12.1.5.4
 [12.1.5.3]: https://github.com/RealUI/Aurora/compare/12.1.5.2...12.1.5.3
 [12.1.5.2]: https://github.com/RealUI/Aurora/compare/12.1.5.1...12.1.5.2
