@@ -2,120 +2,70 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals next
+-- luacheck: globals
 
 --[[ Core ]]
 local Aurora = private.Aurora
 local Base = Aurora.Base
+local Color = Aurora.Color
 local Skin = Aurora.Skin
--- local Util = Aurora.Util
+local Util = Aurora.Util
 
-do --[[ AddOns\Blizzard_CompactRaidFrames.xml ]]
-    function Skin.CRFManagerFilterButtonTemplate(Button)
-        Skin.FrameTypeButton(Button)
-        Button:SetBackdropOption("offsets", {
-            left = 2,
-            right = 2,
-            top = 2,
-            bottom = 2,
-        })
-        if  Button.Background then
-            Button.Background:Hide()
-        end
-        Button.TopEdge:Hide()
-        Button.TopLeftCorner:Hide()
-        Button.TopRightCorner:Hide()
-        Button.BottomEdge:Hide()
-        Button.BottomLeftCorner:Hide()
-        Button.BottomRightCorner:Hide()
-        Button.LeftEdge:Hide()
-        Button.RightEdge:Hide()
-        if Button.Text then
-            local bg = Button:GetBackdropTexture("bg")
-            Button.Text:SetPoint("CENTER", bg, 0, 0)
-            Button.selectedHighlight:SetColorTexture(1, 1, 0, 0.3) -- static: not a theme color
-            Button.selectedHighlight:SetPoint("TOPLEFT", bg, 1, -1)
-            Button.selectedHighlight:SetPoint("BOTTOMRIGHT", bg, -1, 1)
-        end
-    end
-    Skin.CRFManagerFilterRoleButtonTemplate = Skin.CRFManagerFilterButtonTemplate
-    Skin.CRFManagerFilterGroupButtonTemplate = Skin.CRFManagerFilterButtonTemplate
-    Skin.CRFManagerTooltipTemplate = Skin.CRFManagerFilterButtonTemplate
-
-    function Skin.CRFManagerRaidIconButtonTemplate(Button)
-        Button:SetSize(24, 24)
-        Button:SetPoint(Button:GetPoint())
-        Button:GetNormalTexture()
-        Button:SetSize(24, 24)
-    end
-end
-
+-- B260 (2026-11-21, retail battleground, taintLog 5): a roster/unit-flags
+-- update ran CompactRaidFrameManager_UpdateDisplayCounts → UpdateFilterInfo
+-- → UpdateRoleFilterButton, whose button:Disable() was blocked. The log
+-- shows two injectors, both from this file:
+--
+-- * Skin.FrameTypeFrame(CompactRaidFrameManager) put BackdropMixin, the
+--   backdrop info and nine textures on the manager itself (rules 1 and 9,
+--   the B160 shape).
+-- * Skin.FrameTypeButton on the role and group filter buttons and on the
+--   toolbar buttons post-hooked Enable/Disable/SetEnabled. Blizzard calls
+--   those inside every roster, options and Edit Mode update, so the hook
+--   body ran in Blizzard's execution (first logged at login: Edit Mode
+--   UpdateSystems → UpdateRoleFilterButton → Disable → skin.lua Hook_Disable
+--   reading Aurora colour tables), wrote isEnabled/isDisabled onto the
+--   button, and left the rest of that update tainted, writing the manager's
+--   own state tainted for every later update to read (self-perpetuating).
+--   It also planted SetButtonColor/GetButtonColor and highlight fields, and
+--   cleared the normal texture that UpdateRoleFilterButton,
+--   UpdateGroupFilterButton and OnButtonStateChanged SetAtlas on every
+--   update.
+--
+-- Now nothing is written onto the manager or any of its buttons:
+-- * the panel is a sibling frame (child of the manager, so it follows
+--   Blizzard's SetPoint/SetHeight and RealUI's reparent; it carries all the
+--   backdrop state). Blizzard's Background and divider pool sit in the
+--   manager's ARTWORK layer, hidden by DisableDrawLayer; Blizzard only ever
+--   SetAtlas's and acquires them, it reads nothing back.
+-- * The filter buttons, toolbar buttons (edit mode, settings, hide groups,
+--   everyone-is-assist, difficulty, ready check, role poll, countdown) and
+--   raid marker buttons stay Blizzard's. Their state is drawn by atlases
+--   Blizzard re-sets on every update (selected/hover/disabled), so in-place
+--   recolouring would hide the filter state; the toolbar buttons are also
+--   measured by the options FlowContainer and the markers are laid out by a
+--   GridLayout (rule 3: no SetSize/SetPoint).
+-- * The collapse/expand toggles stay Blizzard's too: their OnEnter/OnLeave
+--   SetAtlas the normal texture, which overwrote Aurora's arrow on the first
+--   hover anyway, and the old skin re-anchored the buttons.
 function private.AddOns.Blizzard_CompactRaidFrames()
-    ----====#################################====----
-    -- Blizzard_CompactRaidFrameReservationManager --
-    ----====#################################====----
-
-    ----====########################====----
-    -- Blizzard_CompactRaidFrameContainer --
-    ----====########################====----
-
     ----====############%%########====----
     -- Blizzard_CompactRaidFrameManager --
     ----====############%%########====----
     local CompactRaidFrameManager = _G.CompactRaidFrameManager
     CompactRaidFrameManager:DisableDrawLayer("ARTWORK")
-    Skin.FrameTypeFrame(CompactRaidFrameManager)
 
-    local toggleButtonForward = CompactRaidFrameManager.toggleButtonForward
-    toggleButtonForward:SetPoint("RIGHT", -1, 0)
-    -- NOTE: no SetScript on these Blizzard buttons (doctrine R6). The old
-    -- OnMouseDown/OnMouseUp nops suppressed handlers 12.1 no longer has
-    -- (the XML binds only OnLoad/OnClick/OnEnter/OnLeave); removed
-    -- 2026-10-06 (taint audit, B170 follow-up).
-
-    local arrowForward = toggleButtonForward:GetNormalTexture()
-    arrowForward:ClearAllPoints()
-    arrowForward:SetPoint("TOPLEFT", 3, -5)
-    arrowForward:SetPoint("BOTTOMRIGHT", -3, 5)
-    Base.SetTexture(arrowForward, "arrowRight")
-
-
-    local toggleButtonBack = CompactRaidFrameManager.toggleButtonBack
-    toggleButtonBack:SetPoint("RIGHT", -1, 0)
-
-    local arrowBack = toggleButtonBack:GetNormalTexture()
-    arrowBack:ClearAllPoints()
-    arrowBack:SetPoint("TOPLEFT", 3, -5)
-    arrowBack:SetPoint("BOTTOMRIGHT", -3, 5)
-    Base.SetTexture(arrowBack, "arrowLeft")
+    local bg = _G.CreateFrame("Frame", nil, CompactRaidFrameManager)
+    bg:SetAllPoints()
+    bg:SetFrameLevel(CompactRaidFrameManager:GetFrameLevel())
+    Base.SetBackdrop(bg, Color.frame, Util.GetFrameAlpha())
 
     local displayFrame = CompactRaidFrameManager.displayFrame
-    local displayFrameName = displayFrame:GetName()
+    -- Unchanged by B260 (no field or geometry write). On 12.x the first
+    -- region is the "Raid"/"Party" label FontString, not a background, so
+    -- this hides the title; Blizzard only SetText's it.
     displayFrame:GetRegions():Hide()
-    local optionsButton = _G[displayFrameName.."OptionsButton"]
-    Skin.UIPanelInfoButton(optionsButton)
-
-    local filterOptions = displayFrame.filterOptions
-    Skin.CRFManagerFilterRoleButtonTemplate(filterOptions["filterRoleTank"])
-    Skin.CRFManagerFilterRoleButtonTemplate(filterOptions.filterRoleHealer)
-    Skin.CRFManagerFilterRoleButtonTemplate(filterOptions.filterRoleDamager)
-    for i = 1, 8 do
-        Skin.CRFManagerFilterRoleButtonTemplate(filterOptions["filterGroup"..i])
-    end
-
-    Skin.CRFManagerTooltipTemplate(displayFrame.editMode)
-    Skin.CRFManagerTooltipTemplate(displayFrame.settings)
-    Skin.CRFManagerTooltipTemplate(displayFrame.hiddenModeToggle)
-
-    local icons = {displayFrame.raidMarkers:GetChildren()}
-    for i, icon in next, icons do
-        Skin.CRFManagerRaidIconButtonTemplate(icon)
-    end
-
-    Skin.CRFManagerTooltipTemplate(displayFrame.rolePollButton)
-    Skin.CRFManagerTooltipTemplate(displayFrame.readyCheckButton)
-    Skin.CRFManagerTooltipTemplate(displayFrame.countdownButton)
-    Skin.CRFManagerTooltipTemplate(displayFrame.difficulty)
-    Skin.UICheckButtonTemplate(displayFrame.everyoneIsAssistButton)
-
+    -- Texture-only restyle (no fields, no frame geometry); the button is
+    -- anchored by XML and not a FlowContainer object.
+    Skin.UIPanelInfoButton(_G[displayFrame:GetName().."OptionsButton"])
 end
