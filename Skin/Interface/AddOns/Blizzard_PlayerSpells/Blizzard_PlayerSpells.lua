@@ -837,7 +837,10 @@ function private.AddOns.Blizzard_PlayerSpells()
     local SettingsDropdown = SpellBookFrame.SettingsDropdown
     if SettingsDropdown then
         local icon = SettingsDropdown.Icon
-        if icon and icon:GetAtlas() == "questlog-icon-setting" then
+        -- GetAtlas returns the atlas's stored spelling ("QuestLog-icon-setting"
+        -- on retail 12.1.5), while atlas lookups ignore case; compare lowered.
+        local atlas = icon and icon:GetAtlas()
+        if atlas and atlas:lower() == "questlog-icon-setting" then
             Skin.UIPanelIconDropdownButtonTemplate(SettingsDropdown)
         else
             Skin.UIPanelArrowDropdownButtonTemplate(SettingsDropdown)
