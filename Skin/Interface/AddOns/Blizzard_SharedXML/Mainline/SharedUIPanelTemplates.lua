@@ -904,6 +904,21 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         Frame._auroraTextures = {arrow}
     end
 
+    -- Retail's twin of the arrow template above: the same 15x16 frame and
+    -- mixin, but the art is the questlog-icon-setting gear, plus an unnamed
+    -- ADD-blended copy of it on HIGHLIGHT. The gear is the affordance, so it
+    -- stays, and so does the hover copy: it is anchored to the Icon, follows
+    -- the mixin's press nudge and only ever lights the gear. The arrow skin
+    -- hid the gear and left that copy hovering over its arrow (B228).
+    -- The frame keeps its size and the backdrop sits inside it, so whatever
+    -- Blizzard anchors to it (the spellbook search box) does not move.
+    function Skin.UIPanelIconDropdownButtonTemplate(Frame)
+        if not Frame or private.IsSkinned(Frame) then return end
+        private.SetSkinned(Frame, true)
+
+        Skin.FrameTypeButton(Frame)
+    end
+
     function Skin.LargeSideTabButtonTemplate(Frame)
         if not Frame then return end
 

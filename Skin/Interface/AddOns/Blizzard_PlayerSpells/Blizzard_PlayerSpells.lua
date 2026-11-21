@@ -829,22 +829,34 @@ function private.AddOns.Blizzard_PlayerSpells()
 
     Skin.SearchBoxTemplate(SpellBookFrame.SearchBox)
     Skin.SpellSearchPreviewContainerTemplate(SpellBookFrame.SearchPreviewContainer) -- B221
-    -- SpellBookSettingsDropdownTemplate inherits UIPanelArrowDropdownButtonTemplate,
-    -- not WowStyle1DropdownTemplate, so Skin.DropdownButton was the wrong skin
-    -- and left the gold arrow in place.
-    if SpellBookFrame.SettingsDropdown then
-        Skin.UIPanelArrowDropdownButtonTemplate(SpellBookFrame.SettingsDropdown)
+    -- Not a WowStyle1DropdownTemplate on either client, so Skin.DropdownButton
+    -- is the wrong skin. Forever's SpellBookSettingsDropdownTemplate inherits
+    -- UIPanelArrowDropdownButtonTemplate (a gold arrow); retail builds it from
+    -- UIPanelIconDropdownButtonTemplate (a gear). Same frame and mixin, only
+    -- the Icon's atlas differs, so that picks the skin (B228).
+    local SettingsDropdown = SpellBookFrame.SettingsDropdown
+    if SettingsDropdown then
+        local icon = SettingsDropdown.Icon
+        if icon and icon:GetAtlas() == "questlog-icon-setting" then
+            Skin.UIPanelIconDropdownButtonTemplate(SettingsDropdown)
+        else
+            Skin.UIPanelArrowDropdownButtonTemplate(SettingsDropdown)
+        end
 
         -- B221: Camelot's SpellBookSearchBoxTemplate anchors the search box
         -- RIGHT to the dropdown's LEFT at y=4, lifting it to suit Blizzard's
         -- art. Aurora centres both backdrops on their frames (the box's 20px
         -- backdrop on its 30px frame, the arrow on its 15x16 frame), so the
-        -- arrow read 4px low. Drop the lift. The anchor is XML-only --
-        -- UpdateAttic moves the dropdown and ResizeSearchBox only sets the
-        -- width -- so this holds. Retail's anchor already has y=0.
+        -- arrow read 4px low. Drop the lift. UpdateAttic moves the dropdown
+        -- and ResizeSearchBox only sets the width, so this holds; the one
+        -- exception is PlayerSpellsFrameMixin:UninitializeGamepad, which puts
+        -- y=4 back when gamepad mode is switched off. The lift is Camelot's
+        -- search box template, not the dropdown's, hence the flavor check.
+        -- Retail's anchor already has y=0, and its gear skin keeps the
+        -- dropdown's 15x16 size, so the box stays where Blizzard put it.
         if private.isForever then
             SpellBookFrame.SearchBox:ClearAllPoints()
-            SpellBookFrame.SearchBox:SetPoint("RIGHT", SpellBookFrame.SettingsDropdown, "LEFT", -5, 0)
+            SpellBookFrame.SearchBox:SetPoint("RIGHT", SettingsDropdown, "LEFT", -5, 0)
         end
     end
 
