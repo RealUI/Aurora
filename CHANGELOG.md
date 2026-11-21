@@ -1,4 +1,16 @@
-﻿## [12.1.5.5] ##
+﻿## [12.1.5.6] ##
+### Changed ###
+
+  * chg: **the Progress Track window is flat like the rest of the UI.** The reward track cards and the Legacy Challenge cards lose Blizzard's card plates, ribbons and frames for Aurora backdrops and square icons, with the card border showing its state (current tier, earned, locked, hovered or selected). The level diamond becomes a flat tile, the track's scroll arrows and the challenge +/- box are flat, and the points crest and shields keep their art since they carry the numbers. The legacy tree keeps Blizzard's look [forever]
+
+### Fixed ###
+
+  * fix: **joining a battleground no longer floods `C_PvP.GetHonorRewardInfo` errors from the scoreboard.** The scoreboard and match results panels draw their backdrop on a separate frame instead of on Blizzard's frames, so the scoreboard update runs untainted [mainline]
+  * fix: **a player leaving a battleground or raid no longer gets the raid frame manager's role filter blocked.** The manager's backdrop is drawn on a separate frame and its buttons keep Blizzard's look, so roster updates run untainted [mainline/forever]
+  * fix: the spellbook's settings button keeps its gear on retail; WoW Forever keeps its arrow [mainline]
+
+
+## [12.1.5.5] ##
 ### Added ###
 
   * add: **the Legacy Challenges page is skinned.** The page plate is hidden, the category list gets flat bands with the selected entry in the highlight colour, and challenge cards get an Aurora backdrop whose border lights up when selected or hovered, with a square icon. The search box and filter are skinned [forever]
@@ -1133,7 +1145,8 @@ A hotfix for how 12.1.0.11 was published. The addon files are unchanged.
 
 
 ## Detailed Changes ##
-[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.5.5...develop
+[Unreleased]: https://github.com/RealUI/Aurora/compare/12.1.5.6...develop
+[12.1.5.6]: https://github.com/RealUI/Aurora/compare/12.1.5.5...12.1.5.6
 [12.1.5.5]: https://github.com/RealUI/Aurora/compare/12.1.5.4...12.1.5.5
 [12.1.5.4]: https://github.com/RealUI/Aurora/compare/12.1.5.3...12.1.5.4
 [12.1.5.3]: https://github.com/RealUI/Aurora/compare/12.1.5.2...12.1.5.3
