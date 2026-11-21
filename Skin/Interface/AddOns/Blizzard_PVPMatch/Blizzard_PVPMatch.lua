@@ -8,7 +8,6 @@ if private.shouldSkip() then return end
 local Aurora = private.Aurora
 local Base = Aurora.Base
 local Color = Aurora.Color
-local Hook = Aurora.Hook
 local Skin = Aurora.Skin
 local Util = Aurora.Util
 
@@ -33,33 +32,63 @@ local function BackdropBehind(ScrollBox)
     return bg
 end
 
---do --[[ AddOns\Blizzard_PVPMatch.lua ]]
-do
-    Hook.PVPMatchResultsMixin = {}
-    function Hook.PVPMatchResultsMixin:OnLoad()
-        Util.WrapPoolAcquire(self.itemPool, Skin.PVPMatchResultsLoot)
+-- Retail panels (B160, 2026-11-21). Both frames used to get
+-- Skin.FrameTypeFrame plus a planted _auroraNineSlice flag. FrameTypeFrame is
+-- Base.SetBackdrop on the Blizzard frame itself: BackdropMixin methods, the
+-- backdrop info and palette keys, a SetBackdropBorderColor hook, and nine
+-- textures stored under NineSliceUtil's own piece keys (TopLeftCorner ...
+-- Center), all written from addon code. SetupArtwork, run from Init on
+-- joining the match, applies the faction NineSlice layout to the same frame
+-- and reads those piece keys back, so the rest of Init ran tainted, including
+-- ConstructPVPMatchTable, which builds the columns that Populate later runs
+-- to call C_PvP.GetHonorRewardInfo with a secret honorLevel: the likely route
+-- of B160 (no taint log was captured). The flag only told
+-- Hook.NineSliceUtil.ApplyLayout (SharedXML\NineSlice.lua) to re-run
+-- FrameTypeFrame after every SetupArtwork, repainting Blizzard's art with
+-- Aurora's. Now nothing is written onto either frame: the panel is a sibling
+-- frame, Blizzard creates and owns its NineSlice pieces, and a post-hook
+-- keyed by this table fades them (SetAlpha(0), the doctrine's NineSlice
+-- exception: ApplyLayout re-sets their atlases, so SetTexture("") would not
+-- hold; they are not pooled, and nothing reads them back until the next
+-- ApplyLayout, which only sets).
+local retailPanels = setmetatable({}, {__mode = "k"})
+local nineSlicePieces = {
+    "TopLeftCorner", "TopRightCorner", "BottomLeftCorner", "BottomRightCorner",
+    "TopEdge", "BottomEdge", "LeftEdge", "RightEdge", "Center",
+}
+local function HidePanelArt(Frame)
+    for i = 1, #nineSlicePieces do
+        local piece = Frame[nineSlicePieces[i]]
+        if piece then
+            piece:SetAlpha(0)
+        end
     end
+end
+local function SkinRetailPanel(Frame)
+    for _, region in next, {Frame:GetRegions()} do
+        if region.GetAtlas and region:GetAtlas() == "groupfinder-background" then
+            region:Hide()
+            break
+        end
+    end
+
+    -- The pieces are created by the first SetupArtwork, after this skin
+    -- runs, so the hook does the work; this call covers a frame that was
+    -- already initialized.
+    retailPanels[Frame] = true
+    HidePanelArt(Frame)
+
+    local bg = _G.CreateFrame("Frame", nil, Frame)
+    bg:SetAllPoints()
+    bg:SetFrameLevel(Frame:GetFrameLevel())
+    Base.SetBackdrop(bg, Color.frame, Util.GetFrameAlpha())
 end
 
 do --[[ AddOns\Blizzard_PVPMatch.xml ]]
     do --[[ PVPMatchTable.xml ]]
-        function Skin.PVPTableRowTemplate(Frame)
-            Frame.backgroundLeft:ClearAllPoints()
-            Frame.backgroundLeft:SetPoint("TOPLEFT")
-            Frame.backgroundLeft:SetTexture(private.textures.plain)
-            Frame.backgroundLeft:SetHeight(15)
-            Frame.backgroundLeft:SetAlpha(0.5)
-
-            Frame.backgroundRight:ClearAllPoints()
-            Frame.backgroundRight:SetPoint("TOPRIGHT")
-            Frame.backgroundRight:SetTexture(private.textures.plain)
-            Frame.backgroundRight:SetHeight(15)
-            Frame.backgroundRight:SetAlpha(0.5)
-
-            Frame.backgroundCenter:SetTexture(private.textures.plain)
-            Frame.backgroundCenter:SetHeight(15)
-            Frame.backgroundCenter:SetAlpha(0.5)
-        end
+        -- Skin.PVPTableRowTemplate was removed (B160): it was never wired
+        -- to the row factory, and it re-anchored and resized textures on
+        -- the pooled table rows that Populate fills (doctrine rule 3).
         function Skin.PVPMatchResultsLoot(Button)
             if private.IsSkinned(Button) then
                 return
@@ -145,24 +174,20 @@ function private.AddOns.Blizzard_PVPMatch()
     ----====#####################====----
     --         PVPMatchResults         --
     ----====#####################====----
+    -- SetupArtwork applies BFAMissionHorde/Alliance or GenericMetal to the
+    -- frame itself; fade those pieces after Blizzard has set them (B160).
+    _G.hooksecurefunc(_G.NineSliceUtil, "ApplyLayout", function(container)
+        if retailPanels[container] then
+            HidePanelArt(container)
+        end
+    end)
+
     local PVPMatchResults = _G.PVPMatchResults
-    _G.hooksecurefunc(_G.PVPMatchResultsMixin, "OnLoad", Hook.PVPMatchResultsMixin.OnLoad)
     Skin.UIPanelCloseButton(PVPMatchResults.CloseButton)
     PVPMatchResults.CloseButton.Border:Hide()
     Util.WrapPoolAcquire(PVPMatchResults.itemPool, Skin.PVPMatchResultsLoot)
 
-    -- Skin the outer frame so the NineSlice hook handles SetupArtwork's
-    -- NineSliceUtil.ApplyLayoutByName (BFAMissionHorde/Alliance/GenericMetal)
-    -- Hide the groupfinder-background BEFORE creating backdrop textures,
-    -- otherwise GetRegions() may return an Aurora texture instead.
-    for _, region in next, {PVPMatchResults:GetRegions()} do
-        if region.GetAtlas and region:GetAtlas() == "groupfinder-background" then
-            region:Hide()
-            break
-        end
-    end
-    Skin.FrameTypeFrame(PVPMatchResults)
-    PVPMatchResults._auroraNineSlice = true
+    SkinRetailPanel(PVPMatchResults)
 
     local resultsContent = PVPMatchResults.content
     resultsContent.background:Hide()
@@ -200,17 +225,7 @@ function private.AddOns.Blizzard_PVPMatch()
     local PVPMatchScoreboard = _G.PVPMatchScoreboard
     Skin.UIPanelCloseButton(PVPMatchScoreboard.CloseButton)
 
-    -- Skin the outer frame so the NineSlice hook handles SetupArtwork's
-    -- NineSliceUtil.ApplyLayoutByName (BFAMissionHorde/Alliance/GenericMetal)
-    -- Hide the groupfinder-background BEFORE creating backdrop textures.
-    for _, region in next, {PVPMatchScoreboard:GetRegions()} do
-        if region.GetAtlas and region:GetAtlas() == "groupfinder-background" then
-            region:Hide()
-            break
-        end
-    end
-    Skin.FrameTypeFrame(PVPMatchScoreboard)
-    PVPMatchScoreboard._auroraNineSlice = true
+    SkinRetailPanel(PVPMatchScoreboard)
 
     local scoreContent = PVPMatchScoreboard.Content
     scoreContent.Background:Hide()
