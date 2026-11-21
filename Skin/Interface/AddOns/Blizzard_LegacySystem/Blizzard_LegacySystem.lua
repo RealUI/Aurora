@@ -14,12 +14,34 @@ local Color = Aurora.Color
 -- system -- the "Progress Track" window. Three pages behind side tabs: a reward
 -- track, a challenge list with a detail pane, and a talent-style legacy tree.
 --
--- Scope of this pass: the frame, the tabs, the reward track and the challenge
--- page. **The tree page is deliberately left stock.** Its contents inherit
+-- The reward track and the challenge page are flat like every other Aurora
+-- surface (B211): Blizzard's card plates, frames, ribbons and buttons are
+-- cleared, and the cards get Aurora backdrops, square icons and flat state
+-- colours. The points crest and shields are kept: they carry the number, in
+-- line with the PVPRankFrame badges.
+--
+-- **The tree page is deliberately left stock.** Its contents inherit
 -- TalentButtonSquareTemplate, TalentEdgeArrowTemplate, TalentFrameBaseTemplate
 -- and RingedMaskedButtonTemplate, none of which Aurora skins on any flavor, so
 -- skinning it here would mean writing the shared talent-tree treatment as a
 -- side effect of a Forever-only addon. That belongs with the talent frame.
+--
+-- Taint (.kiro/steering/objective-tracker-taint.md): the cards are pooled, so
+-- Blizzard art is cleared with SetTexture("") (rule 2) and cleared again from
+-- a post-hook on whichever Blizzard method re-sets the atlas; nothing on a card
+-- is resized or re-anchored (rule 3); skin state lives in the weak-keyed local
+-- tables below, never on the card (rule 1); no function is replaced and no
+-- script is set (rules 6, 8).
+
+-- Clear a Blizzard texture region. Nil-safe, so one missing region cannot
+-- stop the rest of a skin (that is how B210 left the window half skinned).
+local SkinTrackArrow -- defined with the reward track templates below
+
+local function ClearArt(texture)
+    if texture then
+        texture:SetTexture("")
+    end
+end
 
 do --[[ AddOns\Blizzard_LegacySystemTemplates.xml ]]
     -- Inherits LargeSideTabButtonTemplate -- the fourth surface to reuse it,
@@ -29,14 +51,11 @@ do --[[ AddOns\Blizzard_LegacySystemTemplates.xml ]]
     end
 
     -- A StatusBar with a Legacy-Progressbar-Fill and a Legacy-Progressbar-Frame
-    -- overlay. The fill is content; the frame is chrome.
+    -- overlay. The fill is content; the frame is chrome, set only in XML.
     function Skin.LegacyProgressBarTemplate(StatusBar)
         if not StatusBar then return end
 
-        if StatusBar.ProgressBarFrame then
-            StatusBar.ProgressBarFrame:SetAlpha(0)
-        end
-
+        ClearArt(StatusBar.ProgressBarFrame)
         Skin.FrameTypeStatusBar(StatusBar)
     end
 
@@ -55,9 +74,7 @@ do --[[ AddOns\Blizzard_LegacySystemTemplates.xml ]]
         if not Frame then return end
 
         -- Legacy-Progressbar-BG behind the bar; Aurora's backdrop replaces it.
-        if Frame.ProgressBarBackground then
-            Frame.ProgressBarBackground:SetAlpha(0)
-        end
+        ClearArt(Frame.ProgressBarBackground)
 
         Skin.LegacyProgressBarTemplate(Frame.PointsBar)
 
@@ -66,36 +83,133 @@ do --[[ AddOns\Blizzard_LegacySystemTemplates.xml ]]
 end
 
 do --[[ AddOns\Blizzard_LegacyRewardTrack.xml ]]
+    -- "current" (the last tier reached; Blizzard's green card), "earned" or
+    -- "locked", from the last Refresh. Kept here, not on the pooled card.
+    local cardState = _G.setmetatable({}, {__mode = "k"})
+    -- The flat level tile that replaces the Legacy-Rewards-Tracker-Diamond.
+    local levelTiles = _G.setmetatable({}, {__mode = "k"})
+
+    -- Card border: highlight on hover, green on the current tier, plain
+    -- otherwise. The level tile follows the same state.
+    local function SetRewardCardColors(card, hovered)
+        local state = cardState[card]
+
+        local border = Color.button
+        if hovered then
+            border = Color.highlight
+        elseif state == "current" then
+            border = Color.green
+        end
+        card:SetBackdropBorderColor(border, 1)
+
+        local tile = levelTiles[card]
+        if tile then
+            local fill
+            if state == "current" then
+                fill = Color.Lightness(Color.green, -0.5)
+            elseif state == "earned" then
+                fill = Color.button
+            else
+                fill = Color.Lightness(Color.button, -0.3)
+            end
+            tile.border:SetColorTexture(border:GetRGB())
+            tile.fill:SetColorTexture(fill:GetRGB())
+        end
+    end
+
+    -- RenownLevelMixin:Refresh re-sets the card plate, the hover plate, the
+    -- icon ring and the level diamond (SetAtlas) on every call, so they are
+    -- cleared again after it. EarnedCheckmark is the unlocked cue and stays.
+    local function ClearRewardArt(card)
+        ClearArt(card.RewardCardBG)
+        ClearArt(card.Highlight)
+        ClearArt(card.IconBorder)
+        ClearArt(card.LevelSquare)
+    end
+
+    local function OnRewardCardRefresh(card, _, displayLevel)
+        local level = card.GetLevel and card:GetLevel() or 0
+        local state = "locked"
+        if type(displayLevel) == "number" and level <= displayLevel then
+            state = level == displayLevel and "current" or "earned"
+        end
+        cardState[card] = state
+
+        ClearRewardArt(card)
+        SetRewardCardColors(card, card:IsMouseOver())
+    end
+
+    local function OnRewardCardEnter(card)
+        SetRewardCardColors(card, true)
+    end
+    local function OnRewardCardLeave(card)
+        SetRewardCardColors(card, false)
+    end
+
     function Skin.LegacyRewardCardTemplate(Frame)
         if not Frame or private.IsSkinned(Frame) then return end
         private.SetSkinned(Frame, true)
 
-        -- RewardCardBG is the card plate and IconBorder the gold ring around
-        -- the reward icon; both are chrome. LevelSquare carries the required
-        -- level and EarnedCheckmark whether it is unlocked, so both stay.
-        if Frame.RewardCardBG then
-            Frame.RewardCardBG:SetAlpha(0)
-        end
-        if Frame.IconBorder then
-            Frame.IconBorder:SetAlpha(0)
-        end
-
         Base.SetBackdrop(Frame, Color.button)
-        Base.CropIcon(Frame.Icon, Frame)
-
-        -- Highlight (70532) is the card-plate atlas drawn additively on hover,
-        -- which would bring back the plate faded out above. Blizzard only
-        -- toggles it with SetShown, so the alpha holds. The card is a Frame,
-        -- so Base.SetHighlight (it calls IsEnabled) does not apply.
-        if Frame.Highlight then
-            Frame.Highlight:SetAlpha(0)
-            Frame:HookScript("OnEnter", function(card)
-                card:SetBackdropBorderColor(Color.highlight, 1)
-            end)
-            Frame:HookScript("OnLeave", function(card)
-                card:SetBackdropBorderColor(Color.button, 1)
-            end)
+        if Frame.Icon then
+            Base.CropIcon(Frame.Icon, Frame)
         end
+
+        -- The level number sits on the diamond at the top edge of the card;
+        -- a flat tile takes its place under the number (Level is OVERLAY).
+        -- These are new textures of our own, anchored to the diamond; the
+        -- diamond itself is not resized or moved.
+        if Frame.LevelSquare then
+            local border = Frame:CreateTexture(nil, "ARTWORK", nil, 6)
+            border:SetSize(34, 22)
+            border:SetPoint("CENTER", Frame.LevelSquare)
+            local fill = Frame:CreateTexture(nil, "ARTWORK", nil, 7)
+            fill:SetPoint("TOPLEFT", border, 1, -1)
+            fill:SetPoint("BOTTOMRIGHT", border, -1, 1)
+            levelTiles[Frame] = {border = border, fill = fill}
+        end
+
+        ClearRewardArt(Frame)
+        if Frame.Refresh then
+            _G.hooksecurefunc(Frame, "Refresh", OnRewardCardRefresh)
+        end
+
+        -- Blizzard shows Highlight (the card plate drawn additively) on hover;
+        -- it is cleared above, and the border takes the hover instead. The
+        -- card is a Frame, so Base.SetHighlight (it calls IsEnabled) does
+        -- not apply.
+        Frame:HookScript("OnEnter", OnRewardCardEnter)
+        Frame:HookScript("OnLeave", OnRewardCardLeave)
+        SetRewardCardColors(Frame, false)
+    end
+
+    -- The track's scroll arrows (RewardTrackButtonTemplate) and jump arrows
+    -- (RewardTrackJumpButtonTemplate) are only shown when the track scrolls.
+    -- Same treatment as Aurora's nav buttons: a flat button with a drawn
+    -- arrow; the jump arrows get a double arrow.
+    function SkinTrackArrow(Button, isRight, isJump)
+        if not Button or private.IsSkinned(Button) then return end
+        private.SetSkinned(Button, true)
+
+        Skin.FrameTypeButton(Button)
+
+        local arrows = {}
+        local count = isJump and 2 or 1
+        for i = 1, count do
+            local arrow = Button:CreateTexture(nil, "ARTWORK")
+            if isJump then
+                arrow:SetSize(5, 9)
+                arrow:SetPoint("CENTER", i == 1 and -3 or 3, 0)
+            else
+                arrow:SetSize(7, 12)
+                arrow:SetPoint("CENTER")
+            end
+            Base.SetTexture(arrow, isRight and "arrowRight" or "arrowLeft")
+            arrows[i] = arrow
+        end
+        -- Read by Skin.FrameTypeButton's enable/disable hooks to grey the
+        -- arrows; the same field Skin.NavButtonPrevious/Next set.
+        Button._auroraTextures = arrows
     end
 end
 
@@ -104,6 +218,8 @@ do --[[ AddOns\Blizzard_LegacyChallenge*.xml, Blizzard_LegacySystemTemplates.xml
     -- Hook.AchievementTemplateMixin:Init (which the legacy cards inherit)
     -- recolours any IsSkinned card through its NineSlice, and these have none.
     local skinned = _G.setmetatable({}, {__mode = "k"})
+    -- The flat +/- box that replaces the red 128-redbutton-plus/minus.
+    local plusMinus = _G.setmetatable({}, {__mode = "k"})
 
     -- LegacyChallengeCategoryTemplate is a ListHeaderVisualTemplate whose
     -- RefreshCardArt re-sets both atlases on every Init and SetSelected, so
@@ -142,6 +258,70 @@ do --[[ AddOns\Blizzard_LegacyChallenge*.xml, Blizzard_LegacySystemTemplates.xml
         local lit = card:IsMouseOver() or (card.IsSelected and card:IsSelected())
         card:SetBackdropBorderColor(lit and Color.highlight or Color.button, 1)
     end
+
+    -- RefreshStateArt re-sets the plate and the three expanded-card pieces
+    -- and shows SelectedOverlay; Saturate/Desaturate re-set the TitleBar
+    -- ribbon after it. All are cleared again after each of those calls.
+    local CARD_ART = {"Background", "BackgroundTop", "BackgroundMiddle", "BackgroundBottom", "SelectedOverlay", "TitleBar"}
+    local function OnCardArt(card)
+        for i = 1, #CARD_ART do
+            ClearArt(card[CARD_ART[i]])
+        end
+        SetCardBorder(card)
+    end
+
+    -- UpdatePlusMinusTexture shows or hides PlusMinus and re-sets its atlas
+    -- (UpdatePlusMinusArt); it runs from Init, Collapse, Expand, Saturate
+    -- and Desaturate, with `collapsed` already set.
+    local function UpdatePlusMinus(card)
+        local box = plusMinus[card]
+        if not box or not card.PlusMinus then return end
+
+        ClearArt(card.PlusMinus)
+        box.frame:SetShown(card.PlusMinus:IsShown())
+        box.plus:SetShown(not not card.collapsed)
+    end
+    local function CreatePlusMinus(card)
+        local PlusMinus = card.PlusMinus
+        if not PlusMinus then return end
+
+        -- A child frame of our own over the region; not mouse-enabled, so
+        -- clicks still reach the card's own OnClick.
+        local frame = _G.CreateFrame("Frame", nil, card)
+        frame:SetAllPoints(PlusMinus)
+        Base.SetBackdrop(frame, Color.button)
+
+        local plus = frame:CreateTexture(nil, "ARTWORK")
+        plus:SetSize(1, 9)
+        plus:SetPoint("CENTER")
+        plus:SetColorTexture(1, 1, 1) -- static: not a theme color
+
+        local minus = frame:CreateTexture(nil, "ARTWORK")
+        minus:SetSize(9, 1)
+        minus:SetPoint("CENTER")
+        minus:SetColorTexture(1, 1, 1) -- static: not a theme color
+
+        plusMinus[card] = {frame = frame, plus = plus}
+        if card.UpdatePlusMinusTexture then
+            _G.hooksecurefunc(card, "UpdatePlusMinusTexture", UpdatePlusMinus)
+        end
+        UpdatePlusMinus(card)
+    end
+
+    -- The Track checkbox (AchievementCheckButtonBaseTemplate) shown on a
+    -- selected, unfinished challenge. Restyled in place: its label sits to the
+    -- left of the box here, so nothing is re-anchored.
+    local function SkinTracked(CheckButton)
+        if not CheckButton then return end
+
+        Skin.FrameTypeCheckButton(CheckButton)
+        local check = CheckButton:GetCheckedTexture()
+        if check then
+            check:SetDesaturated(true)
+            check:SetVertexColor(Color.highlight:GetRGB())
+        end
+    end
+
     function Skin.LegacyChallengeTemplate(EventButton)
         if skinned[EventButton] then
             SetCardBorder(EventButton)
@@ -149,25 +329,37 @@ do --[[ AddOns\Blizzard_LegacyChallenge*.xml, Blizzard_LegacySystemTemplates.xml
         end
         skinned[EventButton] = true
 
-        -- RefreshStateArt and Saturate/Desaturate re-set these atlases and
-        -- toggle them with SetShown; alpha 0 holds through both.
-        for _, key in next, {"Background", "BackgroundTop", "BackgroundMiddle", "BackgroundBottom", "SelectedOverlay", "TitleBar"} do
-            if EventButton[key] then
-                EventButton[key]:SetAlpha(0)
-            end
-        end
         Base.SetBackdrop(EventButton, Color.frame)
 
         local Icon = EventButton.Icon
-        if Icon and Icon.texture then
-            if Icon.frame then Icon.frame:SetAlpha(0) end
-            Base.CropIcon(Icon.texture, Icon)
+        if Icon then
+            -- Legacy-Tree-Frame-icon-frame is set only in XML (the legacy
+            -- UpdateHeaderArt is a no-op). CropIcon drops the rounded
+            -- UI-Frame-IconMask, so the icon is square.
+            ClearArt(Icon.frame)
+            if Icon.texture then
+                Base.CropIcon(Icon.texture, Icon)
+            end
         end
 
-        _G.hooksecurefunc(EventButton, "RefreshStateArt", SetCardBorder)
+        -- The points shield keeps its icon (it carries the number); the
+        -- Legacy-Challenge-Cards-Date-BG plate behind the completion date and
+        -- check is set only in XML and only shown or hidden after.
+        if EventButton.Shield then
+            ClearArt(EventButton.Shield.CheckBackground)
+        end
+
+        CreatePlusMinus(EventButton)
+        SkinTracked(EventButton.Tracked)
+
+        for _, method in next, {"RefreshStateArt", "Saturate", "Desaturate"} do
+            if EventButton[method] then
+                _G.hooksecurefunc(EventButton, method, OnCardArt)
+            end
+        end
         EventButton:HookScript("OnEnter", SetCardBorder)
         EventButton:HookScript("OnLeave", SetCardBorder)
-        SetCardBorder(EventButton)
+        OnCardArt(EventButton)
     end
 
     -- Objective rows: Background is a static atlas Blizzard only shows or
@@ -180,9 +372,7 @@ do --[[ AddOns\Blizzard_LegacyChallenge*.xml, Blizzard_LegacySystemTemplates.xml
             local r, g, b = Color.button:GetRGB()
             Frame.Background:SetColorTexture(r, g, b, 0.5)
         end
-        if Frame.ProgressBarBackground then
-            Frame.ProgressBarBackground:SetAlpha(0)
-        end
+        ClearArt(Frame.ProgressBarBackground)
         Skin.LegacyProgressBarTemplate(Frame.ProgressBar)
     end
 end
@@ -222,6 +412,12 @@ function private.AddOns.Blizzard_LegacySystem()
     ----====#####################====----
     local RewardTrackPage = LegacySystemFrame.RewardTrackPage
     if RewardTrackPage then
+        -- Legacy-Rewards-Tracker-background, the page plate, and the
+        -- Legacy-Progressbar-BG under the track bar. The crest at the top
+        -- (Icon, with Points on it) is kept, like the shields.
+        ClearArt(RewardTrackPage.Background)
+        ClearArt(RewardTrackPage.ProgressBarBackground)
+
         Skin.LegacyProgressBarTemplate(RewardTrackPage.LegacyRewardProgressBar)
 
         -- Cards are acquired from RewardTrackFrameMixin's elementPool on the
@@ -244,6 +440,27 @@ function private.AddOns.Blizzard_LegacySystem()
             if ProgressFrame.Init then
                 _G.hooksecurefunc(ProgressFrame, "Init", SkinCards)
             end
+
+            SkinTrackArrow(ProgressFrame.LeftButton, false, false)
+            SkinTrackArrow(ProgressFrame.RightButton, true, false)
+            SkinTrackArrow(ProgressFrame.JumpLeftButton, false, true)
+            SkinTrackArrow(ProgressFrame.JumpRightButton, true, true)
+
+            -- The paragon plate after the last card, if the track has one.
+            -- Its art is set only in XML; Init sets the icon texture, which
+            -- keeps the crop.
+            local Paragon = ProgressFrame.ClipFrame and ProgressFrame.ClipFrame.ParagonLevelFrame
+            if Paragon then
+                ClearArt(Paragon.Divider)
+                ClearArt(Paragon.LabelBackground)
+                ClearArt(Paragon.IconBorder)
+                if Paragon.Icon then
+                    Base.CropIcon(Paragon.Icon, Paragon)
+                end
+                if Paragon.HighlightTexture then
+                    Base.CropIcon(Paragon.HighlightTexture)
+                end
+            end
         end
     end
 
@@ -253,9 +470,7 @@ function private.AddOns.Blizzard_LegacySystem()
     local ChallengesPage = LegacySystemFrame.ChallengesPage
     if ChallengesPage then
         -- Legacy-Challenge-BG, the brown plate behind the whole page.
-        if ChallengesPage.Background then
-            ChallengesPage.Background:SetAlpha(0)
-        end
+        ClearArt(ChallengesPage.Background)
 
         local CategoryList = ChallengesPage.CategoryList
         SkinScrollArea(CategoryList)
