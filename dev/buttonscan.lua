@@ -16,9 +16,16 @@ local addonName, private = ...
      Walks every Button-type frame (CheckButton and ItemButton included) and
      reports every string key that issecurevariable attributes to an addon,
      plus the keys of plain tables hanging off the button (two levels, only
-     into tables Blizzard put there). A frame counts as Blizzard's when it has
-     at least one secure key or a secure global name; the rest are counted as
-     "addon-owned or unknown" and not listed.
+     into tables Blizzard put there), on Blizzard's buttons only.
+
+     Who made a button (see Owner below): its GetSourceLocation(), the file
+     and line that created it. A Blizzard file made it and no ancestor was
+     made by an addon: Blizzard's, scanned. An addon file made it: addon-owned,
+     counted only. A Blizzard file made it but an ancestor was made by an
+     addon (a template child or pooled element inside an addon's frame):
+     counted on its own, with examples. Where the location is missing or
+     unreadable, the old test decides: Blizzard's with at least one secure key
+     or a secure global name, else "addon-owned or unknown".
 
      Strictly read only: every probe is pcall'd, forbidden frames are skipped,
      and nothing is written to any frame. The only frame this file creates is
@@ -41,6 +48,7 @@ local MAX_TABLE_DEPTH = 2    -- plain tables on a button: button.key.key
 local MAX_FRAME_DEPTH = 40   -- <FrameName> walk: descendants below the root
 local CHAT_LIMIT = 200       -- chat fallback (no LibTextDump): lines printed at most
 local PROTECTED_KEYS = 4     -- protected list: key names shown per button
+local INSIDE_EXAMPLES = 5    -- Blizzard-made buttons inside addon frames: paths shown
 
 --[[ Aurora's keys, from design.md "Planted-field inventory". Under RealUI the
      client names RealUI_Skins as owner of these and of RealUI's own keys alike,
@@ -91,6 +99,8 @@ AddKeys("deferred", {
     "_auroraPortraitBG", "_auroraBorder", "_questTexture",
     "_auroraTabResize", "_auroraWidth", "_auroraSideWidth", "_auroraTabHeight", "_auroraTabWidth",
     "_auroraPaletteBorderDefault", "_auroraBorderHooked", "_auroraPaletteOptOut",
+    -- one-off texture handles design.md does not name; found by the first retail run
+    "_auroraIconOverlay", "_auroraArrow", "_auroraHighlight", "_auroraCheckBox", "_auroraIcon",
 })
 local CATEGORY_ORDER = { "skin", "hook", "backdrop", "leftover", "deferred" }
 
@@ -152,6 +162,65 @@ local function Path(frame)
     return "<anonymous button>"
 end
 
+--[[ Who made a frame. Region:GetSourceLocation() is documented on all five
+     source trees (SimpleScriptRegionAPIDocumentation.lua; non-nilable string;
+     a secret return under the ObjectDebug aspect on retail and Forever). The
+     format is not in Blizzard's Lua; /fstack's SOURCE line shows it as the
+     creating file and line, "Interface/AddOns/Blizzard_BuffFrame/BuffFrame.lua:176"
+     or "Interface/AddOns/oUF/elements/auras.lua:376". Read by the folder after
+     "AddOns/", either slash, any case. Returns "blizzard", "addon", or nil (no
+     API, secret, or a location that names no AddOns folder and no Interface/
+     path, such as a "[string ...]" chunk): nil leaves it to the fallback. ]]
+local function SourceOf(frame)
+    local ok, verdict = pcall(function()
+        if not frame.GetSourceLocation then return nil end
+        local location = frame:GetSourceLocation()
+        local canaccessvalue = _G.canaccessvalue
+        if canaccessvalue and not canaccessvalue(location) then return nil end
+        if type(location) ~= "string" then return nil end
+        local folder = location:match("[Aa][Dd][Dd][Oo][Nn][Ss][/\\]([^/\\:]+)")
+        if folder then
+            return folder:find("^[Bb]lizzard_") and "blizzard" or "addon"
+        end
+        -- Blizzard code outside AddOns (Interface/FrameXML, Interface/SharedXML)
+        if location:find("[Ii][Nn][Tt][Ee][Rr][Ff][Aa][Cc][Ee][/\\]") then return "blizzard" end
+        return nil
+    end)
+    if ok then return verdict end
+end
+
+local function Source(run, frame)
+    local cached = run.sources[frame]
+    if cached == nil then
+        cached = SourceOf(frame) or false
+        run.sources[frame] = cached
+    end
+    return cached or nil
+end
+
+local function ParentOf(frame)
+    local ok, parent = pcall(function() return frame:GetParent() end)
+    if ok then return parent end
+end
+
+-- "blizzard", "addon", "inside" (Blizzard-made under an addon-made ancestor),
+-- or nil when the button's own location cannot be read (fallback decides).
+local function Owner(run, button)
+    local source = Source(run, button)
+    if source ~= "blizzard" then return source end
+    local parent, depth = ParentOf(button), 0
+    while parent and depth <= MAX_FRAME_DEPTH do
+        if Source(run, parent) == "addon" then return "inside" end
+        parent, depth = ParentOf(parent), depth + 1
+    end
+    return "blizzard"
+end
+
+local function HasColorPlant(button)
+    local ok, has = pcall(function() return rawget(button, "GetButtonColor") ~= nil end)
+    return ok and has
+end
+
 local function HasSecureGlobalName(frame)
     local ok, secure = pcall(function()
         local name = frame:GetName()
@@ -182,13 +251,19 @@ local function NewRun(root)
         root = root,            -- nil: every frame (EnumerateFrames)
         frames = 0,             -- frames visited
         buttons = 0,            -- Button-type frames among them
-        blizzard = 0,           -- buttons with a secure key or secure global name
-        unknown = 0,            -- the rest: addon-owned or unknown, count only
+        -- owner test results: by source location, and by the fallback
+        source = { blizzard = 0, addon = 0, inside = 0 },
+        fallback = { blizzard = 0, unknown = 0 },
+        blizzard = 0,           -- Blizzard's buttons, scanned (both tests)
+        skinned = { blizzard = 0, inside = 0, addon = 0 },  -- GetButtonColor plant
+        inside = {},            -- Blizzard-made inside addon frames: { button, path, skinned }
+        addonSkinned = {},      -- addon-owned or unknown buttons with the plant
         forbidden = 0,          -- frames skipped as forbidden
         probeErrors = 0,        -- tables whose iteration threw
         fields = {},            -- { path, key, owner, group, category }
         flagged = {},           -- Blizzard buttons with addon-owned keys
         tables = {},            -- plain tables already descended into
+        sources = {},           -- frame -> "blizzard" / "addon" / false
     }
 end
 
@@ -212,8 +287,28 @@ local function ScanTable(run, findings, tbl, label, depth)
     if not ok then run.probeErrors = run.probeErrors + 1 end
 end
 
+local function CountAddonOwned(run, button)
+    if HasColorPlant(button) then
+        run.skinned.addon = run.skinned.addon + 1
+        run.addonSkinned[#run.addonSkinned + 1] = button
+    end
+end
+
 local function ScanButton(run, button)
     run.buttons = run.buttons + 1
+
+    local madeBy = Owner(run, button)
+    if madeBy == "addon" then
+        run.source.addon = run.source.addon + 1
+        CountAddonOwned(run, button)
+        return
+    elseif madeBy == "inside" then
+        run.source.inside = run.source.inside + 1
+        local skinned = HasColorPlant(button)
+        if skinned then run.skinned.inside = run.skinned.inside + 1 end
+        run.inside[#run.inside + 1] = { button = button, path = Path(button), skinned = skinned }
+        return
+    end
 
     -- Top level first, so Blizzard-ness is known before anything is descended into.
     local top, hasSecureKey = {}, false
@@ -228,8 +323,15 @@ local function ScanButton(run, button)
     end)
     if not ok then run.probeErrors = run.probeErrors + 1 end
 
-    if not (hasSecureKey or HasSecureGlobalName(button)) then
-        run.unknown = run.unknown + 1
+    if madeBy == "blizzard" then
+        run.source.blizzard = run.source.blizzard + 1
+    elseif hasSecureKey or HasSecureGlobalName(button) then
+        -- Fallback: over-counts where it decides (the engine's own keys and a
+        -- named frame's global read secure whoever made the frame).
+        run.fallback.blizzard = run.fallback.blizzard + 1
+    else
+        run.fallback.unknown = run.fallback.unknown + 1
+        CountAddonOwned(run, button)
         return
     end
     run.blizzard = run.blizzard + 1
@@ -249,6 +351,7 @@ local function ScanButton(run, button)
     if #findings == 0 then return end
 
     local keys = {}
+    if HasColorPlant(button) then run.skinned.blizzard = run.skinned.blizzard + 1 end
     for _, field in ipairs(findings) do
         field.group, field.category = Classify(field.key)
         keys[field.key] = true
@@ -337,13 +440,27 @@ local function Header(lines, run, mode)
     lines[#lines + 1] = ("Aurora buttonscan %s | %s | client %s.%s (%s), project %s | loaded by %s | root: %s"):format(
         mode, _G.date("%Y-%m-%d %H:%M"), tostring(version), tostring(build), tostring(interface),
         tostring(_G.WOW_PROJECT_ID), addonName, run.root or "all frames")
-    lines[#lines + 1] = ("Buttons: %d found in %d frames; %d Blizzard's scanned; %d of them with addon-owned keys; %d addon-owned or unknown (count only); %d forbidden frames skipped"):format(
-        run.buttons, run.frames, run.blizzard, #run.flagged, run.unknown, run.forbidden)
-    local skinned = 0
-    for _, entry in ipairs(run.flagged) do
-        if IsSkinned(entry) then skinned = skinned + 1 end
+    local source, fallback = run.source, run.fallback
+    lines[#lines + 1] = ("Buttons: %d found in %d frames; %d Blizzard's scanned; %d of them with addon-owned keys; %d addon-owned or unknown (count only); %d Blizzard-made inside addon frames (count only); %d forbidden frames skipped"):format(
+        run.buttons, run.frames, run.blizzard, #run.flagged, source.addon + fallback.unknown, source.inside,
+        run.forbidden)
+    lines[#lines + 1] = ("Owner test: source location %d (Blizzard's %d, addon-owned %d, inside addon frames %d); fallback, secure key or global name %d (Blizzard's %d, addon-owned or unknown %d)"):format(
+        source.blizzard + source.addon + source.inside, source.blizzard, source.addon, source.inside,
+        fallback.blizzard + fallback.unknown, fallback.blizzard, fallback.unknown)
+    lines[#lines + 1] = ("Skinned (GetButtonColor key): Blizzard's %d, inside addon frames %d, addon-owned %d"):format(
+        run.skinned.blizzard, run.skinned.inside, run.skinned.addon)
+    if #run.inside > 0 then
+        -- Skinned first: those are the ones that would matter if a Blizzard
+        -- button was reparented into an addon frame and lands here by mistake.
+        table.sort(run.inside, function(a, b)
+            if a.skinned ~= b.skinned then return a.skinned end
+            return a.path < b.path
+        end)
+        for i = 1, math.min(#run.inside, INSIDE_EXAMPLES) do
+            local entry = run.inside[i]
+            lines[#lines + 1] = ("  inside addon frame, e.g. %s%s"):format(entry.path, entry.skinned and " [skinned]" or "")
+        end
     end
-    lines[#lines + 1] = ("Skinned (GetButtonColor key): %d"):format(skinned)
     if run.probeErrors > 0 then
         lines[#lines + 1] = ("Probe errors (tables that could not be iterated): %d"):format(run.probeErrors)
     end
@@ -353,7 +470,7 @@ local function Verdict(lines, run)
     if #run.fields == 0 then
         lines[#lines + 1] = "PASS: no addon-owned field on any Blizzard button in scope."
     else
-        lines[#lines + 1] = ("FAIL: %d addon-owned fields on %d Blizzard buttons (PASS means 0)."):format(
+        lines[#lines + 1] = ("FAIL: %d addon-owned fields on %d Blizzard buttons (PASS means 0; buttons made by addons or inside addon frames are not counted)."):format(
             #run.fields, #run.flagged)
     end
 end
@@ -426,6 +543,11 @@ local function Full(run)
         lines[#lines + 1] = ("%s.%s <- %s [%s%s]"):format(field.path, field.key, field.owner, field.group,
             field.category and (":" .. field.category) or "")
     end
+    -- Not fields, and not in the verdict: every Blizzard-made button inside an
+    -- addon frame, so a misplaced Blizzard button can be spotted.
+    for _, entry in ipairs(run.inside) do
+        lines[#lines + 1] = ("inside addon frame: %s%s"):format(entry.path, entry.skinned and " [skinned]" or "")
+    end
     Verdict(lines, run)
     Show(lines)
 end
@@ -462,6 +584,29 @@ local function Protected(run)
     lines[#lines + 1] = ("Other buttons with addon-owned keys, protected or under a protected ancestor: %d"):format(#other)
     for _, line in ipairs(other) do lines[#lines + 1] = line end
     lines[#lines + 1] = ("Not protected, no protected ancestor: %d buttons with addon-owned keys (not listed)"):format(clear)
+
+    -- Not Blizzard's: counts only (skinned ones under protection).
+    local insideSkinned, insideProtected, insideExamples = 0, 0, {}
+    for _, entry in ipairs(run.inside) do
+        if entry.skinned then
+            insideSkinned = insideSkinned + 1
+            if ProtectedBy(entry.button) then
+                insideProtected = insideProtected + 1
+                if #insideExamples < INSIDE_EXAMPLES then insideExamples[#insideExamples + 1] = entry.path end
+            end
+        end
+    end
+    lines[#lines + 1] = ("Blizzard-made inside addon frames, not listed: %d skinned, %d of them protected or under a protected ancestor"):format(
+        insideSkinned, insideProtected)
+    for _, path in ipairs(insideExamples) do
+        lines[#lines + 1] = ("  e.g. %s"):format(path)
+    end
+    local addonProtected = 0
+    for _, button in ipairs(run.addonSkinned) do
+        if ProtectedBy(button) then addonProtected = addonProtected + 1 end
+    end
+    lines[#lines + 1] = ("Addon-owned or unknown, not listed: %d skinned, %d of them protected or under a protected ancestor"):format(
+        #run.addonSkinned, addonProtected)
     Show(lines)
 end
 
