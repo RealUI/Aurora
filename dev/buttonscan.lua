@@ -5,7 +5,8 @@ local addonName, private = ...
      Usage: <cmd>                 summary: counts, keys in three groups, PASS/FAIL
             <cmd> full            one line per addon-owned field
             <cmd> protected       buttons with addon-owned keys that are protected
-                                  or sit under a protected ancestor
+                                  or sit under a protected ancestor (UIParent
+                                  itself is not counted)
             <cmd> <FrameName>     summary for that frame and its descendants only
             <cmd> spike           spike S1 (task 1.6), one step per call: arm the
                                   control, install the clean hook, report
@@ -242,14 +243,19 @@ local function HasSecureGlobalName(frame)
 end
 
 -- Returns the button itself or its first ancestor that IsProtected() says is
--- protected, and whether that one is protected explicitly.
+-- protected, and whether that one is protected explicitly. UIParent is passed
+-- over: it reads as explicitly protected on Forever, Mists, TBC and Vanilla
+-- (checkpoint 0, 2026-11-22), so counting it lists every button under it.
 local function ProtectedBy(frame)
     local current, depth = frame, 0
     while current and depth <= MAX_FRAME_DEPTH do
-        local ok, isProtected, explicit = pcall(function()
-            local protected, isExplicit = current:IsProtected()
-            return protected and true or false, isExplicit and true or false
-        end)
+        local ok, isProtected, explicit = false, false, false
+        if current ~= _G.UIParent then
+            ok, isProtected, explicit = pcall(function()
+                local protected, isExplicit = current:IsProtected()
+                return protected and true or false, isExplicit and true or false
+            end)
+        end
         if ok and isProtected then return current, explicit end
         local okParent, parent = pcall(function() return current:GetParent() end)
         if not okParent then return nil end
@@ -591,11 +597,17 @@ local function Protected(run)
     table.sort(skinned)
     table.sort(other)
 
+    local okRoot, rootProtected, rootExplicit = pcall(function()
+        local protected, isExplicit = _G.UIParent:IsProtected()
+        return protected and true or false, isExplicit and true or false
+    end)
+    lines[#lines + 1] = ("UIParent is not counted as a protected ancestor (IsProtected on it: %s%s)"):format(
+        okRoot and tostring(rootProtected) or "unreadable", okRoot and rootExplicit and ", explicit" or "")
     lines[#lines + 1] = ("Skinned buttons (GetButtonColor key), protected or under a protected ancestor: %d"):format(#skinned)
     for _, line in ipairs(skinned) do lines[#lines + 1] = line end
     lines[#lines + 1] = ("Other buttons with addon-owned keys, protected or under a protected ancestor: %d"):format(#other)
     for _, line in ipairs(other) do lines[#lines + 1] = line end
-    lines[#lines + 1] = ("Not protected, no protected ancestor: %d buttons with addon-owned keys (not listed)"):format(clear)
+    lines[#lines + 1] = ("Not protected, no protected ancestor below UIParent: %d buttons with addon-owned keys (not listed)"):format(clear)
 
     -- Not Blizzard's: counts only (skinned ones under protection).
     local insideSkinned, insideProtected, insideExamples = 0, 0, {}
