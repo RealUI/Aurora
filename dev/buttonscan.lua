@@ -10,7 +10,9 @@ local addonName, private = ...
             <cmd> spike           spike S1 (task 1.6), one step per call: arm the
                                   control, install the clean hook, report
             <cmd> spikehover      the same on the scroll bar under the mouse
-            <cmd> spikedirty      S1's sensitivity check, run last
+            <cmd> spikecall       S1's positive control, run last: makes Blizzard's
+                                  update call addon code after the hooked call
+            <cmd> spikedirty      S1's field-read check (optional, not in the verdict)
 
      <cmd> is "/realdev buttonscan" under RealUI_Dev (retail, Forever) and
      "/aurora buttonscan" under standalone Aurora (every flavour). Until task 1.3
@@ -37,7 +39,8 @@ local addonName, private = ...
      creates is its own LibTextDump output window, when that library is
      installed. The spike words are the exception, and only when asked for:
      they create one small frame with one texture of their own and hook
-     SetEnabled on one Blizzard scroll bar stepper until /reload (see "Spike
+     SetEnabled on one Blizzard scroll bar stepper until /reload; the two
+     steps after that each taint that one scroll bar on purpose (see "Spike
      S1" below).
 
      Loaded twice over: by Aurora.toc (do-not-package block) and by
@@ -641,15 +644,19 @@ end
                                                    securecallfunction (CallbackRegistry.lua:201, :210)
          self.internalScope = false         :304   the witness
 
-     The witness is bar.internalScope: Blizzard writes it after both SetEnabled
-     calls returned, in the same Lua call chain, so issecurevariable on it says
-     whether the execution was still secure after the hook. securecallfunction
-     drops taint picked up inside the callbacks when they return, so the scroll
-     box's side cannot colour it; taint that arises in Update can. The other
-     two fields are support: bar.scrollPercentage is written before the calls
-     and again after them when the list moved (the scroll box answers through
-     ScrollUtil.lua:57), box.scrollPercentage after them (ScrollUtil.lua:76,
-     ScrollBox.lua:315), and their values change, which shows the update ran.
+     The first witness is bar.internalScope: Blizzard writes it after both
+     SetEnabled calls returned, in the same Lua call chain, every held frame,
+     so issecurevariable on it says whether the execution was still secure
+     after the hook. Two more witnesses are written inside the callbacks when
+     the list moved: box.updateLock (the constant false at the end of the
+     scroll box's Update, ScrollBox.lua:799) and bar.visibleExtentPercentage
+     (ScrollBar.lua:134 from ScrollUtil.lua:58). Their values owe nothing to
+     the fields the dirty steps write, so only a tainted execution can turn
+     them. The scroll percentages are support: bar.scrollPercentage is written
+     before the calls and again after them when the list moved (the scroll box
+     answers through ScrollUtil.lua:57), box.scrollPercentage after them
+     (ScrollUtil.lua:76, ScrollBox.lua:315); their values change, which shows
+     the update ran and counts the list's movements.
 
      Nothing here calls the update: the owner drags, a sampler on this file's
      own frame reads. A frame counts while bar.requireInternalScope (:397,
@@ -667,24 +674,48 @@ end
                 today's hook body or post-hooks as such, so move to a bar
                 Aurora does not skin.
        clean    hooksecurefunc(Back, "SetEnabled", CleanHook), the only change
-                to a Blizzard object, and it stays until /reload.
-       dirty    separate command, run last: a second hook on the same key
-                writes bar.scrollPercentage back to itself from addon code,
-                which Update reads at :241. It shows what a failing run looks
-                like on the same button and that the witness can see taint
-                that starts at the hook. It leaves the scroll bar tainted
-                until /reload. ]]
+                to a Blizzard object in the measured part, and it stays until
+                /reload.
+       called   "spikecall", run last: the positive control. The bar's
+                GetThumbAnchor becomes an addon function, which Update calls
+                at :248, after the hooked call and in the same function. A
+                Blizzard execution that runs addon code is tainted from there
+                on (doctrine rule 8), which is the state a post-hook would
+                leave if hooksecurefunc did not put the taint back. The
+                verdict rests on the witnesses this step turns insecure: only
+                those are shown to see taint that starts where the hook sits.
+       dirty    "spikedirty", optional, not in the verdict: a second hook on
+                the same key writes bar.scrollPercentage back to itself, which
+                Update reads back at :241 and :178 through a getter.
+
+     First run, 2026-11-22, retail 12.1.5.70961: control and clean secure in
+     every frame. The dirty step, then the only sensitivity check, left
+     bar.internalScope secure in all 912 frames although the field it wrote
+     was read back before that write; only box.scrollPercentage turned, and
+     that value is the tainted one handed on as data. So a tainted field read
+     through a getter did not show as a tainted execution at :304, the check
+     proved nothing about the witness, and the call step replaced it.
+
+     Both extra steps leave that scroll bar tainted until /reload. ]]
 local SPIKE_MIN_FRAMES = 30   -- thumb-held frames a phase needs before it counts
 local SPIKE_KEYS_SHOWN = 6    -- addon-owned key names shown per table
+local SPIKE_MIN_MOVES = 10    -- list movements a phase needs before its callback-side witnesses count
 
 local SPIKE_FIELDS = {
-    -- [1] is the witness; SpikeResult reads it by index.
-    { on = "bar", key = "internalScope", label = "bar.internalScope [witness]",
-        note = "written after both SetEnabled calls returned, same call chain (ScrollBar.lua:304)" },
-    { on = "bar", key = "scrollPercentage", label = "bar.scrollPercentage",
+    -- [1] is the first witness and gates the control; [3] counts list movements.
+    -- SpikeResult reads both by index. A witness is a field Blizzard writes
+    -- after the hooked call with a value that owes nothing to what the dirty
+    -- steps write, so only a tainted execution can make it read insecure.
+    { on = "bar", key = "internalScope", name = "bar.internalScope", label = "bar.internalScope [witness]", witness = true,
+        note = "written after both SetEnabled calls returned, same call chain, every held frame (ScrollBar.lua:304)" },
+    { on = "bar", key = "scrollPercentage", name = "bar.scrollPercentage", label = "bar.scrollPercentage",
         note = "written before the calls (ScrollController.lua:177 from ScrollBar.lua:174) and again after them when the list moved; the dirty hook writes it" },
-    { on = "box", key = "scrollPercentage", label = "box.scrollPercentage",
-        note = "the scroll box's copy, written after the calls inside the bar's OnScroll callback (ScrollUtil.lua:76)" },
+    { on = "box", key = "scrollPercentage", name = "box.scrollPercentage", label = "box.scrollPercentage",
+        note = "the scroll box's copy, written after the calls inside the bar's OnScroll callback when the list moved (ScrollUtil.lua:76); its value is math.saturate of what the bar read back, so the dirty hook's write reaches it as data" },
+    { on = "box", key = "updateLock", name = "box.updateLock", label = "box.updateLock [witness]", witness = true, moves = true,
+        note = "the constant false, written at the end of the scroll box's Update inside that callback when the list moved (ScrollBox.lua:799 through :147)" },
+    { on = "bar", key = "visibleExtentPercentage", name = "bar.visibleExtentPercentage", label = "bar.visibleExtentPercentage [witness]", witness = true, moves = true,
+        note = "written when the scroll box answers back, when the list moved (ScrollBar.lua:134 from ScrollUtil.lua:58); computed from frame extents" },
 }
 -- Default targets, first one on screen wins. Both are MinimalScrollBars.
 local SPIKE_TARGETS = {
@@ -696,10 +727,12 @@ local SPIKE_TARGETS = {
     -- the control also says what today's hook body does to the update.
     { "AddonList", "ScrollBar" },
 }
+-- Phase titles; the report lists phases in the order they were run (spike.order).
 local SPIKE_PHASES = {
-    { id = "control", title = "control, no spike hook" },
-    { id = "clean", title = "clean hook" },
-    { id = "dirty", title = "clean hook + dirty hook" },
+    control = "control, no spike hook",
+    clean = "clean hook",
+    called = "clean hook + Blizzard calls the spike's function",
+    dirty = "clean hook + dirty hook",
 }
 
 local spikeStore = setmetatable({}, { __mode = "k" })   -- [Button] = record; the plan's buttonState
@@ -731,6 +764,18 @@ local function DirtyHook(Button)
     if not state then return end
     state.dirtyRuns = state.dirtyRuns + 1
     state.bar.scrollPercentage = state.bar.scrollPercentage
+end
+
+--[[ Never part of the plan either: the positive control. Takes the place of
+     ScrollBarMixin:GetThumbAnchor (ScrollBar.lua:89-91) on the one scroll bar
+     and returns what it returned. Update calls it at :248 and nowhere else
+     does, ten lines after the hooked call in the same function, so from there
+     on Blizzard's execution has run addon code: the state a post-hook would
+     leave behind if hooksecurefunc did not put the taint back. ]]
+local function CalledByBlizzard(bar)
+    local record = spike.record
+    if record then record.callRuns = record.callRuns + 1 end
+    return bar.thumbAnchor
 end
 
 -- present (nil: the probe threw), secure, owner, value as text
@@ -919,9 +964,10 @@ local function Arm(bar, chosenBy)
 
     spike.bar, spike.back, spike.thumb, spike.box = bar, back, thumb, box
     spike.path, spike.backPath = Path(bar), Path(back)
-    spike.record = { texture = spike.texture, bar = bar, runs = 0, dirtyRuns = 0 }
+    spike.record = { texture = spike.texture, bar = bar, runs = 0, dirtyRuns = 0, callRuns = 0 }
     spikeStore[back] = spike.record
     spike.stats = { control = NewPhase() }
+    spike.order = { "control" }
     spike.phase, spike.wasHeld, spike.lastRuns = "control", false, 0
     spike.start = Snapshot()
     spike.about = {
@@ -934,6 +980,16 @@ local function Arm(bar, chosenBy)
     return true
 end
 
+-- Close the running phase and open the next one.
+local function BeginPhase(id, about)
+    spike.stats[spike.phase].ended = Snapshot()
+    spike.stats[id] = NewPhase()
+    spike.stats[id].prev = spike.phase
+    spike.order[#spike.order + 1] = id
+    spike.phase, spike.wasHeld = id, false
+    spike.about[#spike.about + 1] = about
+end
+
 -- The one write to a Blizzard object (twice with the dirty hook, same key).
 local function InstallHook(id, body, name)
     local back = spike.back
@@ -941,11 +997,24 @@ local function InstallHook(id, body, name)
         _G.print(("buttonscan spike: hooksecurefunc on %s failed; nothing changed."):format(spike.backPath))
         return false
     end
-    spike.stats[spike.phase].ended = Snapshot()
-    spike.stats[id] = NewPhase()
-    spike.phase, spike.wasHeld = id, false
-    spike.about[#spike.about + 1] = ("Hooked: hooksecurefunc(%s, \"SetEnabled\", %s). SetEnabled now: %s. It stays until /reload."):format(
-        spike.backPath, name, KeyState(back, "SetEnabled"))
+    BeginPhase(id, ("Hooked: hooksecurefunc(%s, \"SetEnabled\", %s). SetEnabled now: %s. It stays until /reload."):format(
+        spike.backPath, name, KeyState(back, "SetEnabled")))
+    return true
+end
+
+-- The positive control's write: one method of the scroll bar becomes addon code.
+local function InstallCall()
+    local bar = spike.bar
+    local ok = pcall(function()
+        if type(bar.GetThumbAnchor) ~= "function" then error("no GetThumbAnchor") end
+        bar.GetThumbAnchor = CalledByBlizzard
+    end)
+    if not ok then
+        _G.print(("buttonscan spike: %s has no GetThumbAnchor to replace; nothing changed."):format(spike.path))
+        return false
+    end
+    BeginPhase("called", ("Replaced: %s.GetThumbAnchor is now the spike's own function; Update calls it at ScrollBar.lua:248, after the hooked call. GetThumbAnchor now: %s. It stays until /reload."):format(
+        spike.path, KeyState(bar, "GetThumbAnchor")))
     return true
 end
 
@@ -954,13 +1023,135 @@ local function Owners(tally)
     return " <- " .. OwnerList(tally.owners)
 end
 
+local function FieldNames(indexes)
+    if #indexes == 0 then return "none" end
+    local names = {}
+    for i, index in ipairs(indexes) do names[i] = SPIKE_FIELDS[index].name end
+    return table.concat(names, ", ")
+end
+
+-- The fields a phase turned insecure that the phase before it had left
+-- secure, and those it left secure too. Witnesses only, unless every sampled
+-- field is asked for.
+local function Turned(phase, everyField)
+    local turned, kept = {}, {}
+    local before = spike.stats[phase.prev]
+    for index, field in ipairs(SPIKE_FIELDS) do
+        if spike[field.on] and (everyField or field.witness) and before.fields[index].insecure == 0 then
+            local list = phase.fields[index].insecure >= SPIKE_MIN_FRAMES and turned or kept
+            list[#list + 1] = index
+        end
+    end
+    return turned, kept
+end
+
+-- The clean phase on its own, judged on bar.internalScope. Returns "secure",
+-- "failed", or nil while it has too few frames, and the other witnesses that
+-- read insecure with the clean hook but not in the control.
+local function CleanResult(lines)
+    local control, clean = spike.stats.control, spike.stats.clean
+    local witness = clean.fields[1]
+    local others = {}
+    for index, field in ipairs(SPIKE_FIELDS) do
+        if index > 1 and field.witness and spike[field.on]
+            and clean.fields[index].insecure > 0 and control.fields[index].insecure == 0 then
+            others[#others + 1] = index
+        end
+    end
+
+    local verdict
+    if clean.frames < SPIKE_MIN_FRAMES or clean.hookFrames < SPIKE_MIN_FRAMES
+        or witness.secure + witness.insecure < SPIKE_MIN_FRAMES then
+        lines[#lines + 1] = ("RESULT: none yet, nothing measured (INCONCLUSIVE if this is the last window). With the hook: thumb held %d frames, hook ran in %d of them, witness written in %d (each needs %d)."):format(
+            clean.frames, clean.hookFrames, witness.secure + witness.insecure, SPIKE_MIN_FRAMES)
+    elseif witness.insecure > 0 then
+        verdict = "failed"
+        lines[#lines + 1] = ("RESULT: DID NOT STAY SECURE. With the clean hook on %s, bar.internalScope read insecure%s in %d of %d thumb-held frames; the control read secure. STOP: owner first, this reopens AT-D1 and AT-D6 (tasks.md, \"Pulling a tier B row forward\", point 2)."):format(
+            spike.backPath, Owners(witness), witness.insecure, clean.frames)
+    else
+        verdict = "secure"
+        lines[#lines + 1] = ("RESULT: STAYED SECURE. With the clean hook on %s, bar.internalScope was written secure in all %d thumb-held frames (the hook ran in %d of them). AT-D2 stands, subject to the sensitivity check."):format(
+            spike.backPath, clean.frames, clean.hookFrames)
+    end
+    if #others > 0 then
+        lines[#lines + 1] = ("NOTE: with the clean hook these also read insecure, and did not in the control: %s. They are written inside the scroll box's callback, where taint can start on its own; bar.internalScope cannot be reached from there."):format(
+            FieldNames(others))
+    end
+    return verdict, others
+end
+
+--[[ Witnesses shown to turn insecure when taint starts inside Update after
+     the hooked call: those the call step turned, and bar.internalScope if the
+     dirty step turned it (a field read in Update then reached the write at
+     ScrollBar.lua:304). Returns them, the witnesses the call step left secure,
+     whether anything was measured, and whether the dirty step supplied one. ]]
+local function Proven()
+    local stats = spike.stats
+    local called, dirty = stats.called, stats.dirty
+    local turned, kept, measured, byDirty = {}, {}, false, false
+    if called and called.frames >= SPIKE_MIN_FRAMES then
+        turned, kept = Turned(called)
+        measured = true
+    end
+    if dirty and dirty.frames >= SPIKE_MIN_FRAMES and dirty.fields[1].insecure >= SPIKE_MIN_FRAMES
+        and stats[dirty.prev].fields[1].insecure == 0 then
+        table.insert(turned, 1, 1)
+        measured, byDirty = true, true
+    end
+    return turned, kept, measured, byDirty
+end
+
+-- The sensitivity line and the verdict that rests on the proven witnesses.
+local function VerdictLines(lines, verdict, others, turned, kept, byDirty)
+    local clean, called = spike.stats.clean, spike.stats.called
+    if #turned == 0 then
+        lines[#lines + 1] = ("SENSITIVITY: FAILED. Update called the spike's own function %d times (ScrollBar.lua:248) and no witness turned insecure in %d thumb-held frames (still secure: %s). Taint that starts inside Update after the hooked call does not show in any field sampled here."):format(
+            spike.record.callRuns, called.frames, FieldNames(kept))
+        lines[#lines + 1] = "VERDICT: INCONCLUSIVE. The clean phase proves nothing until some witness can be turned."
+        return
+    end
+    local how = called and ("Update called the spike's own function at ScrollBar.lua:248, %d calls"):format(spike.record.callRuns)
+        or "no call step run"
+    if byDirty then
+        how = how .. "; bar.internalScope turned in the dirty step, from the field Update read back at :241"
+    end
+    lines[#lines + 1] = ("SENSITIVITY: OK. Witnesses that turned insecure once taint started inside Update after the hooked call: %s (%s). Still secure: %s. This is what a clean hook that left the execution tainted would look like."):format(
+        FieldNames(turned), how, FieldNames(kept))
+    if verdict == nil then
+        lines[#lines + 1] = "VERDICT: INCONCLUSIVE. The clean phase was not measured."
+        return
+    end
+
+    -- Witnesses that turned and that the clean phase wrote often enough.
+    local rests, onFirst = {}, false
+    local moves = spike.box and clean.fields[3].changes or 0
+    for _, index in ipairs(turned) do
+        local enough = clean.fields[index].secure >= SPIKE_MIN_FRAMES
+        if SPIKE_FIELDS[index].moves then enough = enough and moves >= SPIKE_MIN_MOVES end
+        if enough then
+            rests[#rests + 1] = index
+            if index == 1 then onFirst = true end
+        end
+    end
+    if #rests == 0 then
+        lines[#lines + 1] = ("VERDICT: INCONCLUSIVE. The witnesses that turned (%s) were not written often enough in the clean phase: the list moved %d times there (needs %d). Run it again and drag the thumb all the way up and down."):format(
+            FieldNames(turned), moves, SPIKE_MIN_MOVES)
+    elseif #others > 0 and not onFirst then
+        lines[#lines + 1] = ("VERDICT: INCONCLUSIVE, mixed. bar.internalScope was not turned, and %s read insecure with the clean hook (see NOTE). A reader has to weigh the field lines."):format(
+            FieldNames(others))
+    else
+        lines[#lines + 1] = ("VERDICT: STAYED SECURE, resting on %s: secure in every clean-phase frame that wrote it, insecure once Blizzard's Update had run tainted after the same hooked call. AT-D2 stands."):format(
+            FieldNames(rests))
+    end
+end
+
 -- Appends the verdict lines; returns what to do next.
 local function SpikeResult(lines)
     local command = COMMAND
     local stats = spike.stats
-    local control, clean, dirty = stats.control, stats.clean, stats.dirty
+    local control, clean, called, dirty = stats.control, stats.clean, stats.called, stats.dirty
     local controlWitness = control.fields[1]
-    local drag = ("close this window, hold the left button on the THUMB of %s and drag it up and down for about three seconds (not the wheel, not the arrows), release"):format(spike.path)
+    local drag = ("close this window, hold the left button on the THUMB of %s and drag it all the way up and down for about three seconds (not the wheel, not the arrows), release"):format(spike.path)
 
     if controlWitness.insecure > 0 then
         lines[#lines + 1] = ("RESULT: INCONCLUSIVE, already tainted. Without any spike hook this update wrote bar.internalScope insecure%s in %d of %d thumb-held frames, so nothing here can be laid at the clean hook."):format(
@@ -979,45 +1170,40 @@ local function SpikeResult(lines)
     lines[#lines + 1] = ("CONTROL: without the spike's hook bar.internalScope was written secure in all %d thumb-held frames that wrote it."):format(
         controlWitness.secure)
 
-    local witness = clean.fields[1]
-    local verdict
-    if clean.frames < SPIKE_MIN_FRAMES or clean.hookFrames < SPIKE_MIN_FRAMES
-        or witness.secure + witness.insecure < SPIKE_MIN_FRAMES then
-        lines[#lines + 1] = ("RESULT: none yet, nothing measured (INCONCLUSIVE if this is the last window). With the hook: thumb held %d frames, hook ran in %d of them, witness written in %d (each needs %d)."):format(
-            clean.frames, clean.hookFrames, witness.secure + witness.insecure, SPIKE_MIN_FRAMES)
-        if not dirty then
-            return ("%s, then run '%s spike' again."):format(drag, command)
-        end
-    elseif witness.insecure > 0 then
-        verdict = "failed"
-        lines[#lines + 1] = ("RESULT: DID NOT STAY SECURE. With the clean hook on %s, bar.internalScope read insecure%s in %d of %d thumb-held frames; the control read secure. STOP: owner first, this reopens AT-D1 and AT-D6 (tasks.md, \"Pulling a tier B row forward\", point 2)."):format(
-            spike.backPath, Owners(witness), witness.insecure, clean.frames)
-    else
-        verdict = "secure"
-        lines[#lines + 1] = ("RESULT: STAYED SECURE. With the clean hook on %s, bar.internalScope was written secure in all %d thumb-held frames (the hook ran in %d of them). AT-D2 stands, subject to the sensitivity check."):format(
-            spike.backPath, clean.frames, clean.hookFrames)
+    local verdict, others = CleanResult(lines)
+    if verdict == nil and not (called or dirty) then
+        return ("%s, then run '%s spike' again."):format(drag, command)
+    elseif verdict == "failed" then
+        lines[#lines + 1] = "VERDICT: DID NOT STAY SECURE. The witness read insecure with the clean hook and secure without it; no further step is needed."
+        return "paste this whole window, then /reload."
     end
 
-    if not dirty then
-        if verdict == "secure" then
-            lines[#lines + 1] = "SENSITIVITY: not checked yet. Until the dirty step shows the witness can read insecure, STAYED SECURE is provisional."
+    if dirty then
+        if dirty.frames < SPIKE_MIN_FRAMES then
+            lines[#lines + 1] = ("FIELD-READ CHECK: not measured yet. Thumb held %d frames with the dirty hook (needs %d)."):format(
+                dirty.frames, SPIKE_MIN_FRAMES)
+        else
+            local turned, kept = Turned(dirty, true)
+            lines[#lines + 1] = ("FIELD-READ CHECK: with bar.scrollPercentage addon-owned (the dirty hook ran %d times) and read back by Update (ScrollBar.lua:241, :178), turned insecure: %s. Still secure: %s."):format(
+                spike.record.dirtyRuns, FieldNames(turned), FieldNames(kept))
         end
-        return ("paste this whole window. Then, last: run '%s spikedirty', drag the thumb again for three seconds, run '%s spike', paste that window too, then /reload."):format(
-            command, command)
     end
-    local dirtyWitness = dirty.fields[1]
-    if dirty.frames < SPIKE_MIN_FRAMES then
-        lines[#lines + 1] = ("SENSITIVITY: not measured yet. Thumb held %d frames with the dirty hook (needs %d)."):format(
-            dirty.frames, SPIKE_MIN_FRAMES)
-        return ("%s, then run '%s spike', paste the window, then /reload at once: the dirty hook leaves this scroll bar tainted."):format(
+    local turned, kept, measured, byDirty = Proven()
+    if measured then
+        VerdictLines(lines, verdict, others, turned, kept, byDirty)
+    elseif called then
+        lines[#lines + 1] = ("SENSITIVITY: not measured yet. Thumb held %d frames since Update started calling the spike's function (needs %d)."):format(
+            called.frames, SPIKE_MIN_FRAMES)
+    elseif verdict == "secure" then
+        lines[#lines + 1] = "SENSITIVITY: not checked yet. Until the call step turns a witness insecure, STAYED SECURE is provisional."
+    end
+
+    if stats[spike.phase].frames < SPIKE_MIN_FRAMES then
+        return ("%s, then run '%s spike', paste the window, then /reload at once: this scroll bar's updates are tainted until then."):format(
             drag, command)
-    end
-    if dirtyWitness.insecure > 0 then
-        lines[#lines + 1] = ("SENSITIVITY: OK. With the deliberate write, bar.internalScope read insecure%s in %d of %d thumb-held frames: the witness sees taint that starts at the hook, and this is what a failing clean run looks like."):format(
-            Owners(dirtyWitness), dirtyWitness.insecure, dirty.frames)
-    else
-        lines[#lines + 1] = ("SENSITIVITY: FAILED. The dirty hook ran %d times and bar.internalScope still read secure in all %d thumb-held frames: the witness cannot see taint from the hook, so STAYED SECURE above proves nothing. Treat the run as INCONCLUSIVE."):format(
-            spike.record.dirtyRuns, dirty.frames)
+    elseif not called and #turned == 0 then
+        return ("paste this whole window. Then, last: run '%s spikecall', drag the thumb again for three seconds, run '%s spike', paste that window too, then /reload."):format(
+            command, command)
     end
     return "paste this whole window, then /reload."
 end
@@ -1031,18 +1217,16 @@ local function SpikeReport()
     for _, line in ipairs(spike.about) do lines[#lines + 1] = line end
 
     lines[#lines + 1] = ("Phases (frames with the thumb held, first frame of each press left out; a phase needs %d):"):format(SPIKE_MIN_FRAMES)
-    for _, info in ipairs(SPIKE_PHASES) do
-        local phase = spike.stats[info.id]
-        if phase then
-            local line = ("  %s: %d frames"):format(info.title, phase.frames)
-            if info.id ~= "control" then
-                line = line .. ("; the clean hook ran in %d of them"):format(phase.hookFrames)
-            end
-            lines[#lines + 1] = line
+    for _, id in ipairs(spike.order) do
+        local phase = spike.stats[id]
+        local line = ("  %s: %d frames"):format(SPIKE_PHASES[id], phase.frames)
+        if id ~= "control" then
+            line = line .. ("; the clean hook ran in %d of them"):format(phase.hookFrames)
         end
+        lines[#lines + 1] = line
     end
-    lines[#lines + 1] = ("Hook runs since install: clean %d, dirty %d. Sampler errors: %d."):format(
-        spike.record.runs, spike.record.dirtyRuns, spike.sampleErrors or 0)
+    lines[#lines + 1] = ("Hook runs since install: clean %d, dirty %d. Calls of the spike's function by Update: %d. Sampler errors: %d."):format(
+        spike.record.runs, spike.record.dirtyRuns, spike.record.callRuns, spike.sampleErrors or 0)
 
     lines[#lines + 1] = "Fields (who last wrote them; secure = Blizzard):"
     for index, field in ipairs(SPIKE_FIELDS) do
@@ -1050,14 +1234,12 @@ local function SpikeReport()
         if tbl then
             lines[#lines + 1] = ("  %s: %s"):format(field.label, field.note)
             lines[#lines + 1] = ("    before the spike: %s"):format(spike.start[index])
-            for _, info in ipairs(SPIKE_PHASES) do
-                local phase = spike.stats[info.id]
-                if phase then
-                    local tally = phase.fields[index]
-                    lines[#lines + 1] = ("    %s: secure %d, insecure %d%s, not set %d; value changed %d times; %s"):format(
-                        info.title, tally.secure, tally.insecure, Owners(tally), tally.unset, tally.changes,
-                        phase.ended and ("at its end: " .. phase.ended[index]) or ("now: " .. FieldState(tbl, field.key)))
-                end
+            for _, id in ipairs(spike.order) do
+                local phase = spike.stats[id]
+                local tally = phase.fields[index]
+                lines[#lines + 1] = ("    %s: secure %d, insecure %d%s, not set %d; value changed %d times; %s"):format(
+                    SPIKE_PHASES[id], tally.secure, tally.insecure, Owners(tally), tally.unset, tally.changes,
+                    phase.ended and ("at its end: " .. phase.ended[index]) or ("now: " .. FieldState(tbl, field.key)))
             end
         end
     end
@@ -1065,7 +1247,8 @@ local function SpikeReport()
     local nextStep = SpikeResult(lines)
     lines[#lines + 1] = "NEXT: " .. nextStep
     if spike.phase ~= "control" then
-        lines[#lines + 1] = ("The spike's hook on %s.SetEnabled stays until /reload. The small square at the top of the screen is the spike's own texture."):format(spike.backPath)
+        lines[#lines + 1] = ("Until /reload: the spike's hook on %s.SetEnabled%s. The small square at the top of the screen is the spike's own texture."):format(
+            spike.backPath, spike.stats.called and (", and its function in place of %s.GetThumbAnchor"):format(spike.path) or "")
     end
     Show(lines)
 end
@@ -1124,20 +1307,37 @@ local function SpikeHover()
     end
 end
 
--- "spikedirty": the sensitivity check, after the clean phase has its frames.
-local function SpikeDirty()
+-- "spikecall" and "spikedirty": one more phase on top of the clean hook, after
+-- the running phase has its frames. Each can be started once.
+local function SpikeStimulus(id, install)
     if not SpikeReady() then return end
-    if spike.phase == "clean" then
-        if spike.stats.clean.frames < SPIKE_MIN_FRAMES then
-            _G.print(("buttonscan spike: finish the clean step first (drag the thumb, then '%s spike')."):format(COMMAND))
-            return
-        end
-        if not InstallHook("dirty", DirtyHook, "dirty body, writes bar.scrollPercentage") then return end
-    elseif spike.phase ~= "dirty" then
+    local phase = spike.phase
+    if phase == id then return SpikeReport() end
+    if phase == nil or phase == "control" then
         _G.print(("buttonscan spike: run '%s spike' through the clean step first."):format(COMMAND))
         return
     end
-    return SpikeReport()
+    if spike.stats[id] then
+        _G.print("buttonscan spike: that step has run already; /reload for a new run.")
+        return
+    end
+    if spike.stats[phase].frames < SPIKE_MIN_FRAMES then
+        _G.print(("buttonscan spike: finish the current step first (drag the thumb, then '%s spike')."):format(COMMAND))
+        return
+    end
+    if install() then return SpikeReport() end
+end
+
+-- The positive control the verdict rests on: Blizzard's Update calls addon code after the hooked call.
+local function SpikeCall()
+    return SpikeStimulus("called", InstallCall)
+end
+
+-- The field-read check: the dirty hook leaves bar.scrollPercentage addon-owned for Update to read back.
+local function SpikeDirty()
+    return SpikeStimulus("dirty", function()
+        return InstallHook("dirty", DirtyHook, "dirty body, writes bar.scrollPercentage")
+    end)
 end
 
 --[[ Arguments. Each mode takes a finished run of all frames; the spike words
@@ -1149,6 +1349,7 @@ local MODES = {
 local SPIKE_MODES = {
     spike = Spike,
     spikehover = SpikeHover,
+    spikecall = SpikeCall,
     spikedirty = SpikeDirty,
 }
 
