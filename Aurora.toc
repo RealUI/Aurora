@@ -47,4 +47,5 @@ gui.lua
 
 #@do-not-package@
 dev\test.lua
+dev\buttonscan.lua
 #@end-do-not-package@
