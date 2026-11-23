@@ -8,6 +8,9 @@ local addonName, private = ...
                                   or sit under a protected ancestor (UIParent
                                   itself is not counted)
             <cmd> <FrameName>     summary for that frame and its descendants only
+            <cmd> <Frame.Key.Key> the same for a frame reached by keys from a
+                                  global, for a button with no name of its own
+                                  (LFGListFrame.SearchPanel.SignUpButton)
             <cmd> spike           spike S1 (task 1.6), one step per call: arm the
                                   control, install the clean hook, report
             <cmd> spikehover      the same on the scroll bar under the mouse
@@ -55,7 +58,7 @@ if not commands then return end
 
 local underAurora = private.Aurora ~= nil
 local COMMAND = underAurora and "/aurora buttonscan" or "/realdev buttonscan"
-local USAGE = ("Usage: %s [full | protected | spike | <FrameName>]"):format(COMMAND)
+local USAGE = ("Usage: %s [full | protected | spike | <FrameName> | <FrameName.Key.Key>]"):format(COMMAND)
 
 local MAX_TABLE_DEPTH = 2    -- plain tables on a button: button.key.key
 local MAX_FRAME_DEPTH = 40   -- <FrameName> walk: descendants below the root
@@ -1395,6 +1398,49 @@ local SPIKE_MODES = {
     spikedirty = SpikeDirty,
 }
 
+--[[ A root given as a dotted path: a global, then one key per segment. A
+     segment made of digits is also tried as a number, for parentArray lists
+     (ButtonContainer.Buttons.1). Each step is one pcall that indexes and
+     tests in the same call, as IsAccessible does: a secure frame can refuse
+     to be indexed, and a secret value throws when it is compared, so neither
+     may be tested outside the pcall.
+     Returns the frame; or nil, the segment where the walk stopped and why:
+     "missing" (nothing there), "notframe" (the last value is not a frame),
+     "forbidden" (the last value is a forbidden frame), "empty" (no segment). ]]
+local function ResolvePath(path)
+    if not path:find("[^%.]") then
+        return nil, nil, "empty"
+    end
+    local value = _G
+    local segment
+    for nextSegment in path:gmatch("[^%.]+") do
+        segment = nextSegment
+        local parent = value
+        local ok, found, result = pcall(function()
+            if type(parent) ~= "table" then return false end
+            local v = parent[segment]
+            local number = tonumber(segment)
+            if v == nil and number then
+                v = parent[number]
+            end
+            if v == nil then return false end
+            return true, v
+        end)
+        if not (ok and found) then
+            return nil, segment, "missing"
+        end
+        value = result
+    end
+    if IsFrame(value) then
+        return value
+    end
+    local ok, forbidden = pcall(function() return value:IsForbidden() == true end)
+    if ok and forbidden then
+        return nil, segment, "forbidden"
+    end
+    return nil, segment, "notframe"
+end
+
 local function Run(arg)
     if not (_G.EnumerateFrames and _G.issecurevariable) then
         _G.print("buttonscan: this client lacks EnumerateFrames or issecurevariable.")
@@ -1416,7 +1462,24 @@ local function Run(arg)
     if mode then
         return mode(ScanAll(NewRun()))
     end
-    local root = _G[arg]
+    local root
+    if arg:find(".", 1, true) then
+        local stoppedAt, why
+        root, stoppedAt, why = ResolvePath(arg)
+        if why == "forbidden" then
+            _G.print(("buttonscan: %s is forbidden; nothing to scan."):format(arg))
+            return
+        elseif why == "empty" then
+            _G.print(("buttonscan: \"%s\" names no frame; nothing to scan."):format(arg))
+            return
+        elseif not root then
+            _G.print(("buttonscan: %s does not lead to a frame (stopped at \"%s\"); nothing to scan."):format(
+                arg, stoppedAt))
+            return
+        end
+    else
+        root = _G[arg]
+    end
     if IsFrame(root) then
         if not IsAccessible(root) then
             _G.print(("buttonscan: %s is forbidden; nothing to scan."):format(arg))
