@@ -10,6 +10,10 @@ local Base = Aurora.Base
 local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
+-- B261: the Aurora frame drawn in place of a slider's thumb, keyed by the
+-- slider. Was `_auroraThumb` on the Blizzard slider. Nothing reads it yet.
+local thumbs = _G.setmetatable({}, {__mode = "k"})
+
 do --[[ FrameXML\ColorPickerFrame.lua ]]
     function Hook.ColorPickerFrame_UpdateDisplay(self)
         if self.hasOpacity then
@@ -39,7 +43,7 @@ do --[[ FrameXML\ColorPickerFrame.xml ]]
         thumb:SetPoint("TOPLEFT", thumbTexture, 0, 0)
         thumb:SetPoint("BOTTOMRIGHT", thumbTexture, 0, 0)
         Base.SetBackdrop(thumb, Color.button)
-        Slider._auroraThumb = thumb
+        thumbs[Slider] = thumb
     end
 end
 
