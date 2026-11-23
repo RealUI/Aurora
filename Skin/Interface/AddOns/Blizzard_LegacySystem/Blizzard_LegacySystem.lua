@@ -207,9 +207,9 @@ do --[[ AddOns\Blizzard_LegacyRewardTrack.xml ]]
             Base.SetTexture(arrow, isRight and "arrowRight" or "arrowLeft")
             arrows[i] = arrow
         end
-        -- Read by Skin.FrameTypeButton's enable/disable hooks to grey the
-        -- arrows; the same field Skin.NavButtonPrevious/Next set.
-        Button._auroraTextures = arrows
+        -- Greyed by Skin.FrameTypeButton's enable/disable repaint, as the
+        -- arrows of Skin.NavButtonPrevious/Next are.
+        Skin.SetButtonTextures(Button, arrows)
     end
 end
 
