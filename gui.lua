@@ -1110,6 +1110,12 @@ _G.SlashCmdList.AURORA = function(msg, editBox)
         end
     elseif private.commands[msg] then
         private.commands[msg]()
+    elseif private.commands[msg:match("^%s*(%S+)") or ""] then
+        -- "/aurora <command> <rest>": the first word picks the command, the
+        -- rest of the line is its one argument (nil when there is none).
+        -- Commands that take no argument are reached by the branch above.
+        local command, rest = msg:match("^%s*(%S+)%s*(.-)%s*$")
+        private.commands[command](rest ~= "" and rest or nil)
     elseif msg == "" then
         if not Aurora.category then
             _G.print("|cffff0000Aurora:|r Configuration panel is not available on this client.")
