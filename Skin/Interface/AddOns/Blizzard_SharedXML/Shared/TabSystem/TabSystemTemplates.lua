@@ -16,7 +16,7 @@ do --[[ Blizzard_SharedXML\Mainline\TabSystem\TabSystemTemplates.lua ]]
 
     function Skin.TabSystemButtonTemplate(Button)
         Skin.FrameTypeButton(Button)
-        Button:SetButtonColor(Color.button, Util.GetFrameAlpha(), false)
+        Skin.SetButtonColor(Button, Color.button, Util.GetFrameAlpha(), false)
         Button:SetBackdropOption("offsets", {
             left = 0,
             right = 0,
