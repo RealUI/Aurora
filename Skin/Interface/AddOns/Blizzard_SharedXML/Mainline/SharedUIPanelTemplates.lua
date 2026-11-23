@@ -642,6 +642,13 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
             SetNormalTexture, SetPushedTexture, SetHighlightTexture,
             SetDisabledTexture, SetText, SetNormalFontObject, GetRegions, etc.
         Reference: Blizzard_WorldMap.lua taint-safe reimplementation.
+
+        The two button functions below draw their states through
+        Skin.TaintSafeFrameTypeButton (Skin/skin.lua, B261 Layer 2), the one
+        implementation of the engine-drawn button. Its "flat" shape keeps to
+        the list above. Its "panel" shape is the one exception: a child frame
+        of Aurora's own carries the border and fill, for buttons that allow a
+        child frame.
     ]]
 
     -- Helper: style a button as a dark square with a text glyph.
@@ -650,15 +657,7 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
     local function TaintSafeStyleButton(btn, text)
         if not btn then return end
         btn:SetSize(22, 22)
-        btn:SetNormalTexture("Interface\\Buttons\\White8x8")
-        btn:GetNormalTexture():SetVertexColor(Color.button:GetRGB())
-        btn:SetPushedTexture("Interface\\Buttons\\White8x8")
-        btn:GetPushedTexture():SetVertexColor(Color.border:GetRGB())
-        btn:SetDisabledTexture("Interface\\Buttons\\White8x8")
-        btn:GetDisabledTexture():SetVertexColor(Color.border.r, Color.border.g, Color.border.b, 0.5)
-        btn:SetHighlightTexture("Interface\\Buttons\\White8x8", "ADD")
-        btn:GetHighlightTexture():SetVertexColor(1, 1, 1) -- static: not a theme color
-        btn:GetHighlightTexture():SetAlpha(0.25)
+        Skin.TaintSafeFrameTypeButton(btn, "flat")
         if text then
             btn:SetNormalFontObject("GameFontHighlightLarge")
             btn:SetHighlightFontObject("GameFontHighlightLarge")
@@ -720,22 +719,16 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
     -- Replaces Skin.UIPanelButtonTemplate → UIPanelButtonNoTooltipTemplate
     -- → FrameTypeButton which writes SetButtonColor/GetButtonColor to the
     -- button table and calls Base.SetHighlight (HookScript).
-    function Skin.TaintSafeUIPanelButtonTemplate(Button)
+    --
+    -- `shape` is Skin.TaintSafeFrameTypeButton's: "flat" (the default, what
+    -- this function has always drawn) or "panel" (border and fill on a frame
+    -- of Aurora's own). Returns the panel, nil for "flat".
+    function Skin.TaintSafeUIPanelButtonTemplate(Button, shape)
         if not Button then return end
-        -- Clear stock textures via widget API (safe)
-        if Button.ClearNormalTexture then
-            Button:ClearNormalTexture()
-            Button:ClearPushedTexture()
-            Button:ClearDisabledTexture()
-            local hl = Button:GetHighlightTexture()
-            if hl then hl:Hide() end
-        elseif Button.SetNormalTexture then
-            Button:SetNormalTexture("")
-            Button:SetPushedTexture("")
-            Button:SetHighlightTexture("")
-            Button:SetDisabledTexture("")
-        end
-        -- Hide Blizzard border pieces if present
+        -- Hide Blizzard border pieces if present. Alpha, not SetTexture(""):
+        -- the panel button's handlers put the file back on Left, Middle and
+        -- Right on every press, show, enable and disable
+        -- (Blizzard_SharedXML/SecureUIPanelTemplates.lua:44-79).
         if Button.Left then Button.Left:SetAlpha(0) end
         if Button.Right then Button.Right:SetAlpha(0) end
         if Button.Middle then Button.Middle:SetAlpha(0) end
@@ -747,19 +740,11 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         if Button.BottomRightCorner then Button.BottomRightCorner:Hide() end
         if Button.TopEdge then Button.TopEdge:SetAlpha(0) end
         if Button.BottomEdge then Button.BottomEdge:Hide() end
-        -- Style as a simple dark rectangle with highlight
-        Button:SetNormalTexture("Interface\\Buttons\\White8x8")
-        Button:GetNormalTexture():SetVertexColor(Color.button:GetRGB())
-        Button:SetPushedTexture("Interface\\Buttons\\White8x8")
-        Button:GetPushedTexture():SetVertexColor(Color.border:GetRGB())
-        Button:SetDisabledTexture("Interface\\Buttons\\White8x8")
-        Button:GetDisabledTexture():SetVertexColor(Color.border.r, Color.border.g, Color.border.b, 0.5)
-        Button:SetHighlightTexture("Interface\\Buttons\\White8x8", "ADD")
-        Button:GetHighlightTexture():SetVertexColor(1, 1, 1) -- static: not a theme color
-        Button:GetHighlightTexture():SetAlpha(0.25)
         -- Separators
         if Button.LeftSeparator then Button.LeftSeparator:Hide() end
         if Button.RightSeparator then Button.RightSeparator:Hide() end
+        -- The states: engine-drawn, nothing on the button
+        return Skin.TaintSafeFrameTypeButton(Button, shape or "flat")
     end
 
     -- Taint-safe PortraitFrameTemplate.
