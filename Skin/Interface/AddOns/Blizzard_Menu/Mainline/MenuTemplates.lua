@@ -15,8 +15,8 @@ do --[[ FrameXML\UIDropDownMenu.xml ]]
         function Skin.MainLineMenuTemplates1(Button)
         end
         function Skin.WowStyle1ArrowDropdownTemplate(Button)
-            if not Button._auroraTextures then
-                Button._auroraTextures = {}
+            if not Skin.GetButtonTextures(Button) then
+                Skin.SetButtonTextures(Button, {})
             end
             if Button.Background then
                 Button.Background:Hide()
