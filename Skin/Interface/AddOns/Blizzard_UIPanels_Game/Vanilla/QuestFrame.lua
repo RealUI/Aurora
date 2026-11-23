@@ -28,12 +28,32 @@ local questPanels = {
 
 local panelButtons = {
     "QuestFrameCancelButton",
-    "QuestFrameCompleteQuestButton",
     "QuestFrameGoodbyeButton",
-    "QuestFrameCompleteButton",
     "QuestFrameDeclineButton",
-    "QuestFrameAcceptButton",
     "QuestFrameGreetingGoodbyeButton",
+}
+
+--[[ B261 Layer 2 (tier A, row A8; AT-D16 a), read from wow-ui-source-era.
+    QuestFrame_OnEvent (Blizzard_UIPanels_Game/Classic/QuestFrame.lua:46)
+    ends in ShowUIPanel(QuestFrame) (:113-114), the secure gate, and three
+    buttons change state before it in the same execution:
+      QUEST_COMPLETE: QuestFrameCompleteQuestButton:Enable() (:83-85), the row the audit
+        names;
+      QUEST_PROGRESS: the progress panel is shown (:77-82), and its OnShow,
+        QuestFrameProgressPanel_OnShow, enables or disables
+        QuestFrameCompleteButton (:200, :211-215);
+      QUEST_DETAIL: the detail panel is shown (:61-76), and
+        QuestFrameDetailPanel_OnShow disables QuestFrameAcceptButton (:753,
+        :784).
+    The last two are tier A by the same rule (Requirement 5.6), found while
+    converting A8. All three: shape "panel", plain UIPanelButtonTemplate
+    buttons declared in XML (Vanilla/QuestFrame.xml:95, :127, :281), not pooled and not layout frames; Blizzard
+    re-sets only the plates (Blizzard_SharedXML/SecureUIPanelTemplates.lua:174-209).
+    The other four buttons above are tier C. ]]
+local taintSafeButtons = {
+    "QuestFrameCompleteQuestButton",
+    "QuestFrameCompleteButton",
+    "QuestFrameAcceptButton",
 }
 
 local scrollFrames = {
@@ -155,6 +175,9 @@ function private.FrameXML.QuestFrame()
         if button then
             Skin.UIPanelButtonTemplate(button)
         end
+    end
+    for _, name in ipairs(taintSafeButtons) do
+        Skin.TaintSafeUIPanelButtonTemplate(_G[name], "panel")
     end
 
     for _, name in ipairs(scrollFrames) do
