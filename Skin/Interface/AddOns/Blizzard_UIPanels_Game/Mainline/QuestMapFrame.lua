@@ -432,11 +432,6 @@ function private.FrameXML.QuestMapFrame()
     Base.StripBlizzardTextures(RewardsFrame)
     Skin.ScrollFrameTemplate(DetailsFrame.ScrollFrame)
 
-    Skin.UIPanelButtonTemplate(_G.QuestFrameCompleteButton)
-    local QuestFrameCompleteButtonLeft, QuestFrameCompleteButtonRight = select(6, _G.QuestFrameCompleteButton:GetRegions())
-    QuestFrameCompleteButtonLeft:Hide()
-    QuestFrameCompleteButtonRight:Hide()
-
     Skin.UIPanelButtonTemplate(DetailsFrame.AbandonButton)
     Skin.UIPanelButtonTemplate(DetailsFrame.ShareButton)
     local ShareButtonLeft, ShareButtonRight = select(6, DetailsFrame.ShareButton:GetRegions())
