@@ -19,7 +19,7 @@ function Skin.CharacterFrameTabButtonTemplate(Button)
     local name = Button:GetName()
 
     Skin.FrameTypeButton(Button)
-    Button:SetButtonColor(Color.button, Util.GetFrameAlpha(), false)
+    Skin.SetButtonColor(Button, Color.button, Util.GetFrameAlpha(), false)
     -- Adjacent tabs overlap by 16px (XML anchors x="-16" — the old angled art
     -- blended together); inset each backdrop past the overlap so the flat
     -- boxes read as separate buttons. Side width 17 => visible text padding
