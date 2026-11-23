@@ -19,6 +19,72 @@ local Color, Util = Aurora.Color, Aurora.Util
     $parentIconTexture icon, 64px Quickslot2 NormalTexture ring.
 ]]
 
+--[[ B261 Layer 2 (tier A, row A12, with the pulled-forward tabs and close
+    button of tasks.md 3.2.6.1), read from wow-ui-source-era and
+    wow-ui-source-anniversary (the lines below are the same in both).
+    SpellBookFrame is protected (checkpoint 0, `buttonscan protected` on TBC
+    and Vanilla). SPELLS_CHANGED with the book open, LEARNED_SPELL_IN_SKILL_LINE
+    always (Blizzard_UIPanels_Game/Vanilla/SpellBookFrame.lua:36-44) run
+    SpellBookFrameMixin:Update (:58), which disables the selected bottom tab
+    and enables the other (SetTabType, :110-127) and runs the page's update
+    (:104-107); for the spell page that is SpellBook_UpdatePlayerTab
+    (Classic/SpellBookFrame.lua:510-522): UpdatePages disables or enables the
+    two page buttons (Vanilla/SpellBookFrame.lua:128-160), then UpdateSpells
+    disables or enables the protected spell buttons (:246, :252;
+    SecureFrameTemplate, Vanilla/SpellBookFrame.xml:69). So nothing of
+    Aurora's may be on the page buttons, the tabs or the close button, or run
+    on their state.
+    Still in this file and not converted (tasks.md 5.4): the backdrop
+    Skin.FrameTypeFrame puts on SpellBookFrame itself, the backdrop
+    SkinSpellButton puts on the protected SpellButton1-12, and the check
+    button skin (backdrop and highlight) on ShowAllSpellRanksCheckbox. ]]
+
+-- Shape "panel" for the page buttons: plain buttons declared in XML
+-- (Vanilla/SpellBookFrame.xml:223-249), not pooled and not layout frames,
+-- their state textures set in XML only; Blizzard only enables and disables
+-- them (above). The box sits 5 inside the button, as the Layer 1 skin
+-- (Skin.NavButtonPrevious) drew it; the arrow is on the panel. Same code as
+-- the Mists file.
+local function TaintSafePageButton(Button, arrowTexture)
+    local panel = Skin.TaintSafeFrameTypeButton(Button, "panel")
+    panel:ClearAllPoints()
+    panel:SetPoint("TOPLEFT", Button, 5, -5)
+    panel:SetPoint("BOTTOMRIGHT", Button, -5, 5)
+
+    local bg = panel:GetBackdropTexture("bg")
+    local arrow = panel:CreateTexture(nil, "ARTWORK")
+    arrow:SetPoint("TOPLEFT", bg, 8, -5)
+    arrow:SetPoint("BOTTOMRIGHT", bg, -8, 5)
+    Base.SetTexture(arrow, arrowTexture)
+end
+
+-- Shape "panel" for the close button: SpellBookCloseButton is a
+-- UIPanelCloseButton (Vanilla/SpellBookFrame.xml:251;
+-- Blizzard_SharedXML/Classic/SharedUIPanelTemplates.xml:172-192), 32x32, its
+-- state textures set in XML only and never re-set. The box and the cross are
+-- where the Layer 1 skin (Skin.UIPanelCloseButtonNoScripts) drew them; the
+-- cross is on the panel. Same code as the Mists file.
+local function TaintSafeCloseButton(Button)
+    local panel = Skin.TaintSafeFrameTypeButton(Button, "panel")
+    panel:ClearAllPoints()
+    panel:SetPoint("TOPLEFT", Button, 4, -10)
+    panel:SetPoint("BOTTOMRIGHT", Button, -11, 5)
+
+    local bg = panel:GetBackdropTexture("bg")
+    for i = 1, 2 do
+        local line = panel:CreateLine(nil, "ARTWORK")
+        line:SetColorTexture(1, 1, 1) -- static: not a theme color
+        line:SetThickness(1.2)
+        if i == 1 then
+            line:SetStartPoint("TOPLEFT", bg, 3.6, -3)
+            line:SetEndPoint("BOTTOMRIGHT", bg, -3, 3)
+        else
+            line:SetStartPoint("TOPRIGHT", bg, -3, -3)
+            line:SetEndPoint("BOTTOMLEFT", bg, 3.6, 3)
+        end
+    end
+end
+
 local function SkinSpellButton(Button)
     local name = Button:GetName()
 
@@ -37,19 +103,6 @@ local function SkinSpellButton(Button)
 
     Base.CropIcon(Button:GetHighlightTexture())
     Base.CropIcon(Button:GetCheckedTexture())
-end
-
--- Bottom tabs: single UI-SpellBook-Tab-Unselected art with generous hit
--- insets (15/14/13/15) — flat button sized to the hit rect.
-local function SkinSpellBookTab(Button)
-    Skin.FrameTypeButton(Button)
-    Skin.SetButtonColor(Button, Color.button, Util.GetFrameAlpha(), false)
-    Button:SetBackdropOption("offsets", {
-        left = 15,
-        right = 14,
-        top = 13,
-        bottom = 15,
-    })
 end
 
 -- Side tabs (skill lines): first region is the unnamed ring art; the
@@ -77,28 +130,29 @@ function private.FrameXML.SpellBookFrame()
         bottom = 70,
     })
 
-    Skin.UIPanelCloseButton(_G.SpellBookCloseButton)
+    TaintSafeCloseButton(_G.SpellBookCloseButton)
 
     for i = 1, 12 do
         SkinSpellButton(_G["SpellButton"..i])
     end
 
-    local i = 1
-    while _G["SpellBookFrameTabButton"..i] do
-        SkinSpellBookTab(_G["SpellBookFrameTabButton"..i])
-        i = i + 1
-    end
+    -- SpellBookFrameTabButton1-3 stay Blizzard's (shape c): the selected tab
+    -- is drawn by Blizzard's art. SetTabType disables the tab of the open
+    -- book and enables the other on every Update (Vanilla/SpellBookFrame.lua:121-125),
+    -- and a disabled tab shows its own "selected" art, its DisabledTexture
+    -- (Vanilla/SpellBookFrame.xml:193, :199, :205). Engine-drawn state would
+    -- show the selected tab as a disabled one.
 
-    i = 1
+    local i = 1
     while _G["SpellBookSkillLineTab"..i] do
         SkinSkillLineTab(_G["SpellBookSkillLineTab"..i])
         i = i + 1
     end
 
     -- Unlike the merchant pager these have no layer regions (no circle
-    -- background/label) — just state textures, which FrameTypeButton strips.
-    Skin.NavButtonPrevious(_G.SpellBookPrevPageButton)
-    Skin.NavButtonNext(_G.SpellBookNextPageButton)
+    -- background/label) — just state textures, which the Layer 2 skin replaces.
+    TaintSafePageButton(_G.SpellBookPrevPageButton, "arrowLeft")
+    TaintSafePageButton(_G.SpellBookNextPageButton, "arrowRight")
 
     if _G.ShowAllSpellRanksCheckbox then
         Skin.UICheckButtonTemplate(_G.ShowAllSpellRanksCheckbox)
