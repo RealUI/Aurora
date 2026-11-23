@@ -590,7 +590,7 @@ function private.FrameXML.Blizzard_ActionBarController()
             arrow:SetPoint("TOPLEFT", bg, 3, -5)
             arrow:SetPoint("BOTTOMRIGHT", bg, -3, 5)
             Base.SetTexture(arrow, "arrowUp")
-            ActionBarUpButton._auroraTextures = {arrow}
+            Skin.SetButtonTextures(ActionBarUpButton, {arrow})
         end
 
         do -- ActionBarDownButton
@@ -608,7 +608,7 @@ function private.FrameXML.Blizzard_ActionBarController()
             arrow:SetPoint("TOPLEFT", bg, 3, -5)
             arrow:SetPoint("BOTTOMRIGHT", bg, -3, 5)
             Base.SetTexture(arrow, "arrowDown")
-            ActionBarDownButton._auroraTextures = {arrow}
+            Skin.SetButtonTextures(ActionBarDownButton, {arrow})
         end
     end
 
