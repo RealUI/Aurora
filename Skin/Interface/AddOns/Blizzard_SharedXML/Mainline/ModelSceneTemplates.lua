@@ -51,7 +51,7 @@ do --[[ SharedXML\ModelSceneTemplates.xml ]]
         arrow:SetPoint("BOTTOMRIGHT", bg, -8, 4)
         Base.SetTexture(arrow, "arrowLeft")
 
-        Button._auroraTextures = {arrow}
+        Skin.SetButtonTextures(Button, {arrow})
     end
     function Skin.ModelSceneControlFrameTemplateRightButtonTemplate(Button)
         if not Button then return end
@@ -63,7 +63,7 @@ do --[[ SharedXML\ModelSceneTemplates.xml ]]
         arrow:SetPoint("BOTTOMRIGHT", bg, -8, 4)
         Base.SetTexture(arrow, "arrowRight")
 
-        Button._auroraTextures = {arrow}
+        Skin.SetButtonTextures(Button, {arrow})
     end
 end
 
