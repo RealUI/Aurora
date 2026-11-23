@@ -229,9 +229,34 @@ local function Owner(run, button)
     return "blizzard"
 end
 
-local function HasColorPlant(button)
-    local ok, has = pcall(function() return rawget(button, "GetButtonColor") ~= nil end)
-    return ok and has
+--[[ Skinned buttons. Since Layer 1 (aurora-taint-pass task 2.1, B261) Aurora
+     keeps a skinned button's state in a weak-keyed store in Skin/skin.lua, not
+     on the button: a skinned button is a record with colours (`enabledColor`).
+     The store is read through the dev iterator on _G.Aurora.Skin, never through
+     a private table. The iterator yields nothing unless Aurora's private.isDev
+     is set (dev/test.lua under standalone Aurora, RealUI_Skins.lua:19 under
+     RealUI with RealUI_Dev), so an empty store means "cannot tell", not "none".
+     The old GetButtonColor plant stays in AURORA_KEYS: a button that carries it
+     again is still a FAIL. Returns the set and a note (nil when all is well). ]]
+local function SkinnedSet()
+    local Skin = _G.Aurora and _G.Aurora.Skin
+    if not (Skin and Skin.IterateButtonState) then
+        return {}, "no button store (_G.Aurora.Skin.IterateButtonState is missing): skinned counts are not known"
+    end
+    local set, records = {}, 0
+    local ok = pcall(function()
+        for frame, state in Skin.IterateButtonState() do
+            records = records + 1
+            if type(state) == "table" and state.enabledColor then set[frame] = true end
+        end
+    end)
+    if not ok then
+        return {}, "the button store could not be read: skinned counts are not known"
+    end
+    if records == 0 then
+        return set, "the button store is empty (Aurora's private.isDev is not set): skinned counts are not known"
+    end
+    return set, nil
 end
 
 local function HasSecureGlobalName(frame)
@@ -265,17 +290,20 @@ end
 
 --[[ The scan ]]
 local function NewRun(root)
+    local skinnedSet, skinnedNote = SkinnedSet()
     return {
         root = root,            -- nil: every frame (EnumerateFrames)
+        skinnedSet = skinnedSet,   -- button -> true: skinned (Aurora's button store)
+        skinnedNote = skinnedNote, -- why the skinned counts cannot be trusted, or nil
         frames = 0,             -- frames visited
         buttons = 0,            -- Button-type frames among them
         -- owner test results: by source location, and by the fallback
         source = { blizzard = 0, addon = 0, inside = 0 },
         fallback = { blizzard = 0, unknown = 0 },
         blizzard = 0,           -- Blizzard's buttons, scanned (both tests)
-        skinned = { blizzard = 0, inside = 0, addon = 0 },  -- GetButtonColor plant
+        skinned = { blizzard = 0, inside = 0, addon = 0 },  -- in Aurora's button store
         inside = {},            -- Blizzard-made inside addon frames: { button, path, skinned }
-        addonSkinned = {},      -- addon-owned or unknown buttons with the plant
+        addonSkinned = {},      -- addon-owned or unknown buttons that are skinned
         forbidden = 0,          -- frames skipped as forbidden
         probeErrors = 0,        -- tables whose iteration threw
         fields = {},            -- { path, key, owner, group, category }
@@ -306,7 +334,7 @@ local function ScanTable(run, findings, tbl, label, depth)
 end
 
 local function CountAddonOwned(run, button)
-    if HasColorPlant(button) then
+    if run.skinnedSet[button] then
         run.skinned.addon = run.skinned.addon + 1
         run.addonSkinned[#run.addonSkinned + 1] = button
     end
@@ -322,7 +350,7 @@ local function ScanButton(run, button)
         return
     elseif madeBy == "inside" then
         run.source.inside = run.source.inside + 1
-        local skinned = HasColorPlant(button)
+        local skinned = run.skinnedSet[button] == true
         if skinned then run.skinned.inside = run.skinned.inside + 1 end
         run.inside[#run.inside + 1] = { button = button, path = Path(button), skinned = skinned }
         return
@@ -353,6 +381,7 @@ local function ScanButton(run, button)
         return
     end
     run.blizzard = run.blizzard + 1
+    if run.skinnedSet[button] then run.skinned.blizzard = run.skinned.blizzard + 1 end
 
     local path = Path(button)
     local findings = {}
@@ -369,7 +398,6 @@ local function ScanButton(run, button)
     if #findings == 0 then return end
 
     local keys = {}
-    if HasColorPlant(button) then run.skinned.blizzard = run.skinned.blizzard + 1 end
     for _, field in ipairs(findings) do
         field.group, field.category = Classify(field.key)
         keys[field.key] = true
@@ -415,11 +443,10 @@ local function ScanRoot(run, root)
     return run
 end
 
--- At baseline a skinned button is one carrying the GetButtonColor plant.
--- After task 2.1 this asks the dev iterator Skin/skin.lua exposes on
--- _G.Aurora.Skin instead (never through the private table).
-local function IsSkinned(entry)
-    return entry.keys.GetButtonColor == true
+-- A skinned button is one in Aurora's button store (SkinnedSet above). At the
+-- 2026-11-22 baseline it was the GetButtonColor plant, which Layer 1 removed.
+local function IsSkinned(run, entry)
+    return run.skinnedSet[entry.button] == true
 end
 
 --[[ Output. One LibTextDump window per load, cleared on each run, when the
@@ -465,8 +492,11 @@ local function Header(lines, run, mode)
     lines[#lines + 1] = ("Owner test: source location %d (Blizzard's %d, addon-owned %d, inside addon frames %d); fallback, secure key or global name %d (Blizzard's %d, addon-owned or unknown %d)"):format(
         source.blizzard + source.addon + source.inside, source.blizzard, source.addon, source.inside,
         fallback.blizzard + fallback.unknown, fallback.blizzard, fallback.unknown)
-    lines[#lines + 1] = ("Skinned (GetButtonColor key): Blizzard's %d, inside addon frames %d, addon-owned %d"):format(
+    lines[#lines + 1] = ("Skinned (Aurora's button store): Blizzard's %d, inside addon frames %d, addon-owned %d"):format(
         run.skinned.blizzard, run.skinned.inside, run.skinned.addon)
+    if run.skinnedNote then
+        lines[#lines + 1] = ("  NOTE: %s"):format(run.skinnedNote)
+    end
     if #run.inside > 0 then
         -- Skinned first: those are the ones that would matter if a Blizzard
         -- button was reparented into an addon frame and lands here by mistake.
@@ -588,7 +618,7 @@ local function Protected(run)
             local line = ("  %s | protected: %s%s | %d keys: %s%s"):format(entry.path, where,
                 explicit and " (explicit)" or "", #keys, table.concat(shown, ", "),
                 #keys > PROTECTED_KEYS and ", ..." or "")
-            local list = IsSkinned(entry) and skinned or other
+            local list = IsSkinned(run, entry) and skinned or other
             list[#list + 1] = line
         else
             clear = clear + 1
@@ -603,7 +633,7 @@ local function Protected(run)
     end)
     lines[#lines + 1] = ("UIParent is not counted as a protected ancestor (IsProtected on it: %s%s)"):format(
         okRoot and tostring(rootProtected) or "unreadable", okRoot and rootExplicit and ", explicit" or "")
-    lines[#lines + 1] = ("Skinned buttons (GetButtonColor key), protected or under a protected ancestor: %d"):format(#skinned)
+    lines[#lines + 1] = ("Skinned buttons (Aurora's button store), protected or under a protected ancestor: %d"):format(#skinned)
     for _, line in ipairs(skinned) do lines[#lines + 1] = line end
     lines[#lines + 1] = ("Other buttons with addon-owned keys, protected or under a protected ancestor: %d"):format(#other)
     for _, line in ipairs(other) do lines[#lines + 1] = line end
@@ -985,8 +1015,8 @@ local function Arm(bar, chosenBy)
     spike.about = {
         ("Target: %s (chosen by %s; made by %s); button to hook: %s; scroll box: %s"):format(spike.path, chosenBy,
             SourceOf(bar) or "unknown", spike.backPath, box and Path(box) or "none registered"),
-        ("Before the spike, on %s: Aurora's button skin (GetButtonColor key) %s; addon-owned keys %s; SetEnabled %s"):format(
-            spike.backPath, HasColorPlant(back) and "yes" or "no", AddonKeys(back), KeyState(back, "SetEnabled")),
+        ("Before the spike, on %s: Aurora's button skin (button store) %s; addon-owned keys %s; SetEnabled %s"):format(
+            spike.backPath, SkinnedSet()[back] and "yes" or "no", AddonKeys(back), KeyState(back, "SetEnabled")),
         ("Before the spike, addon-owned keys on the scroll bar: %s; on its thumb: %s"):format(AddonKeys(bar), AddonKeys(thumb)),
     }
     return true
@@ -1397,8 +1427,9 @@ local function Run(arg)
     _G.print(USAGE)
 end
 
--- /realdev calls fn(commands, arg); /aurora calls fn(arg) once task 1.3 lands
--- and fn() before it. Take the first string argument from either position.
+-- /realdev calls fn(commands, arg); /aurora calls fn(arg), or fn() when the
+-- line has no argument (gui.lua, task 1.3). Take the first string argument
+-- from either position.
 local function Argument(first, second)
     local arg = first
     if type(arg) ~= "string" then arg = second end
@@ -1411,11 +1442,3 @@ commands.buttonscan = function(first, second)
     return Run(Argument(first, second))
 end
 
-if underAurora then
-    -- Interim, standalone Aurora only: /aurora looks the whole trimmed message up
-    -- as one key (gui.lua, private.commands[msg]) and passes no argument, so these
-    -- keys make "/aurora buttonscan full" and "/aurora buttonscan protected" work
-    -- now (lower case, one space). Remove them when task 1.3 lands.
-    commands["buttonscan full"] = function() return Run("full") end
-    commands["buttonscan protected"] = function() return Run("protected") end
-end
