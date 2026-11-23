@@ -54,8 +54,22 @@ F.CreateBD = function(frame, alpha)
 end
 
 
+-- B261: Skin.FrameTypeButton no longer puts SetButtonColor/GetButtonColor on
+-- the buttons it skins; the API is Skin.SetButtonColor(Button, ...) and
+-- Skin.GetButtonColor(Button). Skins written against this legacy table still
+-- call the methods, so Reskin, and nothing else, gives the frame it skins two
+-- that forward. They are shared functions, not a closure per frame.
+local function Reskin_SetButtonColor(self, color, alpha, disabledColor)
+    Skin.SetButtonColor(self, color, alpha, disabledColor)
+end
+local function Reskin_GetButtonColor(self)
+    return Skin.GetButtonColor(self)
+end
+
 F.Reskin = function(f, noHighlight)
     Skin.FrameTypeButton(f)
+    f.SetButtonColor = Reskin_SetButtonColor
+    f.GetButtonColor = Reskin_GetButtonColor
 
     if f.Left then f.Left:SetAlpha(0) end
     if f.Middle then f.Middle:SetAlpha(0) end
