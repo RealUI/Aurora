@@ -18,6 +18,68 @@ local Color, Util = Aurora.Color, Aurora.Util
     stock (their art doubles as layout).
 ]]
 
+--[[ B261 Layer 2 (tier A, row A11, with the pulled-forward tabs and close
+    button of tasks.md 3.2.6.2), read from wow-ui-source-classic (5.5.4).
+    SpellBookFrame is protected (checkpoint 0, `buttonscan protected` on
+    Mists). SPELLS_CHANGED with the book open, LEARNED_SPELL_IN_SKILL_LINE
+    always (Blizzard_UIPanels_Game/Mists/SpellBookFrame.lua:48-56) run
+    SpellBookFrameMixin:Update (:85), which selects or deselects the bottom
+    tabs (:141-147) and runs the page's update (:178-182); for the spell page
+    that is SpellBook_UpdatePlayerTab (Classic/SpellBookFrame.lua:510-522):
+    UpdatePages disables or enables the two page buttons
+    (Mists/SpellBookFrame.lua:185-217), then UpdateSpells disables or enables
+    the protected spell buttons (:320, :327; SecureFrameTemplate,
+    Mists/SpellBookFrame.xml:93). So nothing of Aurora's may be on the page
+    buttons, the tabs or the close button, or run on their state.
+    Not converted here: the backdrop Skin.FrameTypeFrame puts on
+    SpellBookFrame itself, and the UpdateButton hooks on SpellButton1-12
+    below (tasks.md 5.4). ]]
+
+-- Shape "panel" for the page buttons: plain buttons declared in XML
+-- (Mists/SpellBookFrame.xml:695-720), not pooled and not layout frames,
+-- their state textures set in XML only; Blizzard only enables and disables
+-- them (above). The box sits 5 inside the button, as the Layer 1 skin
+-- (Skin.NavButtonPrevious) drew it; the arrow is on the panel.
+local function TaintSafePageButton(Button, arrowTexture)
+    local panel = Skin.TaintSafeFrameTypeButton(Button, "panel")
+    panel:ClearAllPoints()
+    panel:SetPoint("TOPLEFT", Button, 5, -5)
+    panel:SetPoint("BOTTOMRIGHT", Button, -5, 5)
+
+    local bg = panel:GetBackdropTexture("bg")
+    local arrow = panel:CreateTexture(nil, "ARTWORK")
+    arrow:SetPoint("TOPLEFT", bg, 8, -5)
+    arrow:SetPoint("BOTTOMRIGHT", bg, -8, 5)
+    Base.SetTexture(arrow, arrowTexture)
+end
+
+-- Shape "panel" for the close button: UIPanelCloseButton
+-- (Blizzard_SharedXML/Classic/SharedUIPanelTemplates.xml:172-192), 32x32,
+-- named SpellBookFrameCloseButton by PortraitFrameTemplate (:547), its state
+-- textures set in XML only and never re-set. The box and the cross are where
+-- the Layer 1 skin (Skin.UIPanelCloseButtonNoScripts) drew them; the cross is
+-- on the panel.
+local function TaintSafeCloseButton(Button)
+    local panel = Skin.TaintSafeFrameTypeButton(Button, "panel")
+    panel:ClearAllPoints()
+    panel:SetPoint("TOPLEFT", Button, 4, -10)
+    panel:SetPoint("BOTTOMRIGHT", Button, -11, 5)
+
+    local bg = panel:GetBackdropTexture("bg")
+    for i = 1, 2 do
+        local line = panel:CreateLine(nil, "ARTWORK")
+        line:SetColorTexture(1, 1, 1) -- static: not a theme color
+        line:SetThickness(1.2)
+        if i == 1 then
+            line:SetStartPoint("TOPLEFT", bg, 3.6, -3)
+            line:SetEndPoint("BOTTOMRIGHT", bg, -3, 3)
+        else
+            line:SetStartPoint("TOPRIGHT", bg, -3, -3)
+            line:SetEndPoint("BOTTOMLEFT", bg, 3.6, 3)
+        end
+    end
+end
+
 local function SkinSpellButton(button, name)
     -- page-art pieces on the button
     if button.EmptySlot then button.EmptySlot:SetAlpha(0) end
@@ -49,25 +111,28 @@ function private.FrameXML.SpellBookFrame()
 
     -- page parchment + extra root art BEFORE the template skin
     Util.HideFrameTextures(SpellBookFrame, true)
-    Skin.ButtonFrameTemplate(SpellBookFrame)
+    -- Skin.ButtonFrameTemplate (Blizzard_SharedXML/Classic/SharedUIPanelTemplates.lua),
+    -- written out so its close button gets the Layer 2 skin instead.
+    Skin.PortraitFrameTemplateNoCloseButton(SpellBookFrame)
+    TaintSafeCloseButton(SpellBookFrame.CloseButton)
+    _G.SpellBookFrameBtnCornerLeft:SetAlpha(0)
+    _G.SpellBookFrameBtnCornerRight:SetAlpha(0)
+    _G.SpellBookFrameButtonBottomBorder:SetAlpha(0)
+    Skin.InsetFrameTemplate(SpellBookFrame.Inset)
 
-    for i = 1, 5 do
-        local tab = _G["SpellBookFrameTabButton"..i]
-        if tab then
-            Skin.CharacterFrameTabButtonTemplate(tab)
-        end
-    end
+    -- SpellBookFrameTabButton1-5 stay Blizzard's (shape c): the selected tab
+    -- is drawn by Blizzard's art. On every Update, PanelTemplates_SelectTab
+    -- hides the tab's Left/Middle/Right, shows LeftDisabled/MiddleDisabled/
+    -- RightDisabled and disables the tab, and PanelTemplates_DeselectTab does
+    -- the reverse (Blizzard_SharedXML/Classic/SharedUIPanelTemplates.lua:481-529).
+    -- Engine-drawn state would show the selected tab as a disabled one.
 
     -- page navigation
     if _G.SpellBookPageText then
         _G.SpellBookPageText:SetTextColor(Color.white:GetRGB())
     end
-    if _G.SpellBookPrevPageButton then
-        Skin.NavButtonPrevious(_G.SpellBookPrevPageButton)
-    end
-    if _G.SpellBookNextPageButton then
-        Skin.NavButtonNext(_G.SpellBookNextPageButton)
-    end
+    TaintSafePageButton(_G.SpellBookPrevPageButton, "arrowLeft")
+    TaintSafePageButton(_G.SpellBookNextPageButton, "arrowRight")
 
     -- SpellButtonMixin:UpdateButton re-sets parchment-dark colors on every
     -- update (SpellSubName to literal black, RequiredLevelString and
