@@ -27,7 +27,7 @@ do --[[ SharedXML\TrimScrollBar.xml ]]
         else
             Base.SetTexture(arrow, "arrowDown")
         end
-        Frame._auroraTextures = {arrow}
+        Skin.SetButtonTextures(Frame, {arrow})
     end
     function Skin.WowTrimScrollBarThumbScripts(Frame)
         Skin.FrameTypeButton(Frame)
