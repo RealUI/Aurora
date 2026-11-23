@@ -10,13 +10,34 @@ local Base = Aurora.Base
 local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
+-- B261: the Aurora frame drawn in place of a scroll or slider thumb, keyed by
+-- the Blizzard thumb texture (Skin.ScrollBarThumb) or the slider
+-- (Skin.HorizontalSliderTemplate). Was `_auroraThumb` on the Blizzard object.
+local thumbs = _G.setmetatable({}, {__mode = "k"})
+
 do -- BlizzWTF: These are not templates, but they should be
     do -- ExpandOrCollapse
+        -- B261: kept here, not on the button. `plusGlyphs[Button]` is the "+"
+        -- bar Aurora draws (the "-" bar is always shown and needs no entry);
+        -- `clearingHighlight` guards the highlight hook against itself.
+        local plusGlyphs = _G.setmetatable({}, {__mode = "k"})
+        local clearingHighlight = _G.setmetatable({}, {__mode = "k"})
+
+        --[[ private.GetExpandOrCollapsePlus(_Button_)
+        Internal. The "+" glyph `Skin.ExpandOrCollapse` drew on `Button`, or nil
+        when it did not skin it. For `Skin/shared/ReputationFrame.lua`, which
+        follows a collapse state the texture hooks below never see. Exists only
+        on the flavours that load this file.
+        --]]
+        function private.GetExpandOrCollapsePlus(Button)
+            return plusGlyphs[Button]
+        end
+
         local function Hook_SetHighlightTexture(self, texture)
-            if self.settingHighlight then return end
-            self.settingHighlight = true
+            if clearingHighlight[self] then return end
+            clearingHighlight[self] = true
             self:ClearHighlightTexture()
-            self.settingHighlight = nil
+            clearingHighlight[self] = nil
         end
         local function Hook_SetPushedTexture(self, texture)
             self:GetPushedTexture():SetAlpha(0)
@@ -36,9 +57,9 @@ do -- BlizzWTF: These are not templates, but they should be
 
             if texture and texture ~= "" then
                 if texture:find("plus") or texture:find("closed") then
-                    self._plus:Show()
+                    plusGlyphs[self]:Show()
                 elseif texture:find("minus") or texture:find("open") then
-                    self._plus:Hide()
+                    plusGlyphs[self]:Hide()
                 end
                 self:SetBackdrop(true)
             else
@@ -60,18 +81,17 @@ do -- BlizzWTF: These are not templates, but they should be
             minus:SetColorTexture(1, 1, 1) -- static: not a theme color
             minus:SetSize(9, 1)
             minus:SetPoint("CENTER", bg)
-            Button._minus = minus
 
             local plus = Button:CreateTexture(nil, "OVERLAY")
             plus:SetColorTexture(1, 1, 1) -- static: not a theme color
             plus:SetSize(1, 9)
             plus:SetPoint("CENTER", bg)
-            Button._plus = plus
+            plusGlyphs[Button] = plus
 
-            Button._auroraTextures = {
+            Skin.SetButtonTextures(Button, {
                 minus,
                 plus
-            }
+            })
             _G.hooksecurefunc(Button, "SetNormalTexture", Hook_SetNormalTexture)
             _G.hooksecurefunc(Button, "SetPushedTexture", Hook_SetPushedTexture)
             _G.hooksecurefunc(Button, "SetNormalAtlas", Hook_SetNormalTexture)
@@ -94,7 +114,7 @@ do -- BlizzWTF: These are not templates, but they should be
             local arrow = Button:CreateTexture(nil, "ARTWORK")
             arrow:SetPoint("TOPLEFT", bg, 8, -5)
             arrow:SetPoint("BOTTOMRIGHT", bg, -8, 5)
-            Button._auroraTextures = {arrow}
+            Skin.SetButtonTextures(Button, {arrow})
 
             return arrow
         end
@@ -139,10 +159,10 @@ do -- BlizzWTF: These are not templates, but they should be
 
     do -- Scroll thumb
         local function Hook_Hide(self)
-            self._auroraThumb:Hide()
+            thumbs[self]:Hide()
         end
         local function Hook_Show(self)
-            self._auroraThumb:Show()
+            thumbs[self]:Show()
         end
         function Skin.ScrollBarThumb(Texture)
             Texture:SetAlpha(0)
@@ -155,7 +175,7 @@ do -- BlizzWTF: These are not templates, but they should be
             thumb:SetPoint("BOTTOMRIGHT", Texture, 0, 2)
             thumb:SetShown(Texture:IsShown())
             Base.SetBackdrop(thumb, Color.button)
-            Texture._auroraThumb = thumb
+            thumbs[Texture] = thumb
         end
     end
 
@@ -174,7 +194,7 @@ do -- BlizzWTF: These are not templates, but they should be
             hline:SetColorTexture(1, 1, 1) -- static: not a theme color
             hline:SetSize(11, 1)
             hline:SetPoint("BOTTOMLEFT", bg, 3, 3)
-            Button._auroraTextures = {hline}
+            Skin.SetButtonTextures(Button, {hline})
         end
     end
 end
@@ -224,11 +244,34 @@ do --[[ SharedXML\SharedUIPanelTemplates.lua ]]
         Hook.ThreeSliceButtonMixin = {}
         function Hook.ThreeSliceButtonMixin:UpdateButton(buttonState)
             -- Blizzard re-sets all three slices on every state change
+            -- (ThreeSliceButtonMixin:UpdateButton, Blizzard_SharedXML/Shared/
+            -- Button/ThreeSliceButtonTemplate.lua). This post-hook runs inside
+            -- that call, so it only restyles regions in place (B261).
             self.Left:SetTexture("")
-            self.Center:SetTexture("")
             self.Right:SetTexture("")
 
-            self:SetButtonColor((self:GetButtonColor()))
+            -- `Center` is also the fill of Aurora's backdrop: NineSliceUtil
+            -- reuses a key that already exists (Blizzard_SharedXML/
+            -- NineSlice.lua:40-55). Clearing it, as Left and Right are, would
+            -- leave the button without a fill. Put the backdrop's own texture
+            -- and the colour last painted back on it instead; this used to be a
+            -- whole SetButtonColor (a new backdrop) on every update, which also
+            -- painted a disabled button in its enabled colour.
+            local backdropInfo = self.backdropInfo -- Aurora's table, from Base.SetBackdrop
+            if not backdropInfo then
+                self.Center:SetTexture("")
+                return
+            end
+            if Base.IsTextureRegistered(backdropInfo.bgFile) then
+                Base.SetTexture(self.Center, backdropInfo.bgFile) -- the gradient option
+            else
+                self.Center:SetTexture(backdropInfo.bgFile)
+            end
+            local color = backdropInfo.backdropColor
+            if color then
+                local r, g, b, a = color:GetRGBA()
+                self.Center:SetVertexColor(r, g, b, a or 1)
+            end
         end
     end
 end
@@ -253,7 +296,7 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         hline:SetHeight(1)
         hline:SetPoint("BOTTOMLEFT", bg, 3, 3)
         hline:SetPoint("BOTTOMRIGHT", bg, -3, 3)
-        Button._auroraTextures = {hline}
+        Skin.SetButtonTextures(Button, {hline})
     end
     function Skin.UIPanelCloseButton(Button)
         Skin.FrameTypeButton(Button)
@@ -290,7 +333,7 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
             tinsert(cross, line)
         end
 
-        Button._auroraTextures = cross
+        Skin.SetButtonTextures(Button, cross)
 
         -- B219: on Forever, UIPanelCloseButtonDefaultAnchors' Camelot OnLoad
         -- (Blizzard_SharedXML/Camelot/SharedUIPanelTemplates.lua:1) sizes the
@@ -901,7 +944,7 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         arrow:SetPoint("TOPLEFT", bg, 3, -4)
         arrow:SetPoint("BOTTOMRIGHT", bg, -3, 4)
         Base.SetTexture(arrow, "arrowDown")
-        Frame._auroraTextures = {arrow}
+        Skin.SetButtonTextures(Frame, {arrow})
     end
 
     -- Retail's twin of the arrow template above: the same 15x16 frame and
@@ -1071,7 +1114,7 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         thumb:SetPoint("TOPLEFT", thumbTexture, 0, 0)
         thumb:SetPoint("BOTTOMRIGHT", thumbTexture, 0, 0)
         Base.SetBackdrop(thumb, Color.button)
-        Slider._auroraThumb = thumb
+        thumbs[Slider] = thumb
     end
 
     function Skin.SpinnerButton(Button)
@@ -1086,7 +1129,7 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         local arrow = Button:CreateTexture(nil, "ARTWORK")
         arrow:SetPoint("TOPLEFT", buttonBG, 6, -3)
         arrow:SetPoint("BOTTOMRIGHT", buttonBG, -6, 3)
-        Button._auroraTextures = {arrow}
+        Skin.SetButtonTextures(Button, {arrow})
     end
     function Skin.NumericInputSpinnerTemplate(EditBox)
         Skin.InputBoxTemplate(EditBox)
@@ -1099,12 +1142,12 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
 
         local bg = EditBox:GetBackdropTexture("bg")
         Skin.SpinnerButton(EditBox.DecrementButton)
-        Base.SetTexture(EditBox.DecrementButton._auroraTextures[1], "arrowLeft")
+        Base.SetTexture(Skin.GetButtonTextures(EditBox.DecrementButton)[1], "arrowLeft")
         EditBox.DecrementButton:ClearAllPoints()
         EditBox.DecrementButton:SetPoint("RIGHT", bg, "LEFT", 0, 0)
 
         Skin.SpinnerButton(EditBox.IncrementButton)
-        Base.SetTexture(EditBox.IncrementButton._auroraTextures[1], "arrowRight")
+        Base.SetTexture(Skin.GetButtonTextures(EditBox.IncrementButton)[1], "arrowRight")
         EditBox.IncrementButton:ClearAllPoints()
         EditBox.IncrementButton:SetPoint("LEFT", bg, "RIGHT", 0, 0)
     end
@@ -1162,7 +1205,7 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
 
     function Skin.PanelTabButtonTemplate(Button)
         Skin.FrameTypeButton(Button)
-        Button:SetButtonColor(Color.button, Util.GetFrameAlpha(), false)
+        Skin.SetButtonColor(Button, Color.button, Util.GetFrameAlpha(), false)
         Button:SetBackdropOption("offsets", {
             left = 0,
             right = 0,
@@ -1247,11 +1290,11 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
                 vline:SetPoint("LEFT", bg, 3, -1)
             end
 
-            Button._auroraTextures = {
+            Skin.SetButtonTextures(Button, {
                 line,
                 hline,
                 vline,
-            }
+            })
         end
     end
     function Skin.ColumnDisplayTemplate(Frame)
@@ -1287,12 +1330,28 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
     end
 
     function Skin.ThreeSliceButtonTemplate(Button)
+        -- Covers the calls made from Lua (OnMouseDown/OnMouseUp call
+        -- self:UpdateButton).
         Util.Mixin(Button, Hook.ThreeSliceButtonMixin)
-        Button:HookScript("OnShow", Hook.ThreeSliceButtonMixin.UpdateButton)
-        Button:HookScript("OnDisable", Hook.ThreeSliceButtonMixin.UpdateButton)
-        Button:HookScript("OnEnable", Hook.ThreeSliceButtonMixin.UpdateButton)
 
         Skin.FrameTypeButton(Button)
+
+        -- The template also binds OnShow, OnEnable and OnDisable straight to
+        -- UpdateButton (ThreeSliceButtonTemplate.xml). Such a binding is not
+        -- known to reach a hook on the button's own UpdateButton key: Aurora
+        -- 7faba2ec (2020, "barber shop buttons would sometimes be unskinned")
+        -- added script hooks for exactly these three because it did not. So
+        -- they are covered separately, and without an OnEnable/OnDisable
+        -- script hook (B261): OnShow by a script hook, enable and disable by
+        -- post-hooks on the methods. Those run after Blizzard's own handler
+        -- has re-set the slices and after Skin.FrameTypeButton's repaint
+        -- (hooked above, so it runs first), so the colour put back on Center
+        -- is the new state's. Running the restore twice is harmless.
+        local RestoreSlices = Hook.ThreeSliceButtonMixin.UpdateButton
+        Button:HookScript("OnShow", RestoreSlices)
+        _G.hooksecurefunc(Button, "Enable", RestoreSlices)
+        _G.hooksecurefunc(Button, "Disable", RestoreSlices)
+        _G.hooksecurefunc(Button, "SetEnabled", RestoreSlices)
     end
     function Skin.BigRedThreeSliceButtonTemplate(Button)
         Skin.ThreeSliceButtonTemplate(Button)
