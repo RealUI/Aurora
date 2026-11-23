@@ -307,9 +307,10 @@ function private.SharedSkins.ReputationRows()
             local pushed = self:GetPushedTexture()
             if pushed then pushed:SetAlpha(0) end
 
-            if self._plus then
+            local plus = private.GetExpandOrCollapsePlus and private.GetExpandOrCollapsePlus(self)
+            if plus then
                 local header = self.GetHeader and self:GetHeader()
-                self._plus:SetShown(not header or header:IsCollapsed())
+                plus:SetShown(not header or header:IsCollapsed())
             end
         end)
     end
