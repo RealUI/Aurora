@@ -74,8 +74,8 @@ do --[[ Blizzard_Menu\DropdownButton.lua ]]
             if Frame.Right then
                 Frame.Right:SetAlpha(0)
             end
-            if not Frame._auroraTextures then
-                Frame._auroraTextures = {}
+            if not Skin.GetButtonTextures(Frame) then
+                Skin.SetButtonTextures(Frame, {})
             end
             if Frame.Background then
                 Frame.Background:Hide()
@@ -164,8 +164,8 @@ do --[[ Blizzard_Menu\DropdownButton.lua ]]
                 end
                 return
             end
-            if not Frame._auroraTextures then
-                Frame._auroraTextures = {}
+            if not Skin.GetButtonTextures(Frame) then
+                Skin.SetButtonTextures(Frame, {})
             end
             if Frame.Background then
                 Frame.Background:Hide()
