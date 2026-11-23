@@ -50,11 +50,18 @@ do --[[ SharedXML\SharedUIPanelTemplates.lua ]]
             end)
         end
     end
+    -- Only for tabs Aurora skinned (the flag the resize hook above reads):
+    -- these run for every tab in the game, and a stock tab keeps Blizzard's
+    -- label offsets for its selected and unselected art. B261: the Mists
+    -- spell book's bottom tabs are stock, and SpellBookFrameMixin:Update
+    -- selects them inside an update of the protected SpellBookFrame.
     function Hook.PanelTemplates_DeselectTab(tab)
+        if not tab._auroraTabResize then return end
         local text = tab.Text or _G[tab:GetName().."Text"]
         text:SetPoint("CENTER", tab, "CENTER")
     end
     function Hook.PanelTemplates_SelectTab(tab)
+        if not tab._auroraTabResize then return end
         local text = tab.Text or _G[tab:GetName().."Text"]
         text:SetPoint("CENTER", tab, "CENTER")
     end
