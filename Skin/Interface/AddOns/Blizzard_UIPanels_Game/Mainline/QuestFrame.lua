@@ -130,6 +130,75 @@ do --[[ FrameXML\QuestFrameTemplates.xml ]]
     end
 end
 
+--[[ B261 Layer 2 (tier A, row A6; AT-D16 a), read from wow-ui-source
+    (retail) and wow-ui-source-forever. QuestFrame_OnEvent
+    (Blizzard_UIPanels_Game/Mainline/QuestFrame.lua:22; Forever :24) ends
+    every branch that falls through in ShowUIPanel(QuestFrame) (:97-100;
+    Forever :99-102), the secure gate, and three buttons change state before
+    it in the same execution:
+      QUEST_COMPLETE: QuestFrameCompleteQuestButton:Enable() (:68-72;
+        Forever :70-74), the row the audit names;
+      QUEST_PROGRESS: the progress panel is shown (:64-67; Forever :66-69),
+        and its OnShow, QuestFrameProgressPanel_OnShow, enables or disables
+        QuestFrameCompleteButton (:196, :209-213; Forever :205, :218-222);
+      QUEST_DETAIL, Forever only: the detail panel is shown (Forever :64),
+        and QuestFrameDetailPanel_OnShow disables QuestFrameAcceptButton
+        (Forever :566, :607). Retail's has no such line.
+    The last two are tier A by the same rule (Requirement 5.6), found while
+    converting A6. All three: shape "panel", plain UIPanelButtonTemplate
+    buttons declared in XML (Mainline/QuestFrame.xml:67, :99, :202; Forever
+    :73, :105, :208), not pooled and not layout frames; Blizzard re-sets only
+    the plates (Blizzard_SharedXML/SecureUIPanelTemplates.lua:44-79). Their
+    parents are the quest panels, children of QuestFrame, so each panel sits
+    a level above QuestFrame's backdrop. The re-anchoring below is the
+    Layer 1 skin's and stays: it is skin-time widget API, written into no
+    table.
+
+    QuestFrameCloseButton (row A6d, the Fable review of A5 to A8, finding
+    1): QuestFrameDetailPanel_OnShow disables it for an auto-accepted quest
+    (:543, :547-551; Forever :566, :570-574), inside QUEST_DETAIL
+    (QuestFrameDetailPanel:Show(), :62; Forever :64) and so before the same
+    ShowUIPanel. It is the close button of QuestFrame's ButtonFrameTemplate
+    (PortraitFrameTemplate's $parentCloseButton,
+    Blizzard_SharedXML/Mainline/SharedUIPanelTemplates.xml:631-633; Forever
+    :658-660), a UIPanelCloseButtonDefaultAnchors like the loot window's, so
+    it gets the same panel and the same Forever case.
+    Skin.ButtonFrameTemplate is written out for QuestFrame below to give it
+    the Layer 2 skin; the shared template is not changed. ]]
+
+-- Shape "panel" for QuestFrame.CloseButton: the same template, box and
+-- Forever case as the loot window's close button (Mainline/LootFrame.lua,
+-- TaintSafeCloseButton; the helpers are to be folded into one shared copy
+-- later). Its state textures are set in XML only; frameLevel 510
+-- (Blizzard_SharedXML/Mainline/SharedUIPanelTemplates.xml:134; Forever the
+-- same line) keeps its panel far above QuestFrame's backdrop.
+local function TaintSafeCloseButton(Button)
+    local panel = Skin.TaintSafeFrameTypeButton(Button, "panel")
+    panel:ClearAllPoints()
+    if private.isForever then
+        -- Camelot's OnLoad: 28x28 at TOPRIGHT 0, 3
+        -- (Blizzard_SharedXML/Camelot/SharedUIPanelTemplates.lua:1-5).
+        panel:SetPoint("TOPRIGHT", Button, -2.8, -6)
+    else
+        panel:SetPoint("TOPRIGHT", Button, -3.8, -3)
+    end
+    panel:SetSize(17, 17)
+
+    local bg = panel:GetBackdropTexture("bg")
+    for i = 1, 2 do
+        local line = panel:CreateLine(nil, "ARTWORK")
+        line:SetColorTexture(1, 1, 1) -- static: not a theme color
+        line:SetThickness(1.2)
+        if i == 1 then
+            line:SetStartPoint("TOPLEFT", bg, 3.6, -3)
+            line:SetEndPoint("BOTTOMRIGHT", bg, -3, 3)
+        else
+            line:SetStartPoint("TOPRIGHT", bg, -3, -3)
+            line:SetEndPoint("BOTTOMLEFT", bg, 3.6, 3)
+        end
+    end
+end
+
 function private.FrameXML.QuestFrame()
     _G.hooksecurefunc("QuestFrameProgressItems_Update", Hook.QuestFrameProgressItems_Update)
     _G.hooksecurefunc("QuestFrameGreetingPanel_OnShow", Hook.QuestFrameGreetingPanel_OnShow)
@@ -142,16 +211,25 @@ function private.FrameXML.QuestFrame()
     ----------------
     -- QuestFrame --
     ----------------
-    Skin.ButtonFrameTemplate(_G.QuestFrame)
+    -- Skin.ButtonFrameTemplate (Blizzard_SharedXML/Mainline/SharedUIPanelTemplates.lua),
+    -- its retail branch written out so the close button gets the Layer 2
+    -- skin. This file loads on Mainline and Forever only, where
+    -- private.isRetail is true.
+    local QuestFrame = _G.QuestFrame
+    QuestFrame.NineSlice.Center = QuestFrame.Bg
+    QuestFrame.TopTileStreaks:SetTexture("")
+    Skin.PortraitFrameBaseTemplate(QuestFrame)
+    TaintSafeCloseButton(QuestFrame.CloseButton)
+    Skin.InsetFrameTemplate(QuestFrame.Inset)
     Skin.QuestFramePanelTemplate(_G.QuestFrameRewardPanel)
-    Skin.UIPanelButtonTemplate(_G.QuestFrameCompleteQuestButton)
+    Skin.TaintSafeUIPanelButtonTemplate(_G.QuestFrameCompleteQuestButton, "panel")
     _G.QuestFrameCompleteQuestButton:SetPoint("BOTTOMLEFT", 5, 5)
     Skin.QuestScrollFrameTemplate(_G.QuestRewardScrollFrame)
 
     Skin.QuestFramePanelTemplate(_G.QuestFrameProgressPanel)
     Skin.UIPanelButtonTemplate(_G.QuestFrameGoodbyeButton)
     _G.QuestFrameGoodbyeButton:SetPoint("BOTTOMRIGHT", -5, 5)
-    Skin.UIPanelButtonTemplate(_G.QuestFrameCompleteButton)
+    Skin.TaintSafeUIPanelButtonTemplate(_G.QuestFrameCompleteButton, "panel")
     _G.QuestFrameCompleteButton:SetPoint("BOTTOMLEFT", 5, 5)
     Skin.QuestScrollFrameTemplate(_G.QuestProgressScrollFrame)
     for i = 1, _G.MAX_REQUIRED_ITEMS do
@@ -161,7 +239,7 @@ function private.FrameXML.QuestFrame()
     Skin.QuestFramePanelTemplate(_G.QuestFrameDetailPanel)
     Skin.UIPanelButtonTemplate(_G.QuestFrameDeclineButton)
     _G.QuestFrameDeclineButton:SetPoint("BOTTOMRIGHT", -5, 5)
-    Skin.UIPanelButtonTemplate(_G.QuestFrameAcceptButton)
+    Skin.TaintSafeUIPanelButtonTemplate(_G.QuestFrameAcceptButton, "panel")
     _G.QuestFrameAcceptButton:SetPoint("BOTTOMLEFT", 5, 5)
     Skin.QuestScrollFrameTemplate(_G.QuestFrameDetailPanel.ScrollFrame)
 
