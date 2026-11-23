@@ -264,76 +264,141 @@ do -- Base.SetHighlight
     end
     ]]
 
-    local function GetReturnColor(button)
-        local bdFrame = button._auroraBDFrame or button
-        if bdFrame.GetButtonColor then
-            local enabled, disabled = bdFrame:GetButtonColor()
-            if bdFrame:IsEnabled() then
-                return enabled
+    -- B261: the highlight keeps nothing on the frame. Its state is in the
+    -- button state store of Skin/skin.lua (`returnColor`, `onEnter`,
+    -- `onLeave`, `highlighted`, `highlightLocked`, `highlightHooked`), reached
+    -- through private.GetButtonState at call time because skin.lua loads after
+    -- this file. The functions below run from script hooks and from post-hooks
+    -- on LockHighlight/UnlockHighlight, so inside Blizzard's own calls: they
+    -- write the record and recolour through the handlers, and no key on the
+    -- frame.
+    local issecretvalue = _G.issecretvalue -- 12.x only; nil on the classic clients
+
+    -- Button:IsEnabled() returns a secret once Blizzard has called SetEnabled
+    -- with one, and testing a secret is an error. nil here means the client
+    -- will not say; every caller treats that as not enabled.
+    local function IsEnabled(button)
+        local enabled = button:IsEnabled()
+        if issecretvalue and issecretvalue(enabled) then
+            return nil
+        end
+        return enabled
+    end
+
+    local function GetReturnColor(button, state)
+        local enabledColor = state.enabledColor
+        if enabledColor then
+            -- skinned with Skin.FrameTypeButton
+            if IsEnabled(button) then
+                return enabledColor
             else
-                return disabled
+                return state.disabledColor
             end
         else
-            local _, _, _, a = bdFrame:GetBackdropColor()
-            local r, g, b = bdFrame:GetBackdropBorderColor()
+            local _, _, _, a = button:GetBackdropColor()
+            local r, g, b = button:GetBackdropBorderColor()
             return Color.Create(r, g, b, a)
         end
     end
-    local function ShowHighlight(button)
-        if button:IsEnabled() then
-            if not button._isHighlightLocked then
-                return not button._isHighlighted
+    local function ShowHighlight(button, state)
+        if IsEnabled(button) then
+            if not state.highlightLocked then
+                return not state.highlighted
             end
         end
 
-        return button._isHighlightLocked
+        return state.highlightLocked
     end
-    local function OnEnter(button)
-        if ShowHighlight(button) and not button._isHighlighted then
-            button._returnColor = GetReturnColor(button)
+    local function Highlight(button, state)
+        if ShowHighlight(button, state) and not state.highlighted then
+            local returnColor = GetReturnColor(button, state)
+            state.returnColor = returnColor
 
             local highlight = Color.highlight
-            if button.IsEnabled and not button:IsEnabled() then
+            if button.IsEnabled and not IsEnabled(button) then
                 highlight = highlight:Lightness(-0.3)
             end
-            local alpha = button._returnColor.a or highlight.a
+            local alpha = returnColor.a or highlight.a
 
-            button:_onEnter(highlight, alpha)
-            button._isHighlighted = true
+            state.onEnter(button, highlight, alpha)
+            state.highlighted = true
+        end
+    end
+    local function Unhighlight(button, state)
+        if not ShowHighlight(button, state) and state.highlighted then
+            state.onLeave(button, state.returnColor)
+            state.highlighted = false
+        end
+    end
+
+    -- Script hooks. A frame with no record is one another frame's handler was
+    -- called for by hand; leave it alone.
+    local function OnEnter(button)
+        local state = private.GetButtonState(button)
+        if state then
+            Highlight(button, state)
         end
     end
     local function OnLeave(button)
-        if not ShowHighlight(button) and button._isHighlighted then
-            button:_onLeave(button._returnColor)
-            button._isHighlighted = false
+        local state = private.GetButtonState(button)
+        if state then
+            Unhighlight(button, state)
+        end
+    end
+
+    -- Post-hooks, shared by every button.
+    local function Hook_LockHighlight(button)
+        local state = private.GetButtonState(button)
+        if state then
+            state.highlightLocked = true
+            Highlight(button, state)
+        end
+    end
+    local function Hook_UnlockHighlight(button)
+        local state = private.GetButtonState(button)
+        if state then
+            state.highlightLocked = nil
+            Unhighlight(button, state)
         end
     end
 
     local function BaseOnEnter(self, highlight, alpha)
-        Base.SetBackdropColor(self._auroraBDFrame or self, highlight, alpha)
+        Base.SetBackdropColor(self, highlight, alpha)
     end
     local function BaseOnLeave(self, returnColor)
-        Base.SetBackdropColor(self._auroraBDFrame or self, returnColor)
+        Base.SetBackdropColor(self, returnColor)
     end
 
 
+    --[[ Base.SetHighlight(_button[, onEnter, onLeave]_)
+    Highlights a frame while the mouse is over it or its highlight is locked.
+    By default the frame's backdrop takes the highlight colour and returns to
+    its own colour afterwards; the frame needs a backdrop for that
+    (`Base.SetBackdrop`).
+
+    Calling it again on the same frame replaces the handlers and adds no
+    second set of hooks.
+
+    **Args:**
+    * `button`  - the frame to highlight _(Frame)_
+    * `onEnter` - _optional_ called as `onEnter(button, highlightColor, alpha)` in place of the default _(function)_
+    * `onLeave` - _optional_ called as `onLeave(button, returnColor)` in place of the default _(function)_
+    --]]
     function Base.SetHighlight(button, onEnter, onLeave)
-        button._returnColor = GetReturnColor(button)
-        button._onEnter = onEnter or BaseOnEnter
-        button._onLeave = onLeave or BaseOnLeave
+        local state = private.GetButtonState(button, true)
+        state.returnColor = GetReturnColor(button, state)
+        state.onEnter = onEnter or BaseOnEnter
+        state.onLeave = onLeave or BaseOnLeave
 
-        button:HookScript("OnEnter", OnEnter)
-        button:HookScript("OnLeave", OnLeave)
+        if not state.highlightHooked then
+            button:HookScript("OnEnter", OnEnter)
+            button:HookScript("OnLeave", OnLeave)
 
-        if button.LockHighlight then
-            _G.hooksecurefunc(button, "LockHighlight", function(dialog, ...)
-                button._isHighlightLocked = true
-                OnEnter(button)
-            end)
-            _G.hooksecurefunc(button, "UnlockHighlight", function(dialog, ...)
-                button._isHighlightLocked = nil
-                OnLeave(button)
-            end)
+            if button.LockHighlight then
+                _G.hooksecurefunc(button, "LockHighlight", Hook_LockHighlight)
+                _G.hooksecurefunc(button, "UnlockHighlight", Hook_UnlockHighlight)
+            end
+            state.highlightHooked = true
         end
     end
 end
