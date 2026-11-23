@@ -65,7 +65,7 @@ do --[[ FrameXML\NavigationBar.xml ]]
         arrowButton.Art:SetSize(10, 5)
         arrowButton.Art:SetPoint("TOPLEFT", bg, 7, -9)
         Base.SetTexture(arrowButton.Art, "arrowDown")
-        arrowButton._auroraTextures = {arrowButton.Art}
+        Skin.SetButtonTextures(arrowButton, {arrowButton.Art})
     end
     function Skin.NavBarTemplate(Frame)
         Frame:GetRegions():Hide()
@@ -73,7 +73,7 @@ do --[[ FrameXML\NavigationBar.xml ]]
 
         local overflow = Frame.overflow
         Skin.FrameTypeButton(overflow)
-        overflow:SetButtonColor(Color.grayLight)
+        Skin.SetButtonColor(overflow, Color.grayLight)
         overflow:SetWidth(28)
 
         local tex = overflow:GetNormalTexture()
@@ -83,7 +83,7 @@ do --[[ FrameXML\NavigationBar.xml ]]
 
         local home = Frame.home
         Skin.FrameTypeButton(home)
-        home:SetButtonColor(Color.red:Lightness(-.3))
+        Skin.SetButtonColor(home, Color.red:Lightness(-.3))
         home:SetBackdropOption("offsets", {
             left = 0,
             right = 9,
