@@ -141,7 +141,7 @@ do --[[ FrameXML\ChatConfigFrame.xml ]]
         arrow:SetSize(10, 5)
 
         Base.SetTexture(arrow, "arrow"..direction)
-        Button._auroraTextures = {arrow}
+        Skin.SetButtonTextures(Button, {arrow})
     end
 end
 
