@@ -104,6 +104,15 @@ function private.OnLoad()
             Button:SetBackdropGradient()
         end
     end)
+    -- The same for a Layer 2 button (B261): its fill is on a panel of
+    -- Aurora's own, never on the button. A flat-shape button has no panel
+    -- and no backdrop, so it stays a flat fill, as it always was.
+    _G.hooksecurefunc(Skin, "TaintSafeFrameTypeButton", function(Button)
+        local panel = Skin.GetButtonPanel(Button)
+        if AuroraConfig.buttonsHaveGradient and panel then
+            panel:SetBackdropGradient()
+        end
+    end)
 
     local characterPanelSkinState = {
         CharacterFrame = false,
