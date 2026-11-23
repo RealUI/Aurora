@@ -265,6 +265,15 @@ do -- Button
     --]]
     function Skin.FrameTypeButton(Button, OnEnter, OnLeave, minimal)
         local state = GetButtonState(Button)
+        if state.layer2 then
+            -- Already a Layer 2 button (Skin.TaintSafeFrameTypeButton). The
+            -- Layer 1 skin would put its backdrop, methods and state hooks
+            -- over the engine-drawn states: a second skin call on the same
+            -- button somewhere else. The caller's next backdrop call errors
+            -- (the button has no backdrop methods), which names the file.
+            private.debug("FrameTypeButton: already a Layer 2 button", Button:GetDebugName())
+            return
+        end
         if minimal ~= nil then
             state.minimal = not not minimal
         end
