@@ -43,7 +43,7 @@ end
 -- insets (15/14/13/15) — flat button sized to the hit rect.
 local function SkinSpellBookTab(Button)
     Skin.FrameTypeButton(Button)
-    Button:SetButtonColor(Color.button, Util.GetFrameAlpha(), false)
+    Skin.SetButtonColor(Button, Color.button, Util.GetFrameAlpha(), false)
     Button:SetBackdropOption("offsets", {
         left = 15,
         right = 14,
