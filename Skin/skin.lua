@@ -39,15 +39,19 @@ One record per frame, created on first use:
         returnColor    = Color,
         highlighted, highlightLocked = boolean|nil,
         highlightHooked = true|nil,     -- OnEnter/OnLeave and the lock hooks are installed
+        -- Skin.TaintSafeFrameTypeButton (Layer 2)
+        layer2         = "panel"|"flat"|nil, -- the shape; set means "drawn by the engine, no hooks"
+        panel          = Frame|nil,     -- the Aurora-owned frame with the border and fill (shape "panel")
     }
 
 A record with no `enabledColor` belongs to a frame that only had
-`Base.SetHighlight` or `Skin.SetButtonTextures` called on it.
+`Base.SetHighlight` or `Skin.SetButtonTextures` called on it, or to a Layer 2
+button (`layer2` set), which has no colours in the store at all.
 
-The frame that carries the backdrop is not stored. In Layer 1 it is the button
+In Layer 1 the frame that carries the backdrop is not stored: it is the button
 itself, and a value that references its own key keeps a weak-keyed entry alive
-for good (Lua 5.1 has no ephemerons). Layer 2 adds it when the backdrop moves
-to a panel.
+for good (Lua 5.1 has no ephemerons). In Layer 2 it is `panel`, a frame of
+Aurora's own that holds no reference back to the button.
 --]]
 local buttonState = _G.setmetatable({}, {__mode = "k"})
 local issecretvalue = _G.issecretvalue -- 12.x only; nil on the classic clients
@@ -296,6 +300,220 @@ do -- Button
             -- predated the saved colour mode and so was always Normal's).
             Skin.SetButtonColor(Button, Color.button, nil, Color.buttonDisabled)
             Base.SetHighlight(Button, OnEnter, OnLeave)
+        end
+    end
+end
+
+--[[ Layer 2 state greys (B261, AT-D3)
+
+A Layer 2 button shows hover, pressed and disabled through the engine's own
+state textures, so these three numbers are the whole look of those states.
+Plain greys: there is no highlight-colour variant and no option for one.
+
+    hover     white added over the fill, at this alpha
+    pressed   this much lighter than the fill at rest (0 to 1, added to each
+              of red, green and blue)
+    disabled  black over the fill, at this alpha
+
+LAYER2_PRESSED_STEP is the value the owner picks in game (CHECKPOINT V of the
+aurora-taint-pass spec): change this one number and reload. It has to stay
+clearly visible, which means at least three times LAYER2_HOVER_ALPHA.
+--]]
+local LAYER2_HOVER_ALPHA = 0.08
+local LAYER2_PRESSED_STEP = 0.25
+local LAYER2_DISABLED_ALPHA = 0.45
+
+do -- Button, Layer 2
+    local plain = private.textures.plain
+
+    local function ClearStateTextures(Button)
+        if Button.ClearNormalTexture then
+            Button:ClearNormalTexture()
+            Button:ClearPushedTexture()
+            Button:ClearDisabledTexture()
+            if Button.ClearHighlightTexture then
+                Button:ClearHighlightTexture()
+            end
+        elseif Button.SetNormalTexture then
+            Button:SetNormalTexture("")
+            Button:SetPushedTexture("")
+            Button:SetDisabledTexture("")
+            Button:SetHighlightTexture("")
+        end
+    end
+
+    -- Tints one of the engine's state textures. The alpha and the blend mode
+    -- are set outright, because a caller may have swept the button's regions
+    -- to alpha 0 first (the Mists panel button). Never Show or Hide here:
+    -- the engine shows and hides the normal, pushed and disabled textures
+    -- itself, and a Show would leave the pushed one on screen until the next
+    -- state change.
+    local function Paint(texture, blendMode, r, g, b, alpha)
+        if texture then
+            texture:SetBlendMode(blendMode)
+            texture:SetVertexColor(r, g, b)
+            texture:SetAlpha(alpha)
+        end
+    end
+
+    -- Puts a state texture inside the panel's border, so pressed, disabled
+    -- and hover cover the fill and leave the border as it is. Anchored to
+    -- the border's corner pieces, so it follows the panel when a caller
+    -- moves it or gives its backdrop offsets.
+    local function FitInsideBorder(texture, panel)
+        if not texture then
+            return
+        end
+
+        local topLeft = Util.GetNineSlicePiece(panel, "TopLeftCorner")
+        local bottomRight = Util.GetNineSlicePiece(panel, "BottomRightCorner")
+        texture:ClearAllPoints()
+        if topLeft and bottomRight then
+            texture:SetPoint("TOPLEFT", topLeft, "BOTTOMRIGHT")
+            texture:SetPoint("BOTTOMRIGHT", bottomRight, "TOPLEFT")
+        else
+            texture:SetPoint("TOPLEFT", panel, 1, -1)
+            texture:SetPoint("BOTTOMRIGHT", panel, -1, 1)
+        end
+    end
+
+    --[[ Skin.TaintSafeFrameTypeButton(_Button, shape_)
+    The Layer 2 button skin (B261), for a button whose state Blizzard changes
+    inside a protected or secret-value update. Use it instead of
+    `Skin.FrameTypeButton`, never after it.
+
+    Nothing of Aurora's ends up on the button: no field, no method, no
+    backdrop, no hook on `Enable`, `Disable` or `SetEnabled`, no script. The
+    engine draws every state from the button's own state textures, so a
+    button Blizzard disables with no script firing still looks disabled, and
+    no Aurora code runs when its state changes. The label keeps Blizzard's
+    font objects and so greys by itself.
+
+    Two shapes. A third, leaving the button Blizzard's, is the absence of a
+    call (and a line under "Deliberately unskinned" in `docs/KnownIssues.md`).
+
+    * `"panel"` - a frame of Aurora's own, a child of the button one frame
+      level below it, carries the 1px border and the fill, exactly as a
+      `Skin.FrameTypeButton` button looks at rest. Pressed, disabled and
+      hover are the button's state textures, fitted inside the border. For a
+      button that may have a child frame: not a `ResizeLayoutFrame` or other
+      frame that measures its children, not pooled, not a frame a secure
+      system lays out.
+    * `"flat"` - the button's four state textures and nothing else: a flat
+      fill in the button colour, no border, no frame created.
+
+    This clears the button's state textures and nothing more. Art a template
+    keeps in other regions (the `Left`/`Middle`/`Right` plates of a panel
+    button, a close button's `Border`) is the caller's to hide:
+    `Skin.TaintSafeUIPanelButtonTemplate` does it for panel buttons.
+
+    It reads `Color.button` when it runs, like `Skin.FrameTypeButton`. A
+    second call repaints the same button and makes no second panel.
+
+    **Args:**
+    * `Button` - the button to skin _(Button)_
+    * `shape`  - `"panel"` or `"flat"` _(string)_
+
+    **Returns:**
+    * `panel` - the frame carrying the border and fill, for glyphs and for
+                backdrop options; nil for `"flat"` _(Frame|nil)_
+    --]]
+    function Skin.TaintSafeFrameTypeButton(Button, shape)
+        if shape ~= "panel" and shape ~= "flat" then
+            _G.error('`shape` must be "panel" or "flat"')
+        end
+
+        local state = GetButtonState(Button)
+        if state.enabledColor then
+            -- Already through Skin.FrameTypeButton. Its backdrop, methods and
+            -- hooks cannot be taken off the button again, so painting state
+            -- textures over them would only hide the mistake.
+            private.debug("TaintSafeFrameTypeButton: already skinned with FrameTypeButton", Button:GetDebugName())
+            return
+        end
+        state.layer2 = shape
+
+        ClearStateTextures(Button)
+
+        local panel = state.panel
+        local r, g, b
+        if shape == "panel" then
+            if not panel then
+                -- A plain frame takes no mouse input, so clicks reach the button.
+                panel = _G.CreateFrame("Frame", nil, Button)
+                panel:SetAllPoints(Button)
+                state.panel = panel
+            end
+            -- Below the button, so its label and state textures draw on top.
+            panel:SetFrameLevel(_G.math.max(Button:GetFrameLevel() - 1, 0))
+            panel:Show()
+
+            Base.SetBackdrop(panel, Color.button)
+            -- One sublevel pair above a frame backdrop's (BACKGROUND -8 and
+            -- -7, backdrop.lua:33-36). A button that is a direct child of a
+            -- skinned frame puts its panel at that frame's own level, where
+            -- two regions on one layer and sublevel have no defined order,
+            -- and the frame's fill could be drawn over the panel's.
+            panel:SetBackdropLayer("BACKGROUND", -6)
+            r, g, b = panel:GetBackdropColor()
+        else
+            if panel then
+                panel:Hide()
+            end
+
+            r, g, b = Color.button:GetRGB()
+            Button:SetNormalTexture(plain)
+            Paint(Button:GetNormalTexture(), "BLEND", r, g, b, 1)
+        end
+
+        Button:SetPushedTexture(plain)
+        local pushed = Button:GetPushedTexture()
+        Button:SetDisabledTexture(plain)
+        local disabled = Button:GetDisabledTexture()
+        if shape == "panel" then
+            -- Both lie over the panel, so the fill (a gradient, under
+            -- standalone Aurora) and any glyph on the panel show through:
+            -- pressed adds white, disabled lays black over them.
+            Paint(pushed, "ADD", 1, 1, 1, LAYER2_PRESSED_STEP)
+            Paint(disabled, "BLEND", 0, 0, 0, LAYER2_DISABLED_ALPHA)
+        else
+            -- Each is drawn in place of the normal texture, so each has to
+            -- be the finished colour.
+            Paint(pushed, "BLEND", _G.math.min(r + LAYER2_PRESSED_STEP, 1), _G.math.min(g + LAYER2_PRESSED_STEP, 1),
+                _G.math.min(b + LAYER2_PRESSED_STEP, 1), 1)
+            local keep = 1 - LAYER2_DISABLED_ALPHA
+            Paint(disabled, "BLEND", r * keep, g * keep, b * keep, 1)
+        end
+
+        Button:SetHighlightTexture(plain, "ADD")
+        local highlight = Button:GetHighlightTexture()
+        Paint(highlight, "ADD", 1, 1, 1, LAYER2_HOVER_ALPHA)
+
+        if shape == "panel" then
+            FitInsideBorder(pushed, panel)
+            FitInsideBorder(disabled, panel)
+            FitInsideBorder(highlight, panel)
+            return panel
+        end
+    end
+
+    --[[ Skin.GetButtonPanel(_Button_)
+    Returns the frame that carries the border and fill of a button skinned
+    with `Skin.TaintSafeFrameTypeButton(Button, "panel")`. It is Aurora's
+    frame: glyphs, backdrop options and anchors on it are fine, and nothing
+    on it is read by Blizzard.
+
+    **Args:**
+    * `Button` - the button to read _(Button)_
+
+    **Returns:**
+    * `panel` - the frame, or nil for a flat button, a Layer 1 button or a
+                frame that was never skinned _(Frame|nil)_
+    --]]
+    function Skin.GetButtonPanel(Button)
+        local state = buttonState[Button]
+        if state and state.layer2 == "panel" then
+            return state.panel
         end
     end
 end
