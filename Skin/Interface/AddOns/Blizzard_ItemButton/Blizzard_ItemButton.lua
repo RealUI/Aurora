@@ -190,6 +190,26 @@ do --[[ FrameXML\ItemButtonTemplate.lua ]]
 end
 
 do --[[ FrameXML\ItemButtonTemplate.xml ]]
+    --[[ Skin.GetItemButtonBorder(_Button_)
+    Returns the frame that carries an item button's icon border, as drawn by
+    the item button skins below (`Skin.FrameTypeItemButton` and the templates
+    built on it). Colour it with `SetBackdropBorderColor`, as
+    `Hook.SetItemButtonQuality` does for item quality.
+
+    Use this instead of reading Aurora's fields on the button: where the
+    border lives is Aurora's business and will change (B261, AT-D13).
+
+    **Args:**
+    * `Button` - an item button _(Button)_
+
+    **Returns:**
+    * `border` - the frame with the border, or nil when Aurora did not skin
+                 the button as an item button _(Frame|nil)_
+    --]]
+    function Skin.GetItemButtonBorder(Button)
+        return Button._auroraIconBorder
+    end
+
     function Skin.FrameTypeItemButton(Button)
 
         Button.Count:SetPoint("BOTTOMRIGHT", -2, 2)
