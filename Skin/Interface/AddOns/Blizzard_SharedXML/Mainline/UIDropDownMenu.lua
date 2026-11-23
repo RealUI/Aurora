@@ -126,14 +126,15 @@ do --[[ FrameXML\UIDropDownMenu.lua ]]
         end
 
         function Hook.UIDropDownMenu_DisableDropDown(dropDown)
-            if dropDown.Button.GetButtonColor then
-                local _, disabledColor = dropDown.Button:GetButtonColor()
+            local enabledColor, disabledColor = Skin.GetButtonColor(dropDown.Button)
+            if enabledColor then
                 Base.SetBackdropColor(dropDown, disabledColor)
             end
         end
         function Hook.UIDropDownMenu_EnableDropDown(dropDown)
-            if dropDown.Button.GetButtonColor then
-                Base.SetBackdropColor(dropDown, (dropDown.Button:GetButtonColor()))
+            local enabledColor = Skin.GetButtonColor(dropDown.Button)
+            if enabledColor then
+                Base.SetBackdropColor(dropDown, enabledColor)
             end
         end
     end
@@ -246,7 +247,7 @@ do --[[ FrameXML\UIDropDownMenu.xml ]]
             arrow:SetPoint("TOPLEFT", bg, 3, -6)
             arrow:SetPoint("BOTTOMRIGHT", bg, -3, 5)
             Base.SetTexture(arrow, "arrowDown")
-            Button._auroraTextures = {arrow}
+            Skin.SetButtonTextures(Button, {arrow})
         end
         function Skin.LargeUIDropDownMenuTemplate(Frame)
             Base.SetBackdrop(Frame, Color.frame)
@@ -271,7 +272,7 @@ do --[[ FrameXML\UIDropDownMenu.xml ]]
             arrow:SetPoint("TOPLEFT", bg, 4, -8)
             arrow:SetPoint("BOTTOMRIGHT", bg, -4, 7)
             Base.SetTexture(arrow, "arrowDown")
-            Frame.Button._auroraTextures = {arrow}
+            Skin.SetButtonTextures(Frame.Button, {arrow})
 
             Frame.Left:Hide()
             Frame.Right:Hide()
