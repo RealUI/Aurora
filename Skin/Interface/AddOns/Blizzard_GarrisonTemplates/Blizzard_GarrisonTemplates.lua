@@ -165,7 +165,7 @@ do --[[ AddOns\Blizzard_GarrisonTemplates.xml ]]
     do --[[ Blizzard_GarrisonMissionTemplates ]]
         function Skin.GarrisonMissionFrameTabTemplate(Button)
             Skin.FrameTypeButton(Button)
-            Button:SetButtonColor(Color.button, Util.GetFrameAlpha(), false)
+            Skin.SetButtonColor(Button, Color.button, Util.GetFrameAlpha(), false)
             Button:SetHeight(28)
 
             Button.LeftActive:SetAlpha(0)
@@ -350,14 +350,14 @@ do --[[ AddOns\Blizzard_GarrisonTemplates.xml ]]
             Skin.UIPanelScrollBarButton(Button)
             Button:SetSize(18, 16)
 
-            local arrow = Button._auroraTextures[1]
+            local arrow = Skin.GetButtonTextures(Button)[1]
             Base.SetTexture(arrow, "arrowUp")
         end
         function Skin.OribosScrollDownButtonTemplate(Button)
             Skin.UIPanelScrollBarButton(Button)
             Button:SetSize(18, 16)
 
-            local arrow = Button._auroraTextures[1]
+            local arrow = Skin.GetButtonTextures(Button)[1]
             Base.SetTexture(arrow, "arrowDown")
         end
         function Skin.OribosScrollBarTemplate(Slider)
