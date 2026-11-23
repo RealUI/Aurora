@@ -30,7 +30,7 @@ do --[[ FrameXML\ScrollBar.xml ]]
             tex:ClearAllPoints()
             -- tex:SetPoint("TOPLEFT", bg, 3, -5)
             -- tex:SetPoint("BOTTOMRIGHT", bg, -3, 5)
-            Button._auroraTextures = {tex}
+            Skin.SetButtonTextures(Button, {tex})
 
             local function setArrow()
                 if Button.direction == _G.ScrollControllerMixin.Directions.Decrease then
