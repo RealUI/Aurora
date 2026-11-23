@@ -20,7 +20,18 @@ end
 function private.FrameXML.RaidFrame()
     Skin.RoleCountTemplate(_G.RaidFrame.RoleCount)
     Skin.UICheckButtonTemplate(_G.RaidFrameAllAssistCheckButton)
-    Skin.UIPanelButtonTemplate(_G.RaidFrameConvertToRaidButton)
+
+    -- B261 Layer 2 (tier A, row A1). RaidFrame_Update shows, enables or
+    -- disables and hides this button on every GROUP_ROSTER_UPDATE
+    -- (Blizzard_RaidFrame/Mainline/RaidFrame.lua:104-112; Forever :106-114)
+    -- and then moves the protected raid group buttons in the same execution
+    -- (:121-123), so nothing of Aurora's may be on it or run on its state.
+    -- Shape "panel": it is a plain UIPanelButtonTemplate declared in XML
+    -- (RaidFrame.xml:205), not pooled and not a layout frame, and all
+    -- Blizzard re-sets on it is the file of its Left/Middle/Right plates
+    -- (Blizzard_SharedXML/SecureUIPanelTemplates.lua:44-79), which the
+    -- template keeps at alpha 0. No art that carries a meaning.
+    Skin.TaintSafeUIPanelButtonTemplate(_G.RaidFrameConvertToRaidButton, "panel")
     Skin.UIPanelButtonTemplate(_G.RaidFrameRaidInfoButton)
 
 
