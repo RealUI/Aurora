@@ -42,8 +42,7 @@ do
         function Hook.GameMenuSkinButton(button)
             Skin.UIPanelButtonTemplate(button)
 
-            button._isMinimal = false
-            button:SetButtonColor(Color.button, 0.65)
+            Skin.SetButtonColor(button, Color.button, 0.65)
             Base.SetBackdrop(button, Color.button, 0.65)
 
             Hook.GameMenuUpdateButtonStyle(button)
