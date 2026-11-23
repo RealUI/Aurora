@@ -10,6 +10,11 @@ local Base = Aurora.Base
 local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
+-- B261: the Aurora frame drawn in place of a scroll or slider thumb, keyed by
+-- the Blizzard thumb texture (Skin.ScrollBarThumb) or the slider
+-- (Skin.HorizontalSliderTemplate). Was `_auroraThumb` on the Blizzard object.
+local thumbs = _G.setmetatable({}, {__mode = "k"})
+
 --[[ Classic-family SharedUIPanelTemplates (era/TBC/Mists).
     Evidence: wow-ui-source-*/Interface/AddOns/Blizzard_SharedXML/Classic/SharedUIPanelTemplates.xml
     PortraitFrameTemplate/ButtonFrameTemplate here are the legacy named-texture
@@ -69,7 +74,7 @@ do --[[ SharedXML\SharedUIPanelTemplates.lua - nav buttons ]]
         local arrow = Button:CreateTexture(nil, "ARTWORK")
         arrow:SetPoint("TOPLEFT", bg, 8, -5)
         arrow:SetPoint("BOTTOMRIGHT", bg, -8, 5)
-        Button._auroraTextures = {arrow}
+        Skin.SetButtonTextures(Button, {arrow})
 
         return arrow
     end
@@ -110,7 +115,7 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
             tinsert(cross, line)
         end
 
-        Button._auroraTextures = cross
+        Skin.SetButtonTextures(Button, cross)
     end
     function Skin.UIPanelCloseButton(Button)
         Skin.UIPanelCloseButtonNoScripts(Button)
@@ -344,7 +349,7 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         thumb:SetPoint("TOPLEFT", thumbTexture, 0, 0)
         thumb:SetPoint("BOTTOMRIGHT", thumbTexture, 0, 0)
         Base.SetBackdrop(thumb, Color.button)
-        Slider._auroraThumb = thumb
+        thumbs[Slider] = thumb
     end
     function Skin.OptionsSliderTemplate(Slider)
         Skin.HorizontalSliderTemplate(Slider)
@@ -358,10 +363,10 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
     do -- Scroll thumb (same implementation as the Mainline layer; needed
        -- here because flat scroll skins call it on classic clients too)
         local function Hook_Hide(self)
-            self._auroraThumb:Hide()
+            thumbs[self]:Hide()
         end
         local function Hook_Show(self)
-            self._auroraThumb:Show()
+            thumbs[self]:Show()
         end
         function Skin.ScrollBarThumb(Texture)
             Texture:SetAlpha(0)
@@ -374,7 +379,7 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
             thumb:SetPoint("BOTTOMRIGHT", Texture, 0, 2)
             thumb:SetShown(Texture:IsShown())
             Base.SetBackdrop(thumb, Color.button)
-            Texture._auroraThumb = thumb
+            thumbs[Texture] = thumb
         end
     end
 
@@ -543,7 +548,7 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
 
     function Skin.PanelTabButtonTemplate(Button)
         Skin.FrameTypeButton(Button)
-        Button:SetButtonColor(Color.button, Util.GetFrameAlpha(), false)
+        Skin.SetButtonColor(Button, Color.button, Util.GetFrameAlpha(), false)
         Button:SetBackdropOption("offsets", {
             left = 0,
             right = 0,
