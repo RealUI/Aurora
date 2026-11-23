@@ -15,70 +15,263 @@ do -- Frame
     end
 end
 
+--[[ Button state store (B261, Layer 1)
+
+Everything the button skin and `Base.SetHighlight` know about a frame lives
+here, never on the frame: a key written onto a Blizzard frame is addon-owned,
+and Blizzard code that reads it runs tainted from then on
+(objective-tracker-taint.md, rules 1 and 9).
+
+One record per frame, created on first use:
+
+    buttonState[frame] = {
+        -- Skin.FrameTypeButton / Skin.SetButtonColor
+        minimal        = boolean|nil,   -- glyph-only button: no backdrop colour, the textures carry the state
+        enabledColor   = Color,         -- set means "skinned by Skin.FrameTypeButton"
+        disabledColor  = Color,
+        colorToken     = "button"|"frame"|nil, -- the live token the enabled colour came from (B164, later)
+        paintedEnabled = boolean|nil,   -- the state Repaint last painted; dedupe only
+        hooked         = true|nil,      -- Enable/Disable/SetEnabled are hooked
+        -- Skin.SetButtonTextures
+        textures       = {Texture, ...}, -- glyphs that follow the button's colour
+        -- Base.SetHighlight (api.lua)
+        onEnter, onLeave = function,
+        returnColor    = Color,
+        highlighted, highlightLocked = boolean|nil,
+        highlightHooked = true|nil,     -- OnEnter/OnLeave and the lock hooks are installed
+    }
+
+A record with no `enabledColor` belongs to a frame that only had
+`Base.SetHighlight` or `Skin.SetButtonTextures` called on it.
+
+The frame that carries the backdrop is not stored. In Layer 1 it is the button
+itself, and a value that references its own key keeps a weak-keyed entry alive
+for good (Lua 5.1 has no ephemerons). Layer 2 adds it when the backdrop moves
+to a panel.
+--]]
+local buttonState = _G.setmetatable({}, {__mode = "k"})
+local issecretvalue = _G.issecretvalue -- 12.x only; nil on the classic clients
+
+local function GetButtonState(frame)
+    local state = buttonState[frame]
+    if not state then
+        state = {}
+        buttonState[frame] = state
+    end
+    return state
+end
+
+-- Internal: api.lua loads before this file and reaches the store through this
+-- at call time. Not part of Aurora's API.
+function private.GetButtonState(frame, create)
+    if create then
+        return GetButtonState(frame)
+    end
+    return buttonState[frame]
+end
+
 do -- Button
-    local function SetTexturesToColor(self, color)
-        if self._auroraTextures then
-            for _, texture in next, self._auroraTextures do
+    local function SetTexturesToColor(textures, color)
+        if textures then
+            for _, texture in next, textures do
                 texture:SetVertexColor(color:GetRGB())
             end
         end
     end
     local function MinimalOnEnter(self, highlight, alpha)
-        SetTexturesToColor(self, highlight)
+        SetTexturesToColor(buttonState[self].textures, highlight)
     end
     local function MinimalOnLeave(self, returnColor)
-        SetTexturesToColor(self, returnColor)
+        SetTexturesToColor(buttonState[self].textures, returnColor)
     end
 
-    local function Hook_Enable(self)
-        if self.isEnabled then
+    -- Post-hook body for Enable, Disable and SetEnabled, so it runs inside
+    -- whichever Blizzard update changed the button. It takes no argument from
+    -- the hooked call: SetEnabled can be handed a secret boolean, and testing
+    -- that is an error in Blizzard's execution. It writes the record and
+    -- recolours what Aurora put on the button, nothing else, and no key on
+    -- the button itself.
+    --
+    -- Layer 1 limit: Base.SetBackdropColor replaces `backdropColor` and
+    -- `backdropBorderColor` inside the button's `backdropInfo` table. That
+    -- table is Aurora's (made at skin time) and no Blizzard code reads those
+    -- two keys; it leaves the button with the backdrop, in Layer 2.
+    local function Repaint(Button)
+        local state = buttonState[Button]
+        if not state or not state.enabledColor then
             return
         end
 
-        if self._isMinimal then
-            SetTexturesToColor(self, self._enabledColor)
-        else
-            Base.SetBackdropColor(self, self._enabledColor)
-            SetTexturesToColor(self, Color.white)
-        end
-
-        self.isEnabled = true
-        self.isDisabled = not self.isEnabled
-    end
-    local function Hook_Disable(self)
-        if self.isDisabled then
+        local enabled = Button:IsEnabled()
+        if issecretvalue and issecretvalue(enabled) then
             return
         end
-        if self._isMinimal then
-            SetTexturesToColor(self, self._disabledColor)
+        enabled = not not enabled
+        if state.paintedEnabled == enabled then
+            return
+        end
+        state.paintedEnabled = enabled
+
+        if state.minimal then
+            SetTexturesToColor(state.textures, enabled and state.enabledColor or state.disabledColor)
+        elseif enabled then
+            Base.SetBackdropColor(Button, state.enabledColor)
+            SetTexturesToColor(state.textures, Color.white)
         else
-            Base.SetBackdropColor(self, self._disabledColor)
-            SetTexturesToColor(self, Color.gray)
+            Base.SetBackdropColor(Button, state.disabledColor)
+            SetTexturesToColor(state.textures, Color.gray)
+        end
+    end
+
+    --[[ Skin.SetButtonColor(_Button, color[, alpha, disabledColor]_)
+    Sets the colours a button skinned with `Skin.FrameTypeButton` shows when it
+    is enabled and when it is disabled, and paints the enabled colour straight
+    away. A button that is disabled at that moment takes its disabled colour
+    the next time Blizzard enables or disables it.
+
+    For a minimal button (scroll bar steppers) no backdrop is touched: the
+    colours are what its glyph textures take.
+
+    Called on a frame that was never skinned, it gives the frame a backdrop and
+    a record, but nothing repaints it when it is enabled or disabled.
+
+    **Args:**
+    * `Button`        - the button to colour _(Button)_
+    * `color`         - the enabled colour; the backdrop is drawn 30% darker, the border in this colour _(Color)_
+    * `alpha`         - _optional_ the backdrop alpha, defaults to the colour's own _(number)_
+    * `disabledColor` - _optional_ the disabled colour; `false` uses the enabled
+                        colour for both states, nil a 30% darker one _(Color|false)_
+    --]]
+    function Skin.SetButtonColor(Button, color, alpha, disabledColor)
+        local state = GetButtonState(Button)
+
+        local r, g, b, a, _
+        if state.minimal then
+            r, g, b = color:GetRGB()
+        else
+            Base.SetBackdrop(Button, color, alpha)
+            _, _, _, a = Button:GetBackdropColor()
+            r, g, b = Button:GetBackdropBorderColor()
         end
 
-        self.isDisabled = true
-        self.isEnabled = not self.isDisabled
-    end
-    local function Hook_SetEnabled(self, enabledState)
-        if enabledState then
-            Hook_Enable(self)
+        local enabledColor = Color.Create(r, g, b, alpha or a)
+        state.enabledColor = enabledColor
+
+        if disabledColor == false then
+            state.disabledColor = enabledColor
+        elseif disabledColor then
+            state.disabledColor = disabledColor
         else
-            Hook_Disable(self)
+            state.disabledColor = Color.Lightness(enabledColor, -0.3)
+        end
+
+        -- Nothing reads this yet. A live palette (B164) can repaint from it.
+        if color == Color.button then
+            state.colorToken = "button"
+        elseif color == Color.frame then
+            state.colorToken = "frame"
+        else
+            state.colorToken = nil
         end
     end
-    function Skin.FrameTypeButton(Button, OnEnter, OnLeave)
-        local framesOk = true
-        if Button:GetName() then
-            local frameButtonNamed = Button:GetName()
-            if _G.string.find(frameButtonNamed, "Tab") and not _G.string.find(frameButtonNamed, "Tabard") then
-                framesOk = false
-            end
+
+    --[[ Skin.GetButtonColor(_Button_)
+    Returns the colours set by `Skin.SetButtonColor`. Both are nil for a frame
+    that was never skinned with `Skin.FrameTypeButton`, which makes this the
+    test for "is this a skinned button".
+
+    **Args:**
+    * `Button` - the button to read _(Button)_
+
+    **Returns:**
+    * `enabledColor`  - the colour shown when enabled _(Color|nil)_
+    * `disabledColor` - the colour shown when disabled _(Color|nil)_
+    --]]
+    function Skin.GetButtonColor(Button)
+        local state = buttonState[Button]
+        if state then
+            return state.enabledColor, state.disabledColor
         end
-        if framesOk then    -- not sure when these are ok to use anymore - SetEnabled triggers properly for tabs
-            _G.hooksecurefunc(Button, "Disable", Hook_Disable)
-            _G.hooksecurefunc(Button, "Enable", Hook_Enable)
+    end
+
+    --[[ Skin.SetButtonTextures(_Button, textures_)
+    Registers the glyphs of a button (arrows, a cross, a minimise bar) so they
+    follow its state: white when enabled and grey when disabled, or the
+    button's own colours and the highlight colour on a minimal button. The list
+    replaces any earlier one and is kept as given, not copied.
+
+    Works on any frame, skinned or not; on a frame that is not skinned with
+    `Skin.FrameTypeButton` nothing recolours them.
+
+    **Args:**
+    * `Button`   - the button the glyphs belong to _(Button)_
+    * `textures` - a list of textures or lines, or nil to clear it _(table|nil)_
+    --]]
+    function Skin.SetButtonTextures(Button, textures)
+        GetButtonState(Button).textures = textures
+    end
+
+    --[[ Skin.GetButtonTextures(_Button_)
+    Returns the list given to `Skin.SetButtonTextures`.
+
+    **Args:**
+    * `Button` - the button to read _(Button)_
+
+    **Returns:**
+    * `textures` - the list itself, or nil when none was set _(table|nil)_
+    --]]
+    function Skin.GetButtonTextures(Button)
+        local state = buttonState[Button]
+        return state and state.textures
+    end
+
+    --[[ Skin.IterateButtonState()
+    Development only. Iterates the button state store for the scan in
+    `Aurora/dev/buttonscan.lua`: every frame with a record, and the record.
+    Yields nothing unless `private.isDev` is set; the flag is read here and not
+    when this file loads, because the dev files that set it load later.
+
+    A record with `enabledColor` set is a button skinned with
+    `Skin.FrameTypeButton`. The records are the live ones: read them, never
+    write them.
+
+    **Returns:**
+    * an iterator for a generic `for`, yielding `frame, state` _(function)_
+    --]]
+    function Skin.IterateButtonState()
+        if not private.isDev then
+            return private.nop
         end
-        _G.hooksecurefunc(Button, "SetEnabled", Hook_SetEnabled)
+        return next, buttonState
+    end
+
+    --[[ Skin.FrameTypeButton(_Button[, OnEnter, OnLeave, minimal]_)
+    The base button skin: clears Blizzard's state textures, gives the button a
+    backdrop in the button colour, a highlight on hover and a repaint when
+    Blizzard enables or disables it. Nothing is written onto the button except
+    the backdrop (which goes in Layer 2); the state is in the store above.
+
+    **Args:**
+    * `Button`  - the button to skin _(Button)_
+    * `OnEnter` - _optional_ replaces the default highlight, see `Base.SetHighlight` _(function)_
+    * `OnLeave` - _optional_ replaces the default highlight removal _(function)_
+    * `minimal` - _optional_ true for a glyph-only button with no backdrop
+                  colour (scroll bar steppers); nil keeps what an earlier call
+                  set _(boolean)_
+    --]]
+    function Skin.FrameTypeButton(Button, OnEnter, OnLeave, minimal)
+        local state = GetButtonState(Button)
+        if minimal ~= nil then
+            state.minimal = not not minimal
+        end
+
+        if not state.hooked then
+            _G.hooksecurefunc(Button, "Disable", Repaint)
+            _G.hooksecurefunc(Button, "Enable", Repaint)
+            _G.hooksecurefunc(Button, "SetEnabled", Repaint)
+            state.hooked = true
+        end
+
         if Button.ClearNormalTexture then
             Button:ClearNormalTexture()
             Button:ClearPushedTexture()
@@ -95,41 +288,13 @@ do -- Button
             Button:SetDisabledTexture("")
         end
 
-        function Button:SetButtonColor(color, alpha, disabledColor)
-            local r, g, b, a, _
-            if Button._isMinimal then
-                r, g, b = color:GetRGB()
-            else
-                Base.SetBackdrop(self, color, alpha)
-                _, _, _, a = self:GetBackdropColor()
-                r, g, b = self:GetBackdropBorderColor()
-            end
-
-            self._enabledColor = Color.Create(r, g, b, alpha or a)
-
-            if disabledColor == false then
-                self._disabledColor = self._enabledColor
-            else
-                if disabledColor then
-                    self._disabledColor = disabledColor
-                else
-                    self._disabledColor = Color.Lightness(self._enabledColor, -0.3)
-                end
-            end
-            -- This double trigger is breaking Tabs in the updated Aurora
-            -- Hook_SetEnabled(self, self:IsEnabled())
-        end
-        function Button:GetButtonColor()
-            return self._enabledColor, self._disabledColor
-        end
-
-        if Button._isMinimal then
-            Button:SetButtonColor(Color.grayLight, 1, Color.gray)
+        if state.minimal then
+            Skin.SetButtonColor(Button, Color.grayLight, 1, Color.gray)
             Base.SetHighlight(Button, MinimalOnEnter, MinimalOnLeave)
         else
             -- B164: the live token, not a copy taken at file load (which
             -- predated the saved colour mode and so was always Normal's).
-            Button:SetButtonColor(Color.button, nil, Color.buttonDisabled)
+            Skin.SetButtonColor(Button, Color.button, nil, Color.buttonDisabled)
             Base.SetHighlight(Button, OnEnter, OnLeave)
         end
     end
@@ -160,16 +325,20 @@ do -- EditBox
 end
 
 do -- StatusBar
+    -- Bars whose SetStatusBarTexture hook is running, so the texture it sets
+    -- does not re-enter it. Kept here, not on the bar (B261, AT-D9).
+    local settingTexture = _G.setmetatable({}, {__mode = "k"})
+
     local function Hook_SetStatusBarTexture(self, asset)
         if type(self) ~= "table" or type(self.GetObjectType) ~= "function" or not self:IsObjectType("StatusBar") then
             return
         end
-        if self.__SetStatusBarTexture then
+        if settingTexture[self] then
             return
         end
-        self.__SetStatusBarTexture = true
+        settingTexture[self] = true
         if type(asset) ~= "string" then
-            self.__SetStatusBarTexture = nil
+            settingTexture[self] = nil
             return
         end
         local ok, color = _G.pcall(function()
@@ -188,7 +357,7 @@ do -- StatusBar
         if color then
             local ok3, texture = _G.pcall(self.GetStatusBarTexture, self)
             if not ok3 or not texture then
-                self.__SetStatusBarTexture = nil
+                settingTexture[self] = nil
                 return
             end
             texture:SetTexture(private.textures.plain)
@@ -208,7 +377,7 @@ do -- StatusBar
             private.debug("Missing color for status bar asset:", asset, ok4 and name or "unknown")
         end
 
-        self.__SetStatusBarTexture = nil
+        settingTexture[self] = nil
     end
     local function Hook_SetStatusBarColor(self, r, g, b)
         if type(self) ~= "table" or type(self.GetObjectType) ~= "function" or not self:IsObjectType("StatusBar") then
@@ -292,11 +461,15 @@ do -- StatusBar
 end
 
 do -- ScrollBar
+    -- B261: the frame carrying the thumb's backdrop, keyed by the Blizzard
+    -- thumb. Was `_auroraThumb` on the thumb.
+    local thumbs = _G.setmetatable({}, {__mode = "k"})
+
     local function Hook_Hide(self)
-        self._auroraThumb:Hide()
+        thumbs[self]:Hide()
     end
     local function Hook_Show(self)
-        self._auroraThumb:Show()
+        thumbs[self]:Show()
     end
     local function ScrollBarThumb(ScrollThumb)
         local thumb
@@ -326,18 +499,26 @@ do -- ScrollBar
                 bottom = 2
             }
         )
-        ScrollThumb._auroraThumb = thumb
+        -- Only a separate frame has to follow the thumb's Show and Hide. Where
+        -- the thumb carries the backdrop itself (it has Middle) there is nothing
+        -- to mirror: an entry would be a value that is its own key, which a
+        -- weak-keyed table never lets go, and the Hide hook would call Hide on
+        -- the thumb it hooks (ScrollBarMixin:DisableControls hides the thumb).
+        if thumb ~= ScrollThumb then
+            thumbs[ScrollThumb] = thumb
 
-        _G.hooksecurefunc(ScrollThumb, "Hide", Hook_Hide)
-        _G.hooksecurefunc(ScrollThumb, "Show", Hook_Show)
+            _G.hooksecurefunc(ScrollThumb, "Hide", Hook_Hide)
+            _G.hooksecurefunc(ScrollThumb, "Show", Hook_Show)
+        end
     end
 
     local function UpdateTexture(self)
-        local tex = self._auroraTextures[1]
+        local state = buttonState[self]
+        local tex = state.textures[1]
         local texAnchor = self
         local length, width = 14, 6
         local xOffset, yOffset = 2, 4
-        if not self._isMinimal then
+        if not state.minimal then
             texAnchor = self:GetBackdropTexture("bg")
         end
 
@@ -365,15 +546,18 @@ do -- ScrollBar
         end
     end
     local function ScrollBarButton(Button, notMinimal)
-        Button._isMinimal = not notMinimal
-        Skin.FrameTypeButton(Button)
+        Skin.FrameTypeButton(Button, nil, nil, not notMinimal)
 
         local tex = Button.Texture or Button:CreateTexture()
         if Button.direction then
-            Button._auroraTextures = {tex}
+            Skin.SetButtonTextures(Button, {tex})
             if Button.UpdateAtlas then
+                -- No client in wow-ui-source* has UpdateAtlas on a scroll
+                -- stepper any more (2026-11-23); kept for one that does. The
+                -- OnDisable script hook that went with it is gone (B261): it
+                -- added a handler Blizzard's button did not have, and such a
+                -- button refuses SetEnabled with a secret argument.
                 _G.hooksecurefunc(Button, "UpdateAtlas", UpdateTexture)
-                Button:HookScript("OnDisable", UpdateTexture)
             elseif Button.OnButtonStateChanged then
                 -- B35: 12.x moved the atlas application from UpdateAtlas into
                 -- ButtonStateBehavior's OnButtonStateChanged, which re-stamps
