@@ -300,7 +300,7 @@ do --[[ AddOns\Blizzard_GarrisonUI.xml ]]
         end
         function Skin.GarrisonLandingPageTabTemplate(Button)
             Skin.FrameTypeButton(Button)
-            Button:SetButtonColor(Color.button, Util.GetFrameAlpha(), false)
+            Skin.SetButtonColor(Button, Color.button, Util.GetFrameAlpha(), false)
             Button:SetHeight(28)
 
             Button.LeftActive:SetAlpha(0)
