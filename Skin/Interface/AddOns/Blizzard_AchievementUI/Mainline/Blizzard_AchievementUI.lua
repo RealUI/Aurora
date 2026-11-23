@@ -253,7 +253,7 @@ do --[[ AddOns\Blizzard_AchievementUI.xml ]]
     end
     function Skin.AchievementFrameTabButtonTemplate(Button)
         Skin.FrameTypeButton(Button)
-        Button:SetButtonColor(Color.button, Util.GetFrameAlpha(), false)
+        Skin.SetButtonColor(Button, Color.button, Util.GetFrameAlpha(), false)
         Button:SetHeight(28)
 
         Button.LeftActive:SetAlpha(0)
