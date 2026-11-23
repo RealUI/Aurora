@@ -78,7 +78,7 @@ do --[[ SharedXML\FriendsFrame.xml ]]
         texture:SetPoint("TOPRIGHT", 1, -4)
         texture:SetSize(22, 22)
         texture:SetAlpha(0.75)
-        travelPassButton._auroraTextures = {texture}
+        Skin.SetButtonTextures(travelPassButton, {texture})
     end
     function Skin.WhoFrameColumnHeaderTemplate(Button)
         Button.Left:Hide()
