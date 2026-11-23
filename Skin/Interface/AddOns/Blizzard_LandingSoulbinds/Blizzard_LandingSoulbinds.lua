@@ -118,7 +118,7 @@ do --[[ AddOns\Blizzard_LandingSoulbinds.lua ]]
             if self._orb then
                 local covenantData = _G.C_Covenants.GetCovenantData(_G.C_Covenants.GetActiveCovenantID())
                 self._orb:SetAtlas(atlas:format(covenantData.textureKit), true)
-                self:SetButtonColor(private.COVENANT_COLORS[covenantData.textureKit])
+                Skin.SetButtonColor(self, private.COVENANT_COLORS[covenantData.textureKit])
             end
         end
     end
