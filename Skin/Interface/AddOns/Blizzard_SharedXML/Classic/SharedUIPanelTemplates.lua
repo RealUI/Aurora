@@ -15,6 +15,11 @@ local Color, Util = Aurora.Color, Aurora.Util
 -- (Skin.HorizontalSliderTemplate). Was `_auroraThumb` on the Blizzard object.
 local thumbs = _G.setmetatable({}, {__mode = "k"})
 
+-- B261 (task 5.3): tabs whose first resize has been re-run on the next frame
+-- (Hook.PanelTemplates_TabResize). Was `_auroraResizeRetried` on the Blizzard
+-- tab. Tabs are kept, not pooled; weak keys.
+local resizeRetried = _G.setmetatable({}, {__mode = "k"})
+
 --[[ Classic-family SharedUIPanelTemplates (era/TBC/Mists).
     Evidence: wow-ui-source-*/Interface/AddOns/Blizzard_SharedXML/Classic/SharedUIPanelTemplates.xml
     PortraitFrameTemplate/ButtonFrameTemplate here are the legacy named-texture
@@ -41,8 +46,8 @@ do --[[ SharedXML\SharedUIPanelTemplates.lua ]]
         -- On the very first show the font string has not rendered yet, so
         -- TabResize measures a stale text width and truncates. Re-run once
         -- on the next frame, after the text has a real width.
-        if not tab._auroraResizeRetried then
-            tab._auroraResizeRetried = true
+        if not resizeRetried[tab] then
+            resizeRetried[tab] = true
             _G.C_Timer.After(0, function()
                 if tab:IsVisible() then
                     Hook.PanelTemplates_TabResize(tab, padding, absoluteSize, minWidth, maxWidth, absoluteTextSize)
