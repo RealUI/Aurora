@@ -13,6 +13,31 @@ local Color = Aurora.Color
 local Util = Aurora.Util
 local Config = private.Config
 
+--[[ B261 (tasks 3.2.6.3, 5.3, 5.4), read from wow-ui-source and
+    wow-ui-source-forever, not seen in game. PlayerSpellsFrame reads as
+    protected (checkpoint 0, `buttonscan protected` on retail). Nothing in
+    Blizzard_PlayerSpells is declared secure or protected on either tree,
+    so no button here is protected itself; each sits under a protected
+    ancestor. So: the panel shape where the button is declared once and not
+    measured, flat where it is pooled, and Blizzard's own where Blizzard
+    draws its state with art (the tab strips).
+
+    What this file keeps, here and not on Blizzard's frames (each was a
+    field on the Blizzard object). Weak keys throughout. ]]
+-- Spell book item buttons whose textures and hooks are in place (new: the
+-- skin below ran again on every show and stacked its hooks). The buttons are
+-- pooled by the paged list; what is stored is the button's own textures and
+-- hooks, which go with it to the next spell it shows.
+local itemDecorated = _G.setmetatable({}, {__mode = "k"})
+-- Was `_auroraAlphaHooked`: the Name and SubName font strings of an item
+-- (pooled with their item frame).
+local alphaHooked = _G.setmetatable({}, {__mode = "k"})
+-- Was `_auroraTextColorHooked`: spell book item frames (pooled).
+local textColorHooked = _G.setmetatable({}, {__mode = "k"})
+-- Was `_auroraHeaderSkinned`: spell book section headers (pooled; the skin
+-- is the header's own regions).
+local skinnedHeaders = _G.setmetatable({}, {__mode = "k"})
+
 local function IsConfigEnabled(optionKey)
     local auroraConfig = _G.AuroraConfig or Config and Config.defaults
     return auroraConfig == nil or auroraConfig[optionKey] ~= false
@@ -42,6 +67,10 @@ do  -- PlayerSpellsFrame.SpecFrame
         -- Mark as skinned first to prevent re-entry
         if private.IsSkinned(button) then return end
         private.SetSkinned(button, true)
+        -- The callers below clear the skinned mark and run this again on
+        -- every show; textures and hooks are made the first time only.
+        local firstTime = not itemDecorated[button]
+        itemDecorated[button] = true
 
         -- Hide the Backplate that creates the dark bar behind text
         if frame.Backplate then
@@ -69,12 +98,14 @@ do  -- PlayerSpellsFrame.SpecFrame
             button.Border:SetAlpha(0)
             button.Border:Hide()
             -- Hook SetTexture to prevent it from being set
-            _G.hooksecurefunc(button.Border, "SetTexture", function(self)
-                self:SetAlpha(0)
-            end)
-            _G.hooksecurefunc(button.Border, "SetAtlas", function(self)
-                self:SetAlpha(0)
-            end)
+            if firstTime then
+                _G.hooksecurefunc(button.Border, "SetTexture", function(self)
+                    self:SetAlpha(0)
+                end)
+                _G.hooksecurefunc(button.Border, "SetAtlas", function(self)
+                    self:SetAlpha(0)
+                end)
+            end
         end
 
         if button.TrainableShadow then
@@ -91,23 +122,29 @@ do  -- PlayerSpellsFrame.SpecFrame
         end
 
         -- Crop and position the icon - make it sharper
-        Base.CropIcon(button.Icon, button)
+        if firstTime then
+            Base.CropIcon(button.Icon, button)
+        end
         button.Icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
-        -- Create Aurora backdrop on the button
-        Base.CreateBackdrop(button, {
-            bgFile = [[Interface\PaperDoll\UI-Backpack-EmptySlot]],
-            tile = false,
-            offsets = {
-                left = -1,
-                right = -1,
-                top = -1,
-                bottom = -1,
-            }
-        })
-        button:SetBackdropColor(1, 1, 1, 0.75)
-        button:SetBackdropBorderColor(Color.frame, 1)
-        Base.CropIcon(button:GetBackdropTexture("bg"))
+        --[[ B261 (task 5.4): the slot behind the icon. Checkpoint 0 found
+            Aurora's backdrop on these buttons (33 keys each) under the
+            protected PlayerSpellsFrame. Drawn now with two textures of the
+            button's own, as the override bar's spell buttons: a 1px border
+            outside the button and the empty-slot art inside it, the look
+            the backdrop drew. Made once; a pooled button keeps them. ]]
+        if firstTime then
+            local border = button:CreateTexture(nil, "BACKGROUND", nil, -8)
+            border:SetPoint("TOPLEFT", -1, 1)
+            border:SetPoint("BOTTOMRIGHT", 1, -1)
+            border:SetColorTexture(Color.frame:GetRGB())
+
+            local slot = button:CreateTexture(nil, "BACKGROUND", nil, -7)
+            slot:SetAllPoints()
+            slot:SetTexture([[Interface\PaperDoll\UI-Backpack-EmptySlot]])
+            slot:SetVertexColor(1, 1, 1, 0.75)
+            Base.CropIcon(slot)
+        end
 
         -- Handle various overlay textures
         if button.IconHighlight then
@@ -150,7 +187,7 @@ do  -- PlayerSpellsFrame.SpecFrame
         end
 
         -- Hook the button's UpdateVisuals to maintain skinning and update text colors
-        if button.UpdateVisuals then
+        if firstTime and button.UpdateVisuals then
             _G.hooksecurefunc(button, "UpdateVisuals", function(self)
                 if self.Border then
                     self.Border:SetTexture(nil)
@@ -167,28 +204,28 @@ do  -- PlayerSpellsFrame.SpecFrame
         end
 
         -- Hook text alpha setting to override Blizzard's values
-        if frame.Name and not frame.Name._auroraAlphaHooked then
+        if frame.Name and not alphaHooked[frame.Name] then
             _G.hooksecurefunc(frame.Name, "SetAlpha", function(self, alpha)
                 -- Always force full alpha for better visibility
                 if alpha < 1 then
                     self:SetAlpha(1)
                 end
             end)
-            frame.Name._auroraAlphaHooked = true
+            alphaHooked[frame.Name] = true
         end
 
-        if frame.SubName and not frame.SubName._auroraAlphaHooked then
+        if frame.SubName and not alphaHooked[frame.SubName] then
             _G.hooksecurefunc(frame.SubName, "SetAlpha", function(self, alpha)
                 -- Always force full alpha for better visibility
                 if alpha < 1 then
                     self:SetAlpha(1)
                 end
             end)
-            frame.SubName._auroraAlphaHooked = true
+            alphaHooked[frame.SubName] = true
         end
 
         -- Hook UpdateVisuals on the parent frame to handle text coloring
-        if not frame._auroraTextColorHooked then
+        if not textColorHooked[frame] then
             -- Hook into the frame's property changes to update text colors
             _G.hooksecurefunc(frame, "UpdateSpellData", function(self)
                 if not self.TextContainer then return end
@@ -226,7 +263,7 @@ do  -- PlayerSpellsFrame.SpecFrame
                     end
                 end
             end)
-            frame._auroraTextColorHooked = true
+            textColorHooked[frame] = true
         end
 
         private.SetSkinned(frame, true)
@@ -323,7 +360,11 @@ do  -- PlayerSpellsFrame.SpecFrame
     function Hook.UpdatePlayeerSpecFrame(self)
         for SpecContentFrame in self.SpecContentFramePool:EnumerateActive() do
             if not private.IsSkinned(SpecContentFrame) then
-                Skin.UIPanelButtonTemplate(SpecContentFrame.ActivateButton)
+                -- B261 (3.2.6.3): the spec frames come from
+                -- SpecContentFramePool, so their ActivateButton (a
+                -- MagicButtonTemplate, Blizzard_ClassSpecializationsFrame.xml:311)
+                -- is pooled: flat shape, nothing of Aurora's on it.
+                Skin.TaintSafeUIPanelButtonTemplate(SpecContentFrame.ActivateButton)
                 local role = _G.GetSpecializationRole(SpecContentFrame.specIndex)
                 if role then
                     local RoleIcon = SpecContentFrame.RoleIcon
@@ -344,6 +385,8 @@ do  -- PlayerSpellsFrame.SpecFrame
             end
         end
     end
+    -- B261 (3.2.6.3): no caller since the tab strips stay Blizzard's (see
+    -- private.AddOns.Blizzard_PlayerSpells below); left for phase 6.
     function Skin.PlayerSpellsFrameTabTemplate(Button)
         Skin.PanelTabButtonTemplate(Button)
         Button._auroraTabResize = true
@@ -369,7 +412,10 @@ do  -- PlayerSpellsFrame.SpecFrame
     function Skin.ClassTalentActiveSpecTemplate(Frame)
         if not Frame then return end
         if Frame.ActivateButton then
-            Skin.UIPanelButtonTemplate(Frame.ActivateButton)
+            -- B261 (3.2.6.3): declared once (Camelot
+            -- Blizzard_ClassTalentsFrame.xml:111), frameLevel 4001, so its
+            -- panel sits far above the talents frame's art: panel shape.
+            Skin.TaintSafeUIPanelButtonTemplate(Frame.ActivateButton, "panel")
         end
     end
 
@@ -468,14 +514,62 @@ function private.AddOns.Blizzard_PlayerSpells()
         PlayerSpellsFrame.PortraitContainer:Hide()
     end
 
-    -- Skin tabs
-    for i = 1, 3 do
-        local tab = select(i, PlayerSpellsFrame.TabSystem:GetChildren())
-        Skin.PlayerSpellsFrameTabTemplate(tab)
-    end
+    --[[ B261 (3.2.6.3): the three frame tabs stay Blizzard's (shape c), as
+        do the spell book's category tabs and, on WoW Forever, the talent
+        tree tabs below. All three strips are TabSystemButtonTemplate tabs:
+        SetTabSelected shows the Active art on the open tab and disables it
+        (Blizzard_SharedXML/Shared/TabSystem/TabSystemTemplates.lua:41-55),
+        so engine-drawn state would show the open tab as a disabled one, and
+        UpdateTabWidth measures each tab. Listed under "Deliberately
+        unskinned" in docs/KnownIssues.md. ]]
 
-    Skin.UIPanelCloseButton(_G.PlayerSpellsFrameCloseButton)
-    Skin.MaximizeMinimizeButtonFrameTemplate(PlayerSpellsFrame.MaxMinButtonFrame)
+    --[[ B261 (3.2.6.3): the close button is PortraitFrameTemplate's
+        $parentCloseButton, a UIPanelCloseButtonDefaultAnchors
+        (Blizzard_SharedXML/Mainline/SharedUIPanelTemplates.xml:633),
+        frameLevel 510: the Layer 2 panel, drawn by
+        Skin.TaintSafePanelCloseButton, as the quest frame's. ]]
+    Skin.TaintSafePanelCloseButton(_G.PlayerSpellsFrameCloseButton)
+
+    --[[ B261 (3.2.6.3): MaximizeButton and MinimizeButton
+        (MaximizeMinimizeButtonFrameTemplate, SharedUIPanelTemplates.xml:1032-1060,
+        frameLevel 510) have their state textures set in XML only; Blizzard
+        only shows and hides them (MaximizeMinimizeButtonFrameMixin, :654-662).
+        Panel shape, the box where the Layer 1 skin put it (3, 4, 3 and 4
+        inside the button), and the glyph drawn on the panel. ]]
+    do
+        local MaxMin = PlayerSpellsFrame.MaxMinButtonFrame
+        if private.isForever then
+            -- Camelot's OnLoad sizes the frame 28x28 since 70450; keep retail's 24.
+            MaxMin:SetSize(24, 24)
+        end
+        for _, name in next, {"MaximizeButton", "MinimizeButton"} do
+            local panel = Skin.TaintSafeFrameTypeButton(MaxMin[name], "panel")
+            panel:ClearAllPoints()
+            panel:SetPoint("TOPLEFT", MaxMin[name], 3, -3)
+            panel:SetPoint("BOTTOMRIGHT", MaxMin[name], -4, 4)
+
+            local bg = panel:GetBackdropTexture("bg")
+            local line = panel:CreateLine(nil, "ARTWORK")
+            line:SetColorTexture(1, 1, 1) -- static: not a theme color
+            line:SetThickness(1.2)
+            line:SetStartPoint("TOPRIGHT", bg, -3, -3)
+            line:SetEndPoint("BOTTOMLEFT", bg, 3, 3)
+
+            local hline = panel:CreateTexture(nil, "ARTWORK")
+            hline:SetColorTexture(1, 1, 1) -- static: not a theme color
+            hline:SetSize(7, 1)
+            local vline = panel:CreateTexture(nil, "ARTWORK")
+            vline:SetColorTexture(1, 1, 1) -- static: not a theme color
+            vline:SetSize(1, 7)
+            if name == "MaximizeButton" then
+                hline:SetPoint("TOP", bg, 1, -3)
+                vline:SetPoint("RIGHT", bg, -3, 1)
+            else
+                hline:SetPoint("BOTTOM", bg, -1, 3)
+                vline:SetPoint("LEFT", bg, 3, -1)
+            end
+        end
+    end
 
     -- SpecFrame
     local SpecFrame = PlayerSpellsFrame.SpecFrame
@@ -603,12 +697,40 @@ function private.AddOns.Blizzard_PlayerSpells()
          the same change as the removal: the sheen is decoration, the taint is
          not, and the two should not be verified together. ]]
 
-    Skin.UIPanelButtonTemplate(TalentsFrame.ApplyButton)
-    Skin.UIPanelButtonTemplate(TalentsFrame.InspectCopyButton)
+    --[[ B261 (3.2.6.3): ApplyButton (tier B) and InspectCopyButton,
+        UIPanelButtonNoTooltipTemplate buttons declared once
+        (ClassTalents/Blizzard_ClassTalentsFrame.xml:247, :283; Forever
+        Camelot :441, :480). Panel shape. Their panels sit at the talents
+        frame's level, which keeps art of its own over the whole frame:
+        the spec art and clouds at BACKGROUND 1 and 2 and the activation
+        effects at 3 (:59-205), and on WoW Forever the inner frame border
+        and dividers on OVERLAY 0 (Camelot :313-340). A fill at
+        BACKGROUND -6 would be drawn under all of it, so each panel goes to
+        OVERLAY 6, its edge 7: above every region of the talents frame, and
+        still below the button, which is a level up. ]]
+    for _, key in next, {"ApplyButton", "InspectCopyButton"} do
+        local panel = Skin.TaintSafeUIPanelButtonTemplate(TalentsFrame[key], "panel")
+        panel:SetBackdropLayer("OVERLAY", 6)
+    end
     Skin.SearchBoxTemplate(TalentsFrame.SearchBox)
     Skin.SpellSearchPreviewContainerTemplate(TalentsFrame.SearchPreviewContainer) -- B221
-    if TalentsFrame.LoadSystem and TalentsFrame.LoadSystem.Dropdown then
-        Skin.DropdownButton(TalentsFrame.LoadSystem.Dropdown)
+
+    --[[ B261 (task 5.4): the loadout dropdown, a WowStyle1DropdownTemplate
+        (Blizzard_SharedXML/Shared/LoadSystem/LoadSystemTemplates.xml:6), had
+        Skin.DropdownButton's backdrop and keys. Declared once, not measured:
+        panel shape. Blizzard never re-sets Background; it re-atlases Arrow
+        on every state change (Blizzard_Menu/MenuTemplates.lua:937-946), and
+        alpha survives that. Aurora's arrow is drawn on the panel, where
+        Skin.DropdownButton puts it. ]]
+    local LoadDropdown = TalentsFrame.LoadSystem and TalentsFrame.LoadSystem.Dropdown
+    if LoadDropdown then
+        if LoadDropdown.Background then LoadDropdown.Background:SetAlpha(0) end
+        if LoadDropdown.Arrow then LoadDropdown.Arrow:SetAlpha(0) end
+        local panel = Skin.TaintSafeFrameTypeButton(LoadDropdown, "panel")
+        local arrow = panel:CreateTexture(nil, "ARTWORK")
+        arrow:SetTexture([[Interface\AddOns\Aurora\media\arrow-down-active]])
+        arrow:SetSize(8, 8)
+        arrow:SetPoint("RIGHT", -8, 0)
     end
 
     -- Camelot-only additions to the talents frame.
@@ -622,22 +744,8 @@ function private.AddOns.Blizzard_PlayerSpells()
     -- stock gold. Sweep what is already there, then hook for anything added
     -- later. The mixin table is deliberately not hooked: Mixin() copies methods
     -- at creation, so existing frames would never see it.
-    local TabSystem = TalentsFrame.TabSystem
-    if TabSystem then
-        local function SkinTabs(self)
-            for _, tab in next, {self:GetChildren()} do
-                if not private.IsSkinned(tab) then
-                    private.SetSkinned(tab, true)
-                    Skin.ClassTalentsFrameTabTemplate(tab)
-                end
-            end
-        end
-
-        SkinTabs(TabSystem)
-        if TabSystem.AddTab then
-            _G.hooksecurefunc(TabSystem, "AddTab", SkinTabs)
-        end
-    end
+    -- B261 (3.2.6.3): these tabs stay Blizzard's, as the frame tabs above;
+    -- the sweep and its AddTab hook are gone.
 
     -- Tree headers come from treeHeaderPool. Same correction: RefreshTreeHeaders
     -- has usually already run by the time the frame is visible, so sweep the
@@ -785,18 +893,20 @@ function private.AddOns.Blizzard_PlayerSpells()
             if frame.Button then
                 -- Always check and re-skin if needed, as buttons can be recycled from pools
                 local button = frame.Button
-                if not private.IsSkinned(button) or not button:GetBackdrop() then
+                -- B261 (5.4): no backdrop to test for any more; the
+                -- textures are made once per button (itemDecorated).
+                if not private.IsSkinned(button) then
                     -- Clear the flag to force re-skinning
                     private.SetSkinned(button, nil)
                     private.SetSkinned(frame, nil)
                     Hook.SkinSpellBookItem(frame)
                 end
-            elseif frame.Backplate and frame.Text and not frame._auroraHeaderSkinned then
+            elseif frame.Backplate and frame.Text and not skinnedHeaders[frame] then
                 -- SpellBookHeaderTemplate (section group headers: "Demon Hunter", "Havoc", etc.)
                 frame.Backplate:SetAlpha(0)  -- hide the rusty brown banner
                 if frame.Border then frame.Border:SetAlpha(0) end  -- hide the spellbook-divider line
                 frame.Text:SetTextColor(1, 1, 1)  -- white instead of SPELLBOOK_FONT_COLOR golden
-                frame._auroraHeaderSkinned = true
+                skinnedHeaders[frame] = true
             end
         end
 
@@ -840,10 +950,31 @@ function private.AddOns.Blizzard_PlayerSpells()
         -- GetAtlas returns the atlas's stored spelling ("QuestLog-icon-setting"
         -- on retail 12.1.5), while atlas lookups ignore case; compare lowered.
         local atlas = icon and icon:GetAtlas()
-        if atlas and atlas:lower() == "questlog-icon-setting" then
-            Skin.UIPanelIconDropdownButtonTemplate(SettingsDropdown)
-        else
-            Skin.UIPanelArrowDropdownButtonTemplate(SettingsDropdown)
+        --[[ B261 (3.2.6.3): a 15x16 DropdownButton declared once
+            (SpellBook/Blizzard_SpellBookFrame.xml:74), its art in XML: panel
+            shape, the box over the whole button as the Layer 1 skin drew
+            it. Retail keeps the gear; WoW Forever's gold arrow and its
+            highlight copy go by alpha and Aurora's arrow is drawn on the
+            panel, as Skin.UIPanelArrowDropdownButtonTemplate does. ]]
+        local panel = Skin.TaintSafeFrameTypeButton(SettingsDropdown, "panel")
+        if not (atlas and atlas:lower() == "questlog-icon-setting") then
+            if icon then
+                icon:SetAlpha(0)
+            end
+            -- The highlight copy is unnamed, so it goes by atlas.
+            for _, region in next, {SettingsDropdown:GetRegions()} do
+                if region:IsObjectType("Texture") then
+                    local regionAtlas = region:GetAtlas()
+                    if regionAtlas and regionAtlas:find("common%-dropdown%-a%-button") then
+                        region:SetAlpha(0)
+                    end
+                end
+            end
+            local bg = panel:GetBackdropTexture("bg")
+            local arrow = panel:CreateTexture(nil, "ARTWORK")
+            arrow:SetPoint("TOPLEFT", bg, 3, -4)
+            arrow:SetPoint("BOTTOMRIGHT", bg, -3, 4)
+            Base.SetTexture(arrow, "arrowDown")
         end
 
         -- B221: Camelot's SpellBookSearchBoxTemplate anchors the search box
@@ -873,22 +1004,9 @@ function private.AddOns.Blizzard_PlayerSpells()
     -- through Skin.PanelTabButtonTemplate skinned only the three-slice text
     -- art, leaving the spellbook-Tab-Frame-C60 gold plate on top -- which is
     -- what these tabs still showed. Same template on retail, same bug.
-    local CategoryTabSystem = SpellBookFrame.CategoryTabSystem
-    if CategoryTabSystem then
-        local function SkinCategoryTabs(self)
-            for _, tab in next, {self:GetChildren()} do
-                if not private.IsSkinned(tab) then
-                    private.SetSkinned(tab, true)
-                    Skin.TabSystemButtonTemplate(tab)
-                end
-            end
-        end
-
-        SkinCategoryTabs(CategoryTabSystem)
-        if CategoryTabSystem.AddTab then
-            _G.hooksecurefunc(CategoryTabSystem, "AddTab", SkinCategoryTabs)
-        end
-    end
+    --
+    -- B261 (3.2.6.3): these tabs now stay Blizzard's, as the frame tabs
+    -- above; the sweep and its AddTab hook are gone.
 
     Skin.PlayerSpellsButtonTemplate(SpellBookFrame.AssistedCombatRotationSpellFrame.Button)
 
@@ -973,8 +1091,15 @@ function private.AddOns.Blizzard_PlayerSpells()
         end
     end)
 
-    Skin.NavButtonPrevious(PagingControls.PrevPageButton)
-    Skin.NavButtonNext(PagingControls.NextPageButton)
+    --[[ B261 (3.2.6.3): PagingControlsPrevPageButtonTemplate and
+        ...NextPageButtonTemplate, 32x32 with their state textures in XML
+        (Blizzard_PagedContent/Blizzard_PagingControls.xml:4-18); Blizzard
+        only enables and disables them (Blizzard_PagingControls.lua:111-112).
+        Their parent is a HorizontalLayoutFrame, which measures the buttons,
+        not the panels under them. Panel shape, drawn by
+        Skin.TaintSafeNavButton, as the classic spell book's. ]]
+    Skin.TaintSafeNavButton(PagingControls.PrevPageButton, "arrowLeft")
+    Skin.TaintSafeNavButton(PagingControls.NextPageButton, "arrowRight")
     -- Override SPELLBOOK_FONT_COLOR (amber) set by PagingControlsMixin:OnLoad
     PagingControls.PageText:SetTextColor(Color.white:GetRGB())
 end
