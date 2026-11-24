@@ -159,45 +159,19 @@ end
     (:543, :547-551; Forever :566, :570-574), inside QUEST_DETAIL
     (QuestFrameDetailPanel:Show(), :62; Forever :64) and so before the same
     ShowUIPanel. It is the close button of QuestFrame's ButtonFrameTemplate
-    (PortraitFrameTemplate's $parentCloseButton,
-    Blizzard_SharedXML/Mainline/SharedUIPanelTemplates.xml:631-633; Forever
-    :658-660), a UIPanelCloseButtonDefaultAnchors like the loot window's, so
+    (ButtonFrameBaseTemplate's $parentCloseButton,
+    Blizzard_SharedXML/Mainline/SharedUIPanelTemplates.xml:660, :680; Forever
+    :687, :707), a UIPanelCloseButtonDefaultAnchors like the loot window's, so
     it gets the same panel and the same Forever case.
     Skin.ButtonFrameTemplate is written out for QuestFrame below to give it
     the Layer 2 skin; the shared template is not changed. ]]
 
--- Shape "panel" for QuestFrame.CloseButton: the same template, box and
--- Forever case as the loot window's close button (Mainline/LootFrame.lua,
--- TaintSafeCloseButton; the helpers are to be folded into one shared copy
--- later). Its state textures are set in XML only; frameLevel 510
+-- Shape "panel" for QuestFrame.CloseButton, drawn by
+-- Skin.TaintSafePanelCloseButton (Skin/skin.lua): the same template, box and
+-- Forever case as the loot window's close button (Mainline/LootFrame.lua).
+-- Its state textures are set in XML only; frameLevel 510
 -- (Blizzard_SharedXML/Mainline/SharedUIPanelTemplates.xml:134; Forever the
 -- same line) keeps its panel far above QuestFrame's backdrop.
-local function TaintSafeCloseButton(Button)
-    local panel = Skin.TaintSafeFrameTypeButton(Button, "panel")
-    panel:ClearAllPoints()
-    if private.isForever then
-        -- Camelot's OnLoad: 28x28 at TOPRIGHT 0, 3
-        -- (Blizzard_SharedXML/Camelot/SharedUIPanelTemplates.lua:1-5).
-        panel:SetPoint("TOPRIGHT", Button, -2.8, -6)
-    else
-        panel:SetPoint("TOPRIGHT", Button, -3.8, -3)
-    end
-    panel:SetSize(17, 17)
-
-    local bg = panel:GetBackdropTexture("bg")
-    for i = 1, 2 do
-        local line = panel:CreateLine(nil, "ARTWORK")
-        line:SetColorTexture(1, 1, 1) -- static: not a theme color
-        line:SetThickness(1.2)
-        if i == 1 then
-            line:SetStartPoint("TOPLEFT", bg, 3.6, -3)
-            line:SetEndPoint("BOTTOMRIGHT", bg, -3, 3)
-        else
-            line:SetStartPoint("TOPRIGHT", bg, -3, -3)
-            line:SetEndPoint("BOTTOMLEFT", bg, 3.6, 3)
-        end
-    end
-end
 
 function private.FrameXML.QuestFrame()
     _G.hooksecurefunc("QuestFrameProgressItems_Update", Hook.QuestFrameProgressItems_Update)
@@ -219,7 +193,7 @@ function private.FrameXML.QuestFrame()
     QuestFrame.NineSlice.Center = QuestFrame.Bg
     QuestFrame.TopTileStreaks:SetTexture("")
     Skin.PortraitFrameBaseTemplate(QuestFrame)
-    TaintSafeCloseButton(QuestFrame.CloseButton)
+    Skin.TaintSafePanelCloseButton(QuestFrame.CloseButton)
     Skin.InsetFrameTemplate(QuestFrame.Inset)
     Skin.QuestFramePanelTemplate(_G.QuestFrameRewardPanel)
     Skin.TaintSafeUIPanelButtonTemplate(_G.QuestFrameCompleteQuestButton, "panel")
