@@ -9,6 +9,11 @@ local Aurora = private.Aurora
 local Base, Hook, Skin = Aurora.Base, Aurora.Hook, Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
+-- B261 (task 5.1): the background Base.CropIcon makes behind a side tab's
+-- icon, keyed by the tab button. Was `_auroraIconBG` on the Blizzard button.
+-- The tabs are declared in XML, not pooled.
+local iconBackgrounds = _G.setmetatable({}, {__mode = "k"})
+
 
 -- Helper to hide all decorative textures on a frame by matching atlas names
 local decorativeAtlases = {
@@ -51,11 +56,12 @@ do --[[ AddOns\Blizzard_HousingDashboard\Blizzard_HousingDashboard.lua ]]
     function Hook.HousingDashboardFrameMixin:SetTab(activeTab)
         for _, tab in ipairs(self.tabs) do
             local isActive = tab == self.activeTab
-            if tab.tabButton._auroraIconBG then
+            local iconBG = iconBackgrounds[tab.tabButton]
+            if iconBG then
                 if isActive then
-                    tab.tabButton._auroraIconBG:SetColorTexture(Color.yellow:GetRGB())
+                    iconBG:SetColorTexture(Color.yellow:GetRGB())
                 else
-                    tab.tabButton._auroraIconBG:SetColorTexture(Color.black:GetRGB())
+                    iconBG:SetColorTexture(Color.black:GetRGB())
                 end
             end
         end
@@ -137,7 +143,7 @@ do --[[ AddOns\Blizzard_HousingDashboard\Blizzard_HousingDashboard.xml ]]
         -- Crop the icon and create the colored border
         local icon = TabButton.Icon
         if icon then
-            TabButton._auroraIconBG = Base.CropIcon(icon, TabButton)
+            iconBackgrounds[TabButton] = Base.CropIcon(icon, TabButton)
         end
     end
 end
