@@ -267,7 +267,19 @@ function private.FrameXML.LFGList()
             if ApplicationViewer.ScrollBar and Skin.MinimalScrollBar then
                 Skin.MinimalScrollBar(ApplicationViewer.ScrollBar)
             end
-            for _, key in ipairs({"RemoveEntryButton", "EditButton", "BrowseGroupsButton"}) do
+            --[[ B261 (3.2.5), read from wow-ui-source-classic (5.5.4), not
+                seen in game. RemoveEntryButton's click runs
+                C_LFGList.RemoveListing (Classic/LFGList.xml:1548): Layer 2,
+                shape "panel" (an LFGListButtonTemplate, a UIPanelButtonTemplate,
+                :1540, :482; declared in XML, not pooled, not a layout frame).
+                Its panel sits at the stub's level, where nothing of Blizzard's
+                is drawn under the button (the Inset ends 26 above the bottom,
+                :1436-1442; InfoBackground is at the top and alpha 0). Edit and
+                Browse Groups only show panels and keep Layer 1. ]]
+            if ApplicationViewer.RemoveEntryButton then
+                Skin.TaintSafeUIPanelButtonTemplate(ApplicationViewer.RemoveEntryButton, "panel")
+            end
+            for _, key in ipairs({"EditButton", "BrowseGroupsButton"}) do
                 if ApplicationViewer[key] then
                     Skin.LFGListButtonTemplate(ApplicationViewer[key])
                 end
@@ -326,12 +338,16 @@ function private.FrameXML.LFGList()
                     Skin.DropdownButton(EntryCreation[key])
                 end
             end
-            if EntryCreation.ListGroupButton then
-                Skin.LFGListButtonTemplate(EntryCreation.ListGroupButton)
-            end
-            if EntryCreation.CancelButton then
-                Skin.LFGListButtonTemplate(EntryCreation.CancelButton)
-            end
+            --[[ B261 (3.2.5): ListGroupButton and the Cancel ("Back") button
+                beside it stay Blizzard's (shape c), a matching pair, in line
+                with the retail file, which leaves both unskinned
+                (Mainline/LFGList.lua, the two commented-out calls).
+                ListGroupButton is enabled and disabled on every entry update
+                (Classic/LFGList.lua:1101) and its click runs
+                C_LFGList.CreateListing (:1004, :1008). CancelButton is an
+                LFGListMagicButtonTemplate too (Classic/LFGList.xml:1977);
+                its click only switches panels (:1198-1206). Both are listed
+                under "Deliberately unskinned" in docs/KnownIssues.md. ]]
         end
     end
     SkinEntryCreation()
@@ -351,8 +367,18 @@ function private.FrameXML.LFGList()
             if ApplicationDialog.Description and Skin.InputScrollFrameTemplate then
                 Skin.InputScrollFrameTemplate(ApplicationDialog.Description)
             end
+            --[[ B261 (3.2.5): SignUpButton is enabled and disabled by
+                LFGListApplicationDialog_UpdateValidState
+                (Classic/LFGList.lua:2795-2803) and its click runs
+                C_LFGList.ApplyToGroup (:2810). Layer 2, shape "panel" (a
+                UIPanelButtonTemplate, Classic/LFGList.xml:951). The dialog's
+                Border is a DialogBorderTemplate with useParentLevel
+                (Blizzard_SharedXML/Shared/Dialog/DialogTemplates.xml:63, :69),
+                so the panel shares its level, and Aurora draws the border's
+                fill at BACKGROUND -8 (backdrop.lua:281-283): under the
+                panel's -6. ]]
             if ApplicationDialog.SignUpButton then
-                Skin.UIPanelButtonTemplate(ApplicationDialog.SignUpButton)
+                Skin.TaintSafeUIPanelButtonTemplate(ApplicationDialog.SignUpButton, "panel")
             end
             if ApplicationDialog.CancelButton then
                 Skin.UIPanelButtonTemplate(ApplicationDialog.CancelButton)
@@ -368,7 +394,16 @@ function private.FrameXML.LFGList()
             if InviteDialog.Border then
                 Skin.DialogBorderTemplate(InviteDialog.Border)
             end
-            for _, key in ipairs({"AcceptButton", "DeclineButton", "AcknowledgeButton"}) do
+            --[[ B261 (3.2.5): AcceptButton's click runs C_LFGList.AcceptInvite
+                (LFGListInviteDialog_Accept, Classic/LFGList.lua:2956-2957).
+                Layer 2, shape "panel" (a UIPanelButtonTemplate,
+                Classic/LFGList.xml:2047); the dialog's border is drawn as the
+                application dialog's, under the panel. Decline and Acknowledge
+                keep Layer 1. ]]
+            if InviteDialog.AcceptButton then
+                Skin.TaintSafeUIPanelButtonTemplate(InviteDialog.AcceptButton, "panel")
+            end
+            for _, key in ipairs({"DeclineButton", "AcknowledgeButton"}) do
                 if InviteDialog[key] then
                     Skin.UIPanelButtonTemplate(InviteDialog[key])
                 end
