@@ -120,8 +120,11 @@ do --[[ AddOns\Blizzard_InspectUI.xml ]]
         end
     end
     do --[[ InspectTalentFrame.xml ]]
+        -- B261 (task 5.1): the icon background is recorded with
+        -- Skin.SetIconBackground (Mainline/SharedUIPanelTemplates.lua), not as
+        -- `_auroraIconBG` on the button; TalentFrameBase.lua reads it back.
         function Skin.InspectTalentButtonTemplate(Button)
-            Button._auroraIconBG = Base.CropIcon(Button.icon, Button)
+            Skin.SetIconBackground(Button, Base.CropIcon(Button.icon, Button))
             Button.Slot:Hide()
             Button.border:SetTexture("")
         end
