@@ -124,56 +124,13 @@ do --[[ SharedXML\FloatingChatFrame.xml ]]
         line:SetPoint("BOTTOMRIGHT", bg, -3, 3)
         line:SetColorTexture(1, 1, 1) -- static: not a theme color
 
-        -- B35: the scroll bar's own arrows go through Skin.FrameTypeScrollBar
-        -- (Aurora's arrowUp/arrowDown), but ScrollToBottomButton keeps
-        -- Blizzard's "minimal-scrollbar-arrow-returntobottom" atlas on all four
-        -- states — three different arrow styles in one chat frame. Swap its
-        -- textures for the same arrowDown so they read as one set.
-        local bottomButton = ScrollingMessageFrame.ScrollToBottomButton
-        if bottomButton then
-            -- Match the stepper geometry Aurora's UpdateTexture applies in
-            -- Skin.FrameTypeScrollBar: an 18x16 button with a 14x6 arrow —
-            -- full-button textures render a much fatter triangle than the
-            -- two arrows above this one. Size before Base.SetTexture: the
-            -- arrow's vertex offsets are computed from the region's width at
-            -- call time.
-            bottomButton:SetSize(18, 16)
-            for _, getter in next, {
-                "GetNormalTexture", "GetPushedTexture",
-                "GetHighlightTexture", "GetDisabledTexture",
-            } do
-                local tex = bottomButton[getter] and bottomButton[getter](bottomButton)
-                if tex then
-                    tex:ClearAllPoints()
-                    tex:SetPoint("CENTER")
-                    tex:SetSize(14, 6)
-                    Base.SetTexture(tex, "arrowDown")
-                end
-            end
-
-            -- Flash carries that same atlas as an ADD-blended overlay at
-            -- useAtlasSize — the large pale triangle still reported after the
-            -- swap above. SetAlpha(0) cannot hold it: ChatFrameMixin:OnUpdate
-            -- plays its FlashAnim (Alpha animations; UIFrameFlash before 12.1.5)
-            -- for as long as the frame is scrolled up (ChatFrameOverrides.lua),
-            -- and that rewrites alpha every frame — which is why it only
-            -- appeared *after* a scroll.
-            -- Restyle instead of hiding, so the unread-below alert survives
-            -- and all three arrows finally read as one set.
-            -- Anchor BEFORE Base.SetTexture: "arrowDown" is a white
-            -- SetColorTexture whose triangle is formed by SetVertexOffset,
-            -- and texture.lua computes those offsets from the region's width
-            -- at call time. Sizing afterwards leaves the offsets scaled for
-            -- the old useAtlasSize dimensions and the arrow comes out wrong.
-            local flash = bottomButton.Flash
-            if flash then
-                flash:ClearAllPoints()
-                flash:SetPoint("CENTER")
-                flash:SetSize(14, 6)
-                flash:SetBlendMode("BLEND")
-                Base.SetTexture(flash, "arrowDown")
-            end
-        end
+        -- ScrollToBottomButton and its Flash stay Blizzard's (B261 row A4, B35):
+        -- the chat scroll bar is stock, a MinimalScrollBar whose arrows redraw
+        -- their own atlas (Skin.ChatFrameTemplate, ChatFrame.lua), and this
+        -- button carries the same family of atlas
+        -- ("minimal-scrollbar-arrow-returntobottom",
+        -- Blizzard_ChatFrameBase/Mainline/FloatingChatFrame.xml:511-539; Forever
+        -- :523-554), so the three arrows match only when none of them is Aurora's.
 
         Hook.FCF_SetButtonSide(ScrollingMessageFrame, _G.FCF_GetButtonSide(ScrollingMessageFrame))
         _G.FloatingChatFrame_UpdateBackgroundAnchors(ScrollingMessageFrame)
