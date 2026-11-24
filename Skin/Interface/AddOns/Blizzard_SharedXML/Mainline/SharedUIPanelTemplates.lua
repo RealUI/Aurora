@@ -15,6 +15,34 @@ local Color, Util = Aurora.Color, Aurora.Util
 -- (Skin.HorizontalSliderTemplate). Was `_auroraThumb` on the Blizzard object.
 local thumbs = _G.setmetatable({}, {__mode = "k"})
 
+-- B261 (task 5.1): the background Base.CropIcon makes behind an icon, keyed
+-- by the button that owns it, for icons whose background another file reads
+-- (the side tabs here, the inspect talent buttons that TalentFrameBase.lua
+-- colours). Was `_auroraIconBG` on the Blizzard button. None of these
+-- buttons is pooled. Weak keys.
+local iconBackgrounds = _G.setmetatable({}, {__mode = "k"})
+
+--[[ Skin.SetIconBackground(_Button, texture_)
+Records the background `Base.CropIcon` returned for `Button`'s icon, so
+another file can colour it later. Returns `texture`.
+--]]
+function Skin.SetIconBackground(Button, texture)
+    iconBackgrounds[Button] = texture
+    return texture
+end
+--[[ Skin.GetIconBackground(_Button_)
+Returns the background recorded for `Button` with `Skin.SetIconBackground`,
+or nil.
+--]]
+function Skin.GetIconBackground(Button)
+    return iconBackgrounds[Button]
+end
+
+-- B261 (task 5.3): frames whose icon-crop methods are hooked
+-- (Skin.LargeSideTabButtonTemplate below). Was `_auroraIconCropHooked` on the
+-- Blizzard frame. The side tab buttons are declared in XML, not pooled.
+local iconCropHooked = _G.setmetatable({}, {__mode = "k"})
+
 do -- BlizzWTF: These are not templates, but they should be
     do -- ExpandOrCollapse
         -- B261: kept here, not on the button. `plusGlyphs[Button]` is the "+"
@@ -131,10 +159,12 @@ do -- BlizzWTF: These are not templates, but they should be
     do -- Side Tabs
         local function Hook_SetChecked(self, isChecked)
             -- Set the selected tab
+            local iconBG = iconBackgrounds[self]
+            if not iconBG then return end
             if isChecked then
-                self._auroraIconBG:SetColorTexture(Color.yellow:GetRGB())
+                iconBG:SetColorTexture(Color.yellow:GetRGB())
             else
-                self._auroraIconBG:SetColorTexture(Color.black:GetRGB())
+                iconBG:SetColorTexture(Color.black:GetRGB())
             end
         end
         function Skin.SideTabTemplate(TabButton)
@@ -151,7 +181,7 @@ do -- BlizzWTF: These are not templates, but they should be
                 icon = CheckButton.Icon or CheckButton:GetNormalTexture()
             end
 
-            CheckButton._auroraIconBG = Base.CropIcon(icon, CheckButton)
+            Skin.SetIconBackground(CheckButton, Base.CropIcon(icon, CheckButton))
             Base.CropIcon(CheckButton:GetHighlightTexture())
             Base.CropIcon(CheckButton:GetCheckedTexture())
         end
@@ -1013,8 +1043,8 @@ do --[[ SharedXML\SharedUIPanelTemplates.xml ]]
         -- Hooked per frame, not on the mixin table: Mixin() copies the methods
         -- onto each frame at creation, so a table hook would never be seen by
         -- frames that already exist.
-        if not Frame._auroraIconCropHooked then
-            Frame._auroraIconCropHooked = true
+        if not iconCropHooked[Frame] then
+            iconCropHooked[Frame] = true
             for _, method in next, {"UpdateIconInterior", "InitializeIconAnchoring",
                                     "OnMouseDown", "OnMouseUp"} do
                 if Frame[method] then
