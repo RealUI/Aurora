@@ -10,6 +10,20 @@ local Base = Aurora.Base
 local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
+--[[ B261 (tasks 5.1 and 5.3): what the side tab skin and the session
+    command skin keep, here and not on Blizzard's frames. Each was a field on
+    the Blizzard button or region: `_auroraIconBG`, `_auroraHoverTex`,
+    `_auroraCheckedTex`, `_auroraSkinnedQuestMapTab`, `_auroraHideLocked`,
+    `_auroraIcon`. The tabs (QuestsTab, MapLegendTab, EventsTab and tab-like
+    buttons other addons add) are not pooled; the quest log's pooled rows
+    are never skinned here (IsTabLikeButton). Weak keys. ]]
+local iconBackgrounds = _G.setmetatable({}, {__mode = "k"})   -- tab button -> texture
+local hoverTextures = _G.setmetatable({}, {__mode = "k"})     -- tab button -> texture
+local checkedTextures = _G.setmetatable({}, {__mode = "k"})   -- tab button -> texture
+local skinnedTabs = _G.setmetatable({}, {__mode = "k"})       -- tab button -> true
+local lockedRegions = _G.setmetatable({}, {__mode = "k"})     -- texture region -> true
+local sessionCommandIcon                                      -- the one icon texture, set below
+
 do --[[ FrameXML\QuestMapFrame.lua ]]
     --[[ Quest log headers (B170 follow-up, 2026-10-06)
         Restyled in place from this post-hook, which runs after Blizzard's
@@ -125,8 +139,8 @@ do --[[ FrameXML\QuestMapFrame.lua ]]
         self.ExecuteSessionCommand:ClearDisabledTexture()
 
         local atlas = sessionCommandToButtonAtlas[command]
-        if atlas then
-            self.ExecuteSessionCommand._auroraIcon:SetAtlas(atlas)
+        if atlas and sessionCommandIcon then
+            sessionCommandIcon:SetAtlas(atlas)
         end
     end
 
@@ -168,13 +182,13 @@ do --[[ FrameXML\QuestMapFrame.lua ]]
     end
 
     local function SkinIfExists(tab, stripShapedArt)
-        if tab and not tab._auroraSkinnedQuestMapTab then
+        if tab and not skinnedTabs[tab] then
             Skin.QuestMapFrameTabTemplate(tab, stripShapedArt)
         end
     end
 
     local function IsTabLikeButton(frame)
-        if not frame or frame._auroraSkinnedQuestMapTab or not frame.GetObjectType then
+        if not frame or skinnedTabs[frame] or not frame.GetObjectType then
             return false
         end
 
@@ -240,9 +254,9 @@ do --[[ FrameXML\QuestMapFrame.xml ]]
             end
             region:Hide()
 
-            if not region._auroraHideLocked then
+            if not lockedRegions[region] then
                 _G.hooksecurefunc(region, "Show", region.Hide)
-                region._auroraHideLocked = true
+                lockedRegions[region] = true
             end
         end
 
@@ -312,9 +326,9 @@ do --[[ FrameXML\QuestMapFrame.xml ]]
                 for _, region in next, {Button:GetRegions()} do
                     if region and region.GetObjectType and region:GetObjectType() == "Texture"
                         and region ~= icon
-                        and region ~= Button._auroraHoverTex
-                        and region ~= Button._auroraCheckedTex
-                        and region ~= Button._auroraIconBG
+                        and region ~= hoverTextures[Button]
+                        and region ~= checkedTextures[Button]
+                        and region ~= iconBackgrounds[Button]
                     then
                         HideAndLockTextureRegion(region)
                     end
@@ -323,9 +337,9 @@ do --[[ FrameXML\QuestMapFrame.xml ]]
                     for _, region in next, {CheckButton:GetRegions()} do
                         if region and region.GetObjectType and region:GetObjectType() == "Texture"
                             and region ~= icon
-                            and region ~= Button._auroraHoverTex
-                            and region ~= Button._auroraCheckedTex
-                            and region ~= Button._auroraIconBG
+                            and region ~= hoverTextures[Button]
+                            and region ~= checkedTextures[Button]
+                            and region ~= iconBackgrounds[Button]
                         then
                             HideAndLockTextureRegion(region)
                         end
@@ -350,41 +364,37 @@ do --[[ FrameXML\QuestMapFrame.xml ]]
                 end
             end
 
-            Button._auroraIconBG = Base.CropIcon(icon, Button)
+            iconBackgrounds[Button] = Base.CropIcon(icon, Button)
 
-            if not Button._auroraHoverTex then
+            if not hoverTextures[Button] then
                 local hover = Button:CreateTexture(nil, "OVERLAY")
                 hover:SetPoint("TOPLEFT", icon, -1, 1)
                 hover:SetPoint("BOTTOMRIGHT", icon, 1, -1)
                 hover:SetColorTexture(Color.white.r, Color.white.g, Color.white.b, 0.18)
                 hover:Hide()
-                Button._auroraHoverTex = hover
+                hoverTextures[Button] = hover
 
                 Button:HookScript("OnEnter", function()
-                    if Button._auroraHoverTex then
-                        Button._auroraHoverTex:Show()
-                    end
+                    hover:Show()
                 end)
                 Button:HookScript("OnLeave", function()
-                    if Button._auroraHoverTex then
-                        Button._auroraHoverTex:Hide()
-                    end
+                    hover:Hide()
                 end)
             end
 
             -- Ensure the hover border doesn't stay visible between updates.
-            Button._auroraHoverTex:Hide()
+            hoverTextures[Button]:Hide()
 
-            if CheckButton.GetChecked and not Button._auroraCheckedTex then
+            if CheckButton.GetChecked and not checkedTextures[Button] then
                 local checked = Button:CreateTexture(nil, "ARTWORK")
                 checked:SetPoint("TOPLEFT", icon, -1, 1)
                 checked:SetPoint("BOTTOMRIGHT", icon, 1, -1)
                 checked:SetColorTexture(1, 0.85, 0, 0.2) -- static: not a theme color
                 checked:SetShown(CheckButton:GetChecked())
-                Button._auroraCheckedTex = checked
+                checkedTextures[Button] = checked
 
                 CheckButton:HookScript("OnClick", function(self)
-                    Button._auroraCheckedTex:SetShown(self:GetChecked())
+                    checked:SetShown(self:GetChecked())
                 end)
             end
 
@@ -400,7 +410,7 @@ do --[[ FrameXML\QuestMapFrame.xml ]]
         HideAndLockTextureRegion(CheckButton.Background)
         HideAndLockTextureRegion(CheckButton.SelectedTexture)
 
-        Button._auroraSkinnedQuestMapTab = true
+        skinnedTabs[Button] = true
     end
 end
 
@@ -572,7 +582,7 @@ function private.FrameXML.QuestMapFrame()
         local icon = ExecuteSessionCommand:CreateTexture(nil, "ARTWORK")
         icon:SetPoint("TOPLEFT", 0, 0)
         icon:SetPoint("BOTTOMRIGHT", 0, 0)
-        ExecuteSessionCommand._auroraIcon = icon
+        sessionCommandIcon = icon
 
         QuestSessionManagement.BG:SetColorTexture(Color.frame.r, Color.frame.g, Color.frame.b, 0.5)
     end
