@@ -5,6 +5,11 @@ local Aurora = private.Aurora
 local Base, Hook, Skin = Aurora.Base, Aurora.Hook, Aurora.Skin
 local Util = Aurora.Util
 
+-- B261 (task 5.3): order frame tabs already skinned, Blizzard's two and any
+-- an addon adds. Was `_auroraOrderTabSkinned` on the Blizzard button. The
+-- tabs are kept, not pooled; weak keys.
+local skinnedTabs = _G.setmetatable({}, {__mode = "k"})
+
 do --[[ AddOns\Blizzard_ProfessionsCustomerOrders.lua ]]
     -- Skin tabs on the customer orders frame and reposition them.
     --
@@ -19,7 +24,7 @@ do --[[ AddOns\Blizzard_ProfessionsCustomerOrders.lua ]]
         Skin.PanelTabButtonTemplate(Button)
         -- _auroraTabResize is already set by PanelTabButtonTemplate; mark
         -- the button so we don't re-skin it on subsequent OnShow passes.
-        Button._auroraOrderTabSkinned = true
+        skinnedTabs[Button] = true
     end
 
     function Hook.ProfessionsCustomerOrdersFrame_RefreshTabs(Frame)
@@ -29,7 +34,7 @@ do --[[ AddOns\Blizzard_ProfessionsCustomerOrders.lua ]]
             -- stable shape-test for "is this a tab" without depending on
             -- frame names.
             if child.LeftActive and child.GetText then
-                if not child._auroraOrderTabSkinned then
+                if not skinnedTabs[child] then
                     Skin.ProfessionsCustomerOrdersFrameTabTemplate(child)
                 end
                 tabs[#tabs + 1] = child
