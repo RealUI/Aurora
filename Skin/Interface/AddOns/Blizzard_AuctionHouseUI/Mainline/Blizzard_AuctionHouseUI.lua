@@ -10,6 +10,13 @@ local Base = Aurora.Base
 local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
+-- B261 (task 5.1): the background Base.CropIcon makes behind a summary
+-- line's icon, keyed by that icon texture. Was `_auroraIconBG` on the
+-- Blizzard texture. The lines are pooled scroll box rows: the background is
+-- the row's own texture, made once, so it stays right when the row is
+-- initialised again for another auction; weak keys let it go with the row.
+local iconBackgrounds = _G.setmetatable({}, {__mode = "k"})
+
 do --[[ AddOns\Blizzard_AuctionHouseUI.lua ]]
     do --[[ Blizzard_AuctionHouseTableBuilder ]]
         Hook.AuctionHouseTableCellFavoriteButtonMixin = {}
@@ -84,13 +91,10 @@ do --[[ AddOns\Blizzard_AuctionHouseUI.lua ]]
     do --[[ Blizzard_AuctionHouseAuctionsFrame ]]
         Hook.AuctionHouseAuctionsSummaryLineMixin = {}
         function Hook.AuctionHouseAuctionsSummaryLineMixin:Init(listIndex)
-            -- self.Icon._auroraIconBG:SetShown(self.Icon:IsShown())
-            if not self.Icon._auroraIconBG then
+            if not iconBackgrounds[self.Icon] then
                 Skin.AuctionHouseAuctionsSummaryLineTemplate(self)
-                self.Icon._auroraIconBG:SetShown(self.Icon:IsShown())
-            else
-                self.Icon._auroraIconBG:SetShown(self.Icon:IsShown())
             end
+            iconBackgrounds[self.Icon]:SetShown(self.Icon:IsShown())
             self.IconBorder:Hide()
         end
     end
@@ -345,7 +349,7 @@ do --[[ AddOns\Blizzard_AuctionHouseUI.xml ]]
             Skin.AuctionHouseFrameTopTabTemplate(Button)
         end
         function Skin.AuctionHouseAuctionsSummaryLineTemplate(Button)
-            Button.Icon._auroraIconBG = Base.CropIcon(Button.Icon, Button)
+            iconBackgrounds[Button.Icon] = Base.CropIcon(Button.Icon, Button)
         end
         function Skin.AuctionHouseAuctionsFrameTemplate(Frame)
             Skin.AuctionHouseAuctionsFrameTabTemplate(Frame.AuctionsTab)
