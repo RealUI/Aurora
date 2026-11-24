@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals next
+-- luacheck: globals
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -45,8 +45,70 @@ do --[[ AddOns\Blizzard_OverrideActionBar.lua ]]
     end
 end
 
---do --[[ AddOns\Blizzard_OverrideActionBar.xml ]]
---end
+--[[ AddOns\Blizzard_OverrideActionBar.xml ]]
+--[[ B261 (task 5.4), read from wow-ui-source (retail) and
+    wow-ui-source-forever. Checkpoint 0 found Aurora's backdrop (the
+    BackdropMixin methods and backdropInfo keys) on OverrideActionBarButton1-6
+    and on the two pitch buttons. The spell buttons are secure action
+    buttons, protected themselves (OverrideActionBarButtonTemplate inherits
+    ActionBarButtonTemplate, OverrideActionBar.xml:3), which makes the bar
+    they sit in protected too; the pitch buttons are under it
+    (OverrideActionBar.xml:171, :196). So both are drawn with textures of
+    the button's own, made once at skin time: no backdrop, no key, no frame
+    of Aurora's, nothing anchored to anything but the button.
+
+    Spell buttons: the empty-slot art and the 1px border the Layer 1
+    backdrop drew (Skin.ActionBarButtonTemplate), as two BACKGROUND
+    textures under the icon; Skin.ActionButtonTemplate restyles the icon
+    and the state art in place, as before. ]]
+local function SkinSpellButton(CheckButton)
+    Skin.ActionButtonTemplate(CheckButton)
+
+    local border = CheckButton:CreateTexture(nil, "BACKGROUND", nil, -8)
+    border:SetPoint("TOPLEFT", -1, 1)
+    border:SetPoint("BOTTOMRIGHT", 1, -1)
+    border:SetColorTexture(Color.frame:GetRGB())
+
+    local bg = CheckButton:CreateTexture(nil, "BACKGROUND", nil, -7)
+    bg:SetAllPoints()
+    bg:SetTexture([[Interface\PaperDoll\UI-Backpack-EmptySlot]])
+    bg:SetVertexColor(1, 1, 1, 0.75)
+    Base.CropIcon(bg)
+end
+
+--[[ Pitch buttons: SetSkin re-textures their normal, pushed and
+    highlight textures through references taken at OnLoad
+    (OverrideActionBar.lua:69-76), so those stay Blizzard's, faded by
+    alpha, which SetTexture leaves alone. The box is the button's own:
+    a border and a fill in BACKGROUND, and a hover tint in the HIGHLIGHT
+    layer, which the engine shows only while the cursor is on the button.
+    The Layer 1 look was the button backdrop and Base.SetHighlight. ]]
+local function SkinPitchButton(Button, arrowTexture)
+    Button:GetNormalTexture():SetAlpha(0)
+    Button:GetPushedTexture():SetAlpha(0)
+    Button:GetHighlightTexture():SetAlpha(0)
+    Button:SetSize(26, 26)
+
+    local border = Button:CreateTexture(nil, "BACKGROUND", nil, -8)
+    border:SetAllPoints()
+    border:SetColorTexture(Color.button:GetRGB())
+
+    local fill = Button:CreateTexture(nil, "BACKGROUND", nil, -7)
+    fill:SetPoint("TOPLEFT", 1, -1)
+    fill:SetPoint("BOTTOMRIGHT", -1, 1)
+    fill:SetColorTexture(Color.Lightness(Color.button, -0.3):GetRGB())
+
+    local hover = Button:CreateTexture(nil, "HIGHLIGHT")
+    hover:SetPoint("TOPLEFT", 1, -1)
+    hover:SetPoint("BOTTOMRIGHT", -1, 1)
+    hover:SetColorTexture(1, 1, 1, 0.08) -- static: not a theme color
+    hover:SetBlendMode("ADD")
+
+    local arrow = Button:CreateTexture(nil, "ARTWORK")
+    arrow:SetSize(14, 7)
+    arrow:SetPoint("CENTER")
+    Base.SetTexture(arrow, arrowTexture)
+end
 
 function private.AddOns.Blizzard_OverrideActionBar()
     local OverrideActionBar = _G.OverrideActionBar
@@ -90,19 +152,8 @@ function private.AddOns.Blizzard_OverrideActionBar()
     pitchFrame.PitchBG:SetWidth(6)
     pitchFrame.PitchMarker:SetBlendMode("BLEND")
     pitchFrame.PitchMarker:SetSize(10, 3)
-    for _, button in next, {pitchFrame.PitchUpButton, pitchFrame.PitchDownButton} do
-        button:GetNormalTexture():SetAlpha(0)
-        button:GetPushedTexture():SetAlpha(0)
-        button:GetHighlightTexture():SetAlpha(0)
-        button:SetSize(26, 26)
-        Base.SetBackdrop(button, Color.button)
-        Base.SetHighlight(button)
-
-        local arrow = button:CreateTexture(nil, "ARTWORK")
-        arrow:SetSize(14, 7)
-        arrow:SetPoint("CENTER")
-        Base.SetTexture(arrow, button == pitchFrame.PitchUpButton and "arrowUp" or "arrowDown")
-    end
+    SkinPitchButton(pitchFrame.PitchUpButton, "arrowUp")
+    SkinPitchButton(pitchFrame.PitchDownButton, "arrowDown")
 
     local xpBar = OverrideActionBar.xpBar
     Skin.FrameTypeStatusBar(xpBar)
@@ -128,9 +179,9 @@ function private.AddOns.Blizzard_OverrideActionBar()
     powerBar.PowerBarBG:Hide()
     powerBar.PowerBarOverlay:Hide()
 
-    -- OverrideActionBarButtonTemplate inherits ActionBarButtonTemplate —
-    -- same skin as ActionButton1-12, square icons included.
+    -- OverrideActionBarButtonTemplate inherits ActionBarButtonTemplate: the
+    -- look of ActionButton1-12, square icons included, without its backdrop.
     for i = 1, 6 do
-        Skin.ActionBarButtonTemplate(OverrideActionBar["SpellButton"..i])
+        SkinSpellButton(OverrideActionBar["SpellButton"..i])
     end
 end
