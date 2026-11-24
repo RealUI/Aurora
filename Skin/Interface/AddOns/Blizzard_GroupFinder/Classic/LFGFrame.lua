@@ -32,11 +32,22 @@ function private.FrameXML.LFGFrame()
         if _G.LFGDungeonReadyDialogCloseButton then
             Skin.UIPanelCloseButton(_G.LFGDungeonReadyDialogCloseButton)
         end
+        --[[ B261 Layer 2 (A-candidate, tasks.md 3.2.5), read from
+            wow-ui-source-classic (Mists 5.5.4). The queue pop's buttons: their
+            clicks run AcceptProposal and RejectProposal
+            (Blizzard_GroupFinder/Classic/LFGFrame.xml:502-525); Blizzard only
+            sets their text (Shared/LFGFrame.lua:685-696) and shows the dialog
+            on the proposal event, in combat too. The retail skin takes the
+            same two buttons through Skin.TaintSafeUIPanelButtonTemplate
+            (Mainline/LFGFrame.lua); this brings Mists in line. Shape "panel":
+            UIPanelButtonTemplate buttons in XML, not pooled, not layout
+            frames; Blizzard re-sets only the plates
+            (SecureUIPanelTemplates.lua:174-209). ]]
         if ReadyDialog.enterButton then
-            Skin.UIPanelButtonTemplate(ReadyDialog.enterButton)
+            Skin.TaintSafeUIPanelButtonTemplate(ReadyDialog.enterButton, "panel")
         end
         if ReadyDialog.leaveButton then
-            Skin.UIPanelButtonTemplate(ReadyDialog.leaveButton)
+            Skin.TaintSafeUIPanelButtonTemplate(ReadyDialog.leaveButton, "panel")
         end
     end
 
