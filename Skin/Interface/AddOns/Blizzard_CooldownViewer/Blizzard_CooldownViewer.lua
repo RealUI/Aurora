@@ -219,8 +219,33 @@ function private.AddOns.Blizzard_CooldownViewer()
     local settings = _G.CooldownViewerSettings
     if settings then
         Skin.ButtonFrameTemplate(settings)
+        --[[ B261 Layer 2 (tier A, row A15; click order), read from
+            wow-ui-source (retail) and wow-ui-source-forever. A player's own
+            edit reaches CooldownViewerLayoutManagerMixin:SetHasPendingChanges
+            (Blizzard_CooldownViewer/CooldownViewerSettingsLayoutManager.lua:556-561,
+            the same lines on Forever), which fires OnPendingChanges into
+            UpdateSaveButtonStates (CooldownViewerSettings.lua:945, :1782-1783;
+            Forever :947, :1784-1785): UndoButton:SetEnabled. The next
+            statement, NotifyListeners (:561, :823-832), drives every viewer's
+            OnCooldownDataChanged (CooldownViewer.lua:2008; Forever :2019) on
+            Edit Mode system frames (CooldownViewer.xml:289), with no combat
+            guard. The settings window's OnShow sets the button again
+            (CooldownViewerSettings.lua:1491; Forever :1493). So nothing of
+            Aurora's may run on the button's state.
+            Shape "panel": UIPanelButtonNoTooltipTemplate plus UIButtonTemplate
+            (CooldownViewerSettings.xml:275, both trees), declared in XML, not
+            pooled and not a layout frame. Blizzard re-sets only the plates
+            (Blizzard_SharedXML/SecureUIPanelTemplates.lua:44-79). The button
+            has no buttonArtKit, so UIButtonMixin sets no state art; its text
+            formatter (CooldownViewerSettings.lua:1215; Forever :1217) re-sets
+            the text and the button's width on every enable, disable, enter
+            and leave (Blizzard_SharedXML/Shared/Button/UIButtonTemplate.lua,
+            RunCustomTextFormatter, the same file on Forever), which the
+            panel follows: it is anchored to the button, never sized. Neither
+            the button nor the window is protected in XML. The window's close
+            button stays on Layer 1 through Skin.ButtonFrameTemplate (tier C). ]]
         if settings.UndoButton then
-            Skin.FrameTypeButton(settings.UndoButton)
+            Skin.TaintSafeUIPanelButtonTemplate(settings.UndoButton, "panel")
         end
     end
 
