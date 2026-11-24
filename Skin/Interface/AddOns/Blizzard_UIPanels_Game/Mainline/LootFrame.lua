@@ -123,41 +123,19 @@ end
     the close button can take the Layer 2 skin and the scroll bar can stay
     Blizzard's. The shared template is not changed. ]]
 
--- Shape "panel" for ClosePanelButton: UIPanelCloseButtonDefaultAnchors
+-- Shape "panel" for ClosePanelButton, drawn by Skin.TaintSafePanelCloseButton
+-- (Skin/skin.lua): UIPanelCloseButtonDefaultAnchors
 -- (Blizzard_SharedXML/Mainline/SharedUIPanelTemplates.xml:134-157; Forever
--- :134-157, the template at :153 with the Camelot mixin), its
+-- :134-157, the template at :153 with the Camelot mixin; the button is
+-- ScrollingFlatPanelTemplate's, Mainline/ScrollingFlatPanel.xml:14 on Forever), its
 -- state textures set in XML only and never re-set by Blizzard's Lua. Its
 -- frameLevel is 510 (:134), so its panel at 509 sits far above the
 -- frame's own backdrop. The box is the 17x17 the Layer 1 skin drew
 -- (Skin.UIPanelCloseButton, offsets 3/4/3/4 of a 24x24 button), placed by
 -- moving the panel instead of re-anchoring or resizing the button. On
 -- Forever the template's OnLoad makes the button 28x28 at TOPRIGHT 0, 3
--- (Blizzard_SharedXML/Camelot/SharedUIPanelTemplates.lua:1-5), so the box
--- is moved down by the same 3 to sit where the Layer 1 skin put it.
-local function TaintSafeCloseButton(Button)
-    local panel = Skin.TaintSafeFrameTypeButton(Button, "panel")
-    panel:ClearAllPoints()
-    if private.isForever then
-        panel:SetPoint("TOPRIGHT", Button, -2.8, -6)
-    else
-        panel:SetPoint("TOPRIGHT", Button, -3.8, -3)
-    end
-    panel:SetSize(17, 17)
-
-    local bg = panel:GetBackdropTexture("bg")
-    for i = 1, 2 do
-        local line = panel:CreateLine(nil, "ARTWORK")
-        line:SetColorTexture(1, 1, 1) -- static: not a theme color
-        line:SetThickness(1.2)
-        if i == 1 then
-            line:SetStartPoint("TOPLEFT", bg, 3.6, -3)
-            line:SetEndPoint("BOTTOMRIGHT", bg, -3, 3)
-        else
-            line:SetStartPoint("TOPRIGHT", bg, -3, -3)
-            line:SetEndPoint("BOTTOMLEFT", bg, 3.6, 3)
-        end
-    end
-end
+-- (Blizzard_SharedXML/Camelot/SharedUIPanelTemplates.lua:1-5), and the
+-- function moves the box down by the same 3 for a button with that OnLoad.
 
 function private.FrameXML.LootFrame()
     if private.isClassic then
@@ -172,7 +150,7 @@ function private.FrameXML.LootFrame()
         -- Skin.ScrollingFlatPanelTemplate (Mainline/ScrollingFlatPanel.lua),
         -- written out without its scroll bar call.
         Skin.DefaultPanelFlatTemplate(LootFrame)
-        TaintSafeCloseButton(LootFrame.ClosePanelButton)
+        Skin.TaintSafePanelCloseButton(LootFrame.ClosePanelButton)
         Skin.WowScrollBoxList(LootFrame.ScrollBox)
         -- LootFrame.ScrollBar stays Blizzard's (shape c): its steppers and
         -- its thumb redraw their own atlas on every enable, disable, hover
