@@ -9,6 +9,14 @@ local Aurora = private.Aurora
 local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
+-- B261 (task 5.3): option frames and buttons already styled. Was
+-- `__auroraStyled` on the Blizzard frames. The option frames come from
+-- optionPools, one pool per template, so a frame keeps its template when it
+-- comes back; the confirm buttons come from each option's buttonFramePool
+-- and the toggle buttons are kept. The skin is the frame's own, so the mark
+-- stays right through release and reuse; weak keys let it go with the frame.
+local styled = _G.setmetatable({}, {__mode = "k"})
+
 do --[[ AddOns\Blizzard_PlayerChoice.lua ]]
     do -- Blizzard_PlayerChoice
         Hook.PlayerChoiceFrameMixin = {}
@@ -75,9 +83,9 @@ do --[[ AddOns\Blizzard_PlayerChoice.lua ]]
             -- Skin the toggle buttons in the frame-level OptionButtonsContainer
             if self.OptionButtonsContainer then
                 for _, toggleFrame in next, {self.OptionButtonsContainer:GetChildren()} do
-                    if toggleFrame.Button and not toggleFrame.Button.__auroraStyled then
+                    if toggleFrame.Button and not styled[toggleFrame.Button] then
                         Skin.UIPanelButtonTemplate(toggleFrame.Button)
-                        toggleFrame.Button.__auroraStyled = true
+                        styled[toggleFrame.Button] = true
                     end
                 end
             end
@@ -93,7 +101,7 @@ do --[[ AddOns\Blizzard_PlayerChoice.lua ]]
             if self.optionPools and self.optionFrameTemplate then
                 local hookMixin = templateHooks[self.optionFrameTemplate]
                 for optionFrame in self.optionPools:EnumerateActiveByTemplate(self.optionFrameTemplate) do
-                    if not optionFrame.__auroraStyled then
+                    if not styled[optionFrame] then
                         local skinFunc = Skin[self.optionFrameTemplate]
                         if skinFunc then
                             -- Hook future Setup calls on this frame
@@ -105,7 +113,7 @@ do --[[ AddOns\Blizzard_PlayerChoice.lua ]]
                             hookMixin.Setup(optionFrame, optionFrame.optionInfo,
                                 optionFrame.frameTextureKit, optionFrame.soloOption, optionFrame.showAsList)
                         end
-                        optionFrame.__auroraStyled = true
+                        styled[optionFrame] = true
                     end
                 end
             end
@@ -148,9 +156,9 @@ do --[[ AddOns\Blizzard_PlayerChoice.lua ]]
             -- Skin the choice confirm buttons created by the option button pool
             if self.OptionButtonsContainer and self.OptionButtonsContainer.buttonFramePool then
                 for buttonFrame in self.OptionButtonsContainer.buttonFramePool:EnumerateActive() do
-                    if buttonFrame.Button and not buttonFrame.Button.__auroraStyled then
+                    if buttonFrame.Button and not styled[buttonFrame.Button] then
                         Skin.UIPanelButtonTemplate(buttonFrame.Button)
-                        buttonFrame.Button.__auroraStyled = true
+                        styled[buttonFrame.Button] = true
                     end
                 end
             end
