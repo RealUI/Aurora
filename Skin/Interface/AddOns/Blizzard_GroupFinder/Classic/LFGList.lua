@@ -189,20 +189,53 @@ function private.FrameXML.LFGList()
             if SearchPanel.ResultsInset then
                 Skin.InsetFrameTemplate(SearchPanel.ResultsInset)
             end
+            --[[ B261 Layer 2 (tier A, row A14; click order), read from
+                wow-ui-source-classic (Mists 5.5.4; Blizzard_GroupFinder_Classic.toc:19-20
+                loads Classic\LFGList.lua and .xml). One click execution:
+                LFGListCategorySelection_StartFindGroup
+                (Blizzard_GroupFinder/Classic/LFGList.lua:605) calls
+                LFGListSearchPanel_Clear (:608, :2089), whose result list update
+                sets the scroll box's data provider (:2214), which updates the
+                bar's steppers and thumb, and ends in
+                LFGListSearchPanel_UpdateButtonStatus (:2222, :2230): Disable or
+                Enable on SignUpButton (:2237-2261) and on
+                ScrollBox.StartGroupButton (:2269-2284). The same execution then
+                runs LFGListSearchPanel_DoSearch (:613) into C_LFGList.Search
+                (:2125), a function with restrictions
+                (Blizzard_APIDocumentationGenerated/LFGListInfoDocumentation.lua:433-435).
+                So nothing of Aurora's may run on those buttons' state.
+                Shape "panel" for both buttons: SignUpButton is an
+                LFGListMagicButtonTemplate (Classic/LFGList.xml:1308, :494;
+                MagicButtonTemplate, a UIPanelButtonTemplate,
+                Blizzard_SharedXML/Classic/SharedUIPanelTemplates.xml:800),
+                StartGroupButton an LFGStartGroupButtonTemplate (:1263, :3, a
+                UIPanelButtonTemplate) and a direct child of the scroll box, not
+                of its scroll target. Declared in XML, not layout frames;
+                Blizzard re-sets only the plates
+                (Blizzard_SharedXML/SecureUIPanelTemplates.lua:174-209) and, once
+                at load, the magic button's separators
+                (Classic/SharedUIPanelTemplates.lua:12-108). Text is a font
+                string, so the Mists region sweep in
+                Skin.TaintSafeUIPanelButtonTemplate takes no art the button
+                needs. Neither button nor any ancestor is protected in XML.
+                SearchPanel.ScrollBar (:1270) is a MinimalScrollBar: shape c,
+                stock, as on retail. Its steppers and thumb redraw their own
+                atlas on every state change
+                (Blizzard_SharedXML/Shared/Scroll/MinimalScrollBar.lua:24-25,
+                :47-51; the bar's Update enables both steppers,
+                Shared/Scroll/ScrollBar.lua:222-223). BackButton is only shown
+                or hidden on that path (:2289) and keeps the Layer 1 skin. ]]
             if SearchPanel.ScrollBox and Skin.WowScrollBoxList then
                 Skin.WowScrollBoxList(SearchPanel.ScrollBox)
                 if SearchPanel.ScrollBox.StartGroupButton then
-                    Skin.UIPanelButtonTemplate(SearchPanel.ScrollBox.StartGroupButton)
+                    Skin.TaintSafeUIPanelButtonTemplate(SearchPanel.ScrollBox.StartGroupButton, "panel")
                 end
-            end
-            if SearchPanel.ScrollBar and Skin.MinimalScrollBar then
-                Skin.MinimalScrollBar(SearchPanel.ScrollBar)
             end
             if SearchPanel.BackButton then
                 Skin.LFGListButtonTemplate(SearchPanel.BackButton)
             end
             if SearchPanel.SignUpButton then
-                Skin.LFGListButtonTemplate(SearchPanel.SignUpButton)
+                Skin.TaintSafeUIPanelButtonTemplate(SearchPanel.SignUpButton, "panel")
             end
         end
     end
