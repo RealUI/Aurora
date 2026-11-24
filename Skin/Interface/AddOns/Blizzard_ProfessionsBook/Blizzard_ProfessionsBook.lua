@@ -107,7 +107,19 @@ function private.AddOns.Blizzard_ProfessionsBook()
         ProfessionsBookFrame.PortraitContainer:Hide()
     end
 
-    Skin.UIPanelCloseButton(ProfessionsBookFrame.CloseButton)
+    --[[ B261 (3.2.6.4), read from wow-ui-source and wow-ui-source-forever,
+        not seen in game. ProfessionsBookFrame is protected: its spell
+        buttons are secure (ProfessionButtonTemplate inherits
+        SecureFrameTemplate, Blizzard_ProfessionsBook.xml:3), and protection
+        passes to their parents. The close button is not protected itself:
+        it is ButtonFrameBaseTemplate's $parentCloseButton, a
+        UIPanelCloseButtonDefaultAnchors (the frame inherits
+        ButtonFrameTemplate, Blizzard_ProfessionsBook.xml:325; Forever :4),
+        like the quest frame's, with frameLevel 510
+        (Blizzard_SharedXML/Mainline/SharedUIPanelTemplates.xml:134). So
+        the Layer 2 panel, drawn by Skin.TaintSafePanelCloseButton, in place
+        of the Layer 1 skin that put Aurora's backdrop and keys on it. ]]
+    Skin.TaintSafePanelCloseButton(ProfessionsBookFrame.CloseButton)
     _G.ProfessionsBookFrameTutorialButton:Hide()
 
     -- Hide the left/right parchment page backgrounds. WoW Forever's Camelot
