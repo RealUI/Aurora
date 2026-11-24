@@ -34,10 +34,10 @@ local Color, Util = Aurora.Color, Aurora.Util
     SecureFrameTemplate, Vanilla/SpellBookFrame.xml:69). So nothing of
     Aurora's may be on the page buttons, the tabs or the close button, or run
     on their state.
-    Still in this file and not converted (tasks.md 5.4): the backdrop
-    Skin.FrameTypeFrame puts on SpellBookFrame itself, the backdrop
-    SkinSpellButton puts on the protected SpellButton1-12, and the check
-    button skin (backdrop and highlight) on ShowAllSpellRanksCheckbox. ]]
+    Task 5.4 (step 20): SpellButton1-12 and ShowAllSpellRanksCheckbox no
+    longer carry Aurora's backdrop (below). Still in this file: the backdrop
+    Skin.FrameTypeFrame puts on SpellBookFrame itself, a frame the scan does
+    not walk; outside 5.4, left for its triage row (tasks.md 7.1). ]]
 
 -- Shape "panel" for the page buttons, drawn by Skin.TaintSafeNavButton
 -- (Skin/skin.lua): plain buttons declared in XML
@@ -62,13 +62,23 @@ local function SkinSpellButton(Button)
     Button:GetNormalTexture():SetAlpha(0)
     Button:GetPushedTexture():SetAlpha(0)
 
-    Base.SetBackdrop(Button, Color.black, Color.frame.a)
-    local bg = Button:GetBackdropTexture("bg")
+    --[[ B261 (task 5.4): the buttons are protected themselves
+        (SecureFrameTemplate, Vanilla/SpellBookFrame.xml:69), so no
+        backdrop, key or frame of Aurora's on them. The Layer 1 look was
+        Base.SetBackdrop(Button, Color.black, Color.frame.a): a fill over the
+        whole button and a 1px edge, both black, the icon 1px inside. Drawn
+        now with one texture of the button's own, made once at skin time,
+        under the icon: the edge takes the fill's alpha, a step the eye does
+        not see on black. ]]
+    local bg = Button:CreateTexture(nil, "BACKGROUND", nil, -8)
+    bg:SetAllPoints()
+    bg:SetColorTexture(Color.black.r, Color.black.g, Color.black.b, Color.frame.a)
+
     local icon = _G[name.."IconTexture"]
     Base.CropIcon(icon)
     icon:ClearAllPoints()
-    icon:SetPoint("TOPLEFT", bg, 1, -1)
-    icon:SetPoint("BOTTOMRIGHT", bg, -1, 1)
+    icon:SetPoint("TOPLEFT", Button, 1, -1)
+    icon:SetPoint("BOTTOMRIGHT", Button, -1, 1)
 
     Base.CropIcon(Button:GetHighlightTexture())
     Base.CropIcon(Button:GetCheckedTexture())
@@ -123,8 +133,36 @@ function private.FrameXML.SpellBookFrame()
     Skin.TaintSafeNavButton(_G.SpellBookPrevPageButton, "arrowLeft")
     Skin.TaintSafeNavButton(_G.SpellBookNextPageButton, "arrowRight")
 
-    if _G.ShowAllSpellRanksCheckbox then
-        Skin.UICheckButtonTemplate(_G.ShowAllSpellRanksCheckbox)
+    --[[ B261 (task 5.4): ShowAllSpellRanksCheckbox
+        (OptionsSmallCheckButtonTemplate, Vanilla/SpellBookFrame.xml:256) is
+        not protected itself but sits under the protected SpellBookFrame, so
+        the panel form step 15 gave the quick keybind check box: the Layer 2
+        panel with the box 6 inside, and the checked texture restyled in
+        place as Skin.UICheckButtonTemplate does it. Blizzard only shows and
+        hides it (Vanilla/SpellBookFrame.lua:170-172). ]]
+    local ranks = _G.ShowAllSpellRanksCheckbox
+    if ranks then
+        local panel = Skin.TaintSafeFrameTypeButton(ranks, "panel")
+        panel:SetBackdropOption("offsets", {
+            left = 6,
+            right = 6,
+            top = 6,
+            bottom = 6,
+        })
+        Base.SetBackdropColor(panel, Color.button, 0.3)
+
+        local box = panel:GetBackdropTexture("bg")
+        local check = ranks:GetCheckedTexture()
+        check:ClearAllPoints()
+        check:SetPoint("TOPLEFT", box, -6, 6)
+        check:SetPoint("BOTTOMRIGHT", box, 6, -6)
+        check:SetDesaturated(true)
+        check:SetVertexColor(Color.highlight:GetRGB())
+
+        local disabled = ranks:GetDisabledCheckedTexture()
+        if disabled then
+            disabled:SetAllPoints(check)
+        end
     end
 
     -- Sub-spell text ("Rank x"/"Passive") uses a dark parchment font
