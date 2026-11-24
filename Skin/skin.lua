@@ -262,6 +262,11 @@ do -- Button
     * `minimal` - _optional_ true for a glyph-only button with no backdrop
                   colour (scroll bar steppers); nil keeps what an earlier call
                   set _(boolean)_
+
+    **Returns:**
+    * `skinned` - true; false when the button is already a Layer 2 button
+                  (`Skin.TaintSafeFrameTypeButton`) and was left alone. A
+                  caller that goes on to touch the button checks it _(boolean)_
     --]]
     function Skin.FrameTypeButton(Button, OnEnter, OnLeave, minimal)
         local state = GetButtonState(Button)
@@ -269,10 +274,11 @@ do -- Button
             -- Already a Layer 2 button (Skin.TaintSafeFrameTypeButton). The
             -- Layer 1 skin would put its backdrop, methods and state hooks
             -- over the engine-drawn states: a second skin call on the same
-            -- button somewhere else. The caller's next backdrop call errors
-            -- (the button has no backdrop methods), which names the file.
+            -- button somewhere else. Callers that go on to touch the button
+            -- test the false; one that does not errors on its next backdrop
+            -- call (the button has no backdrop methods), which names the file.
             private.debug("FrameTypeButton: already a Layer 2 button", Button:GetDebugName())
-            return
+            return false
         end
         if minimal ~= nil then
             state.minimal = not not minimal
@@ -310,6 +316,7 @@ do -- Button
             Skin.SetButtonColor(Button, Color.button, nil, Color.buttonDisabled)
             Base.SetHighlight(Button, OnEnter, OnLeave)
         end
+        return true
     end
 end
 
@@ -523,6 +530,119 @@ do -- Button, Layer 2
         local state = buttonState[Button]
         if state and state.layer2 == "panel" then
             return state.panel
+        end
+    end
+
+    --[[ Skin.TaintSafeUIPanelScrollBar(_ScrollBar_)
+    The Layer 2 form of the classic `UIPanelScrollBarTemplate` slider (the bar
+    of `UIPanelScrollFrameTemplate` and `FauxScrollFrameTemplate`), for a bar
+    Blizzard updates inside a protected or gated execution. Use it instead of
+    `Skin.UIPanelScrollFrameTemplate` or `Skin.FauxScrollFrameTemplate` for
+    that frame, never after them.
+
+    Both steppers get the panel shape with an arrow drawn on the panel, and
+    no `direction` key. The thumb is a texture of the slider, restyled in
+    place (rule 3): a plain fill in the button colour at the 16x24 the Layer 1
+    skin gives it. Nothing is written on the slider or the scroll frame.
+
+    For `UIPanelScrollUpButtonTemplate` and `UIPanelScrollDownButtonTemplate`
+    (`Blizzard_SharedXML/SecureUIPanelTemplates.xml`, the classic trees):
+    18x16, state textures set in XML only. Not for `MinimalScrollBar` or the
+    trim bars, whose steppers redraw their own atlas on every state change.
+
+    **Args:**
+    * `ScrollBar` - the slider, `ScrollFrame.ScrollBar` _(Slider)_
+    --]]
+    function Skin.TaintSafeUIPanelScrollBar(ScrollBar)
+        local steppers = {
+            {ScrollBar.ScrollUpButton, "arrowUp"},
+            {ScrollBar.ScrollDownButton, "arrowDown"},
+        }
+        for _, stepper in next, steppers do
+            local panel = Skin.TaintSafeFrameTypeButton(stepper[1], "panel")
+            local arrow = panel:CreateTexture(nil, "ARTWORK")
+            arrow:SetSize(14, 6)
+            arrow:SetPoint("CENTER")
+            Base.SetTexture(arrow, stepper[2])
+        end
+
+        local thumb = ScrollBar.ThumbTexture
+        thumb:SetTexture(plain)
+        thumb:SetVertexColor(Color.button:GetRGB())
+        thumb:SetSize(16, 24)
+    end
+
+    --[[ Skin.TaintSafeNavButton(_Button, arrowTexture_)
+    The Layer 2 form of a page button (`Skin.NavButtonPrevious` and
+    `Skin.NavButtonNext` in Layer 1): the panel shape, its box 5 inside the
+    button, with the arrow drawn on the panel. For a 32x32 button whose state
+    textures are set in XML only (the classic spell book's page buttons).
+
+    **Args:**
+    * `Button`       - the button _(Button)_
+    * `arrowTexture` - `"arrowLeft"` or `"arrowRight"`, a texture registered
+                       with `Base.RegisterTexture` _(string)_
+    --]]
+    function Skin.TaintSafeNavButton(Button, arrowTexture)
+        local panel = Skin.TaintSafeFrameTypeButton(Button, "panel")
+        panel:ClearAllPoints()
+        panel:SetPoint("TOPLEFT", Button, 5, -5)
+        panel:SetPoint("BOTTOMRIGHT", Button, -5, 5)
+
+        local bg = panel:GetBackdropTexture("bg")
+        local arrow = panel:CreateTexture(nil, "ARTWORK")
+        arrow:SetPoint("TOPLEFT", bg, 8, -5)
+        arrow:SetPoint("BOTTOMRIGHT", bg, -8, 5)
+        Base.SetTexture(arrow, arrowTexture)
+    end
+
+    --[[ Skin.TaintSafePanelCloseButton(_Button_)
+    The Layer 2 form of `Skin.UIPanelCloseButton`: the panel shape with the
+    cross drawn on the panel, the box where the Layer 1 skin draws it. The
+    panel is moved, never the button, so the button keeps Blizzard's size,
+    anchor and hit rect.
+
+    * Classic flavours: `UIPanelCloseButton` is 32x32 and the box sits 4, 11,
+      10 and 5 inside it (left, right, top, bottom).
+    * Retail and Forever: a 17x17 box at the button's top right. On Forever,
+      `UIPanelCloseButtonDefaultAnchors` makes the button 28x28 at
+      `TOPRIGHT 0, 3` (`Blizzard_SharedXML/Camelot/SharedUIPanelTemplates.lua:1-5`),
+      so the box goes 3 lower to land where the Layer 1 skin put it.
+
+    Not `Skin.TaintSafeUIPanelCloseButton`, the flat 22x22 "x" of the
+    TaintSafe portrait frames, which resizes the button.
+
+    **Args:**
+    * `Button` - the close button _(Button)_
+    --]]
+    function Skin.TaintSafePanelCloseButton(Button)
+        local panel = Skin.TaintSafeFrameTypeButton(Button, "panel")
+        panel:ClearAllPoints()
+        if not private.isRetail then
+            panel:SetPoint("TOPLEFT", Button, 4, -10)
+            panel:SetPoint("BOTTOMRIGHT", Button, -11, 5)
+        else
+            local mixin = _G.UIPanelCloseButtonDefaultAnchorsMixin
+            if private.isForever and mixin and Button.OnLoad and Button.OnLoad == mixin.OnLoad then
+                panel:SetPoint("TOPRIGHT", Button, -2.8, -6)
+            else
+                panel:SetPoint("TOPRIGHT", Button, -3.8, -3)
+            end
+            panel:SetSize(17, 17)
+        end
+
+        local bg = panel:GetBackdropTexture("bg")
+        for i = 1, 2 do
+            local line = panel:CreateLine(nil, "ARTWORK")
+            line:SetColorTexture(1, 1, 1) -- static: not a theme color
+            line:SetThickness(1.2)
+            if i == 1 then
+                line:SetStartPoint("TOPLEFT", bg, 3.6, -3)
+                line:SetEndPoint("BOTTOMRIGHT", bg, -3, 3)
+            else
+                line:SetStartPoint("TOPRIGHT", bg, -3, -3)
+                line:SetEndPoint("BOTTOMLEFT", bg, 3.6, 3)
+            end
         end
     end
 end
@@ -773,7 +893,11 @@ do -- ScrollBar
         end
     end
     local function ScrollBarButton(Button, notMinimal)
-        Skin.FrameTypeButton(Button, nil, nil, not notMinimal)
+        -- A Layer 2 stepper (Skin.TaintSafeUIPanelScrollBar) is left as it is: no
+        -- texture, no hook, no arrow on the Blizzard button.
+        if not Skin.FrameTypeButton(Button, nil, nil, not notMinimal) then
+            return false
+        end
 
         local tex = Button.Texture or Button:CreateTexture()
         if Button.direction then
@@ -802,13 +926,18 @@ do -- ScrollBar
         else
             tex:Hide()
         end
+        return true
     end
 
     function Skin.FrameTypeScrollBar(ScrollBar, notMinimal)
         local back = ScrollBar.Back or ScrollBar.ScrollUpButton or _G[ScrollBar:GetName() .. "ScrollUpButton"]
-        ScrollBarButton(back, notMinimal)
-
         local forward = ScrollBar.Forward or ScrollBar.ScrollDownButton or _G[ScrollBar:GetName() .. "ScrollDownButton"]
+        -- A bar already drawn by Skin.TaintSafeUIPanelScrollBar is left whole: its
+        -- steppers are refused by Skin.FrameTypeButton, and its thumb keeps
+        -- the in-place restyle instead of getting a backdrop frame and hooks.
+        if not ScrollBarButton(back, notMinimal) then
+            return
+        end
         ScrollBarButton(forward, notMinimal)
 
         local thumb =
