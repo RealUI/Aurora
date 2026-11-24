@@ -6,7 +6,7 @@ if private.shouldSkip() then return end
 
 --[[ Core ]]
 local Aurora = private.Aurora
-local Base, Skin = Aurora.Base, Aurora.Skin
+local Skin = Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
 --[[ Era quest log (384x512 book panel).
@@ -32,9 +32,9 @@ local Color, Util = Aurora.Color, Aurora.Util
     these four buttons or run on their state. The exit, close and detail
     scroll buttons are tier C and stay on the Layer 1 skin. ]]
 
--- The quest list's scroll bar: Skin.FauxScrollFrameTemplate would put the
--- Layer 1 skin on its two buttons (and a `direction` key on each), so the
--- bar is drawn here instead. Shape "panel" for both buttons: they are
+-- The quest list's scroll bar, drawn by Skin.TaintSafeUIPanelScrollBar
+-- (Skin/skin.lua). Skin.FauxScrollFrameTemplate would put the
+-- Layer 1 skin on its two buttons (and a `direction` key on each). Shape "panel" for both buttons: they are
 -- UIPanelScrollUpButtonTemplate and UIPanelScrollDownButtonTemplate
 -- (Blizzard_SharedXML/SecureUIPanelTemplates.xml:76-90), 18x16, declared in
 -- XML, not pooled and not a layout frame, and their state textures are set
@@ -45,10 +45,10 @@ local Color, Util = Aurora.Color, Aurora.Util
 -- FauxScrollFrame_OnVerticalScroll (SecureScrollTemplates.lua:227-234) back
 -- into QuestLog_Update. The arrow is on the panel. The thumb is a texture of the slider, not a button:
 -- restyled in place (rule 3), at the 16x24 the Layer 1 skin gives it; no
--- Blizzard line sets its texture again. Same code as the TBC file.
+-- Blizzard line sets its texture again.
 --
 -- The detail scroll bar (QuestLogDetailScrollFrame, a UIPanelScrollFrameTemplate,
--- Vanilla/QuestLogFrame.xml:597) is drawn by the same helper: owner decision AT-D17 (2026-11-23),
+-- Vanilla/QuestLogFrame.xml:597) is drawn by the same function: owner decision AT-D17 (2026-11-23),
 -- the one exception to AT-D1's tier C rule, so the two bars look alike and
 -- the detail bar's buttons carry no `direction` key and no OnShow hook.
 -- QuestLog_Update shows that scroll frame (:123) in the same tier A execution,
@@ -57,26 +57,6 @@ local Color, Util = Aurora.Color, Aurora.Util
 -- ScrollFrame_OnVerticalScroll, SecureScrollTemplates.lua:64-110, :134-141),
 -- on QuestLog_UpdateQuestDetails' UpdateScrollChildRect (:464) or a scroll.
 -- Same slider template, so the same shapes and the same thumb restyle.
-local function TaintSafeFauxScrollBar(ScrollFrame)
-    local ScrollBar = ScrollFrame.ScrollBar
-    local steppers = {
-        {ScrollBar.ScrollUpButton, "arrowUp"},
-        {ScrollBar.ScrollDownButton, "arrowDown"},
-    }
-    for _, stepper in ipairs(steppers) do
-        local panel = Skin.TaintSafeFrameTypeButton(stepper[1], "panel")
-        local arrow = panel:CreateTexture(nil, "ARTWORK")
-        arrow:SetSize(14, 6)
-        arrow:SetPoint("CENTER")
-        Base.SetTexture(arrow, stepper[2])
-    end
-
-    local thumb = ScrollBar.ThumbTexture
-    thumb:SetTexture(private.textures.plain)
-    thumb:SetVertexColor(Color.button:GetRGB())
-    thumb:SetSize(16, 24)
-end
-
 function private.FrameXML.QuestLogFrame()
     local QuestLogFrame = _G.QuestLogFrame
 
@@ -97,9 +77,9 @@ function private.FrameXML.QuestLogFrame()
         _G.QuestLogSkillHighlight:SetColorTexture(Color.highlight.r, Color.highlight.g, Color.highlight.b, 0.2)
     end
 
-    TaintSafeFauxScrollBar(_G.QuestLogListScrollFrame)
+    Skin.TaintSafeUIPanelScrollBar(_G.QuestLogListScrollFrame.ScrollBar)
     Util.HideFrameTextures(_G.QuestLogListScrollFrame)
-    TaintSafeFauxScrollBar(_G.QuestLogDetailScrollFrame)
+    Skin.TaintSafeUIPanelScrollBar(_G.QuestLogDetailScrollFrame.ScrollBar)
     Util.HideFrameTextures(_G.QuestLogDetailScrollFrame)
 
     for i = 1, 10 do
