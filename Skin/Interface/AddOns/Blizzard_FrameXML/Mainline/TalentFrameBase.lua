@@ -6,7 +6,7 @@ if private.shouldSkip() then return end
 
 --[[ Core ]]
 local Aurora = private.Aurora
-local Hook = Aurora.Hook
+local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
 do --[[ FrameXML\TalentFrameBase.lua ]]
@@ -31,10 +31,13 @@ do --[[ FrameXML\TalentFrameBase.lua ]]
                     end
                 end
 
-                if TalentFrame.inspect then
+                -- B261 (task 5.1): the background Blizzard_InspectUI recorded
+                -- with Skin.SetIconBackground, not `_auroraIconBG` on the button.
+                local iconBG = TalentFrame.inspect and Skin.GetIconBackground(button)
+                if iconBG then
                     if talentInfo.grantedByAura then
                         local color = _G.ITEM_QUALITY_COLORS[_G.Enum.ItemQuality.Legendary]
-                        button._auroraIconBG:SetColorTexture(color.r, color.g, color.b)
+                        iconBG:SetColorTexture(color.r, color.g, color.b)
                     elseif talentInfo.selected then
                         -- Inspected unit's class can be secret in combat (WoW 12);
                         -- indexing with a secret key throws — fall back to black.
@@ -42,12 +45,12 @@ do --[[ FrameXML\TalentFrameBase.lua ]]
                         local color = class and not _G.issecretvalue(class)
                             and _G.CUSTOM_CLASS_COLORS[class]
                         if color then
-                            button._auroraIconBG:SetColorTexture(color:GetRGB())
+                            iconBG:SetColorTexture(color:GetRGB())
                         else
-                            button._auroraIconBG:SetColorTexture(Color.black:GetRGB())
+                            iconBG:SetColorTexture(Color.black:GetRGB())
                         end
                     else
-                        button._auroraIconBG:SetColorTexture(Color.black:GetRGB())
+                        iconBG:SetColorTexture(Color.black:GetRGB())
                     end
                 end
             end
