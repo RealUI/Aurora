@@ -19,11 +19,26 @@ local Hook, Skin = Aurora.Hook, Aurora.Skin
     the Border carries the dialog chrome (double-border otherwise).
 ]]
 
+--[[ B261 Layer 2 (A-candidate, tasks.md 3.2.5), read from
+    wow-ui-source-classic (Mists), wow-ui-source-anniversary (TBC) and
+    wow-ui-source-era (Vanilla). The same pool as retail
+    (Blizzard_SharedXML/Shared/Frame/MainMenuFrameTemplates.lua: pool at
+    :14, release and Acquire at :19, :25, SetEnabled at :36 on the classic
+    trees), the same Logout and Quit on the same buttons
+    (Blizzard_GameMenu/Shared/GameMenuFrame.lua:158-159 in the Mists tree). The buttons are
+    MainMenuFrameButtonTemplate, a UIPanelButtonTemplate
+    (Blizzard_SharedXML/Classic/Frame/MainMenuFrameTemplates.xml:11-16, all
+    three trees), whose plates Blizzard re-sets on every press, show,
+    enable and disable (SecureUIPanelTemplates.lua:174-209):
+    Skin.TaintSafeUIPanelButtonTemplate hides them by alpha. Shape "flat":
+    pooled buttons in a VerticalLayoutFrame. The Layer 2 record and the
+    state textures stay with a button through release and the next
+    Acquire. Skinned once, the first time each is active. ]]
 function Hook.GameMenuInitButtons(menu)
     if not menu.buttonPool then return end
     for button in menu.buttonPool:EnumerateActive() do
         if not private.IsSkinned(button) then
-            Skin.UIPanelButtonTemplate(button)
+            Skin.TaintSafeUIPanelButtonTemplate(button, "flat")
             private.SetSkinned(button, true)
         end
     end
