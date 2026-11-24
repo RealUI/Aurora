@@ -62,5 +62,15 @@ function private.FrameXML.RolePoll()
         Skin.LFGRoleButtonTemplate(_G.RolePollPopupRoleButtonDPS)
     end
 
-    Skin.UIPanelButtonTemplate(_G.RolePollPopupAcceptButton)
+    -- B261 Layer 2 (A-candidate, tasks.md 3.2.5), read from wow-ui-source
+    -- (retail) and wow-ui-source-forever. ROLE_POLL_BEGIN shows the popup
+    -- (Blizzard_FrameXML/Mainline/RolePoll.lua:2, :5-37; Forever :2, :7-40),
+    -- in combat too, after RolePollPopup_UpdateChecked enables or disables
+    -- the button (:40-49, :46, :48; Forever :47-56, :53, :55), which every role
+    -- click runs again (:72-81; Forever :119-128). Its click runs
+    -- UnitSetRoleEnum (:84-88; Forever :131-135). Shape "panel": a
+    -- UIPanelButtonTemplate in XML (RolePoll.xml:110; Forever :118), not
+    -- pooled, not a layout frame; Blizzard re-sets only the plates
+    -- (Blizzard_SharedXML/SecureUIPanelTemplates.lua:44-79).
+    Skin.TaintSafeUIPanelButtonTemplate(_G.RolePollPopupAcceptButton, "panel")
 end
