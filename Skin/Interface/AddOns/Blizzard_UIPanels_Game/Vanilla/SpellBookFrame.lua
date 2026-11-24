@@ -39,51 +39,20 @@ local Color, Util = Aurora.Color, Aurora.Util
     SkinSpellButton puts on the protected SpellButton1-12, and the check
     button skin (backdrop and highlight) on ShowAllSpellRanksCheckbox. ]]
 
--- Shape "panel" for the page buttons: plain buttons declared in XML
+-- Shape "panel" for the page buttons, drawn by Skin.TaintSafeNavButton
+-- (Skin/skin.lua): plain buttons declared in XML
 -- (Vanilla/SpellBookFrame.xml:223-249), not pooled and not layout frames,
 -- their state textures set in XML only; Blizzard only enables and disables
 -- them (above). The box sits 5 inside the button, as the Layer 1 skin
--- (Skin.NavButtonPrevious) drew it; the arrow is on the panel. Same code as
--- the Mists file.
-local function TaintSafePageButton(Button, arrowTexture)
-    local panel = Skin.TaintSafeFrameTypeButton(Button, "panel")
-    panel:ClearAllPoints()
-    panel:SetPoint("TOPLEFT", Button, 5, -5)
-    panel:SetPoint("BOTTOMRIGHT", Button, -5, 5)
+-- (Skin.NavButtonPrevious) drew it; the arrow is on the panel.
 
-    local bg = panel:GetBackdropTexture("bg")
-    local arrow = panel:CreateTexture(nil, "ARTWORK")
-    arrow:SetPoint("TOPLEFT", bg, 8, -5)
-    arrow:SetPoint("BOTTOMRIGHT", bg, -8, 5)
-    Base.SetTexture(arrow, arrowTexture)
-end
-
--- Shape "panel" for the close button: SpellBookCloseButton is a
+-- Shape "panel" for the close button, drawn by Skin.TaintSafePanelCloseButton
+-- (Skin/skin.lua): SpellBookCloseButton is a
 -- UIPanelCloseButton (Vanilla/SpellBookFrame.xml:251;
 -- Blizzard_SharedXML/Classic/SharedUIPanelTemplates.xml:172-192), 32x32, its
 -- state textures set in XML only and never re-set. The box and the cross are
 -- where the Layer 1 skin (Skin.UIPanelCloseButtonNoScripts) drew them; the
--- cross is on the panel. Same code as the Mists file.
-local function TaintSafeCloseButton(Button)
-    local panel = Skin.TaintSafeFrameTypeButton(Button, "panel")
-    panel:ClearAllPoints()
-    panel:SetPoint("TOPLEFT", Button, 4, -10)
-    panel:SetPoint("BOTTOMRIGHT", Button, -11, 5)
-
-    local bg = panel:GetBackdropTexture("bg")
-    for i = 1, 2 do
-        local line = panel:CreateLine(nil, "ARTWORK")
-        line:SetColorTexture(1, 1, 1) -- static: not a theme color
-        line:SetThickness(1.2)
-        if i == 1 then
-            line:SetStartPoint("TOPLEFT", bg, 3.6, -3)
-            line:SetEndPoint("BOTTOMRIGHT", bg, -3, 3)
-        else
-            line:SetStartPoint("TOPRIGHT", bg, -3, -3)
-            line:SetEndPoint("BOTTOMLEFT", bg, 3.6, 3)
-        end
-    end
-end
+-- cross is on the panel.
 
 local function SkinSpellButton(Button)
     local name = Button:GetName()
@@ -130,7 +99,7 @@ function private.FrameXML.SpellBookFrame()
         bottom = 70,
     })
 
-    TaintSafeCloseButton(_G.SpellBookCloseButton)
+    Skin.TaintSafePanelCloseButton(_G.SpellBookCloseButton)
 
     for i = 1, 12 do
         SkinSpellButton(_G["SpellButton"..i])
@@ -151,8 +120,8 @@ function private.FrameXML.SpellBookFrame()
 
     -- Unlike the merchant pager these have no layer regions (no circle
     -- background/label) — just state textures, which the Layer 2 skin replaces.
-    TaintSafePageButton(_G.SpellBookPrevPageButton, "arrowLeft")
-    TaintSafePageButton(_G.SpellBookNextPageButton, "arrowRight")
+    Skin.TaintSafeNavButton(_G.SpellBookPrevPageButton, "arrowLeft")
+    Skin.TaintSafeNavButton(_G.SpellBookNextPageButton, "arrowRight")
 
     if _G.ShowAllSpellRanksCheckbox then
         Skin.UICheckButtonTemplate(_G.ShowAllSpellRanksCheckbox)
