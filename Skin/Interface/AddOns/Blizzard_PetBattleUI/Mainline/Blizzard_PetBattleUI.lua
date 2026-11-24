@@ -10,6 +10,13 @@ local Base = Aurora.Base
 local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Color, Util = Aurora.Color, Aurora.Util
 
+-- B261 (task 5.1): the background Base.CropIcon makes behind a pet's icon,
+-- keyed by the unit frame, mini frame or tooltip that owns it. Was
+-- `_auroraIconBG` on the Blizzard frame. None of these frames is pooled:
+-- the two active units, the four mini frames and the unit tooltip are declared
+-- in XML.
+local iconBackgrounds = _G.setmetatable({}, {__mode = "k"})
+
 do --[[ AddOns\Blizzard_PetBattleUI.lua ]]
     function Hook.PetBattleUnitFrame_UpdateDisplay(self)
         local petOwner = self.petOwner
@@ -31,13 +38,14 @@ do --[[ AddOns\Blizzard_PetBattleUI.lua ]]
             end
         end
 
-        if self._auroraIconBG then
+        local iconBG = iconBackgrounds[self]
+        if iconBG then
             if _G.C_PetBattles.GetHealth(petOwner, petIndex) == 0 then
-                self._auroraIconBG:SetColorTexture(1, 0, 0) -- static: not a theme color
+                iconBG:SetColorTexture(1, 0, 0) -- static: not a theme color
             else
                 local rarity = _G.C_PetBattles.GetBreedQuality(petOwner, petIndex)
                 local color = _G.ITEM_QUALITY_COLORS[rarity-1]
-                self._auroraIconBG:SetColorTexture(color.r, color.g, color.b)
+                iconBG:SetColorTexture(color.r, color.g, color.b)
             end
         end
     end
@@ -86,7 +94,7 @@ do --[[ AddOns\Blizzard_PetBattleUI.xml ]]
         Frame.DebuffBorder:SetPoint("BOTTOMRIGHT", Frame.Icon, 1, -1)
     end
     function Skin.PetBattleMiniUnitFrameAlly(Button)
-        Button._auroraIconBG = Base.CropIcon(Button.Icon, Button)
+        iconBackgrounds[Button] = Base.CropIcon(Button.Icon, Button)
 
         Button.HealthBarBG:SetColorTexture(Color.button.r, Color.button.g, Color.button.b, Color.frame.a)
         Button.HealthBarBG:SetPoint("BOTTOMLEFT")
@@ -105,7 +113,7 @@ do --[[ AddOns\Blizzard_PetBattleUI.xml ]]
         Button.HealthDivider:SetHeight(1)
     end
     function Skin.PetBattleMiniUnitFrameEnemy(Button)
-        Button._auroraIconBG = Base.CropIcon(Button.Icon, Button)
+        iconBackgrounds[Button] = Base.CropIcon(Button.Icon, Button)
 
         Button.BorderAlive:SetAlpha(0)
         Button.BorderDead:SetTexture([[Interface\PetBattles\DeadPetIcon]])
@@ -115,7 +123,7 @@ do --[[ AddOns\Blizzard_PetBattleUI.xml ]]
     function Skin.PetBattleUnitTooltipTemplate(Frame)
         Skin.TooltipBorderedFrameTemplate(Frame)
 
-        Frame._auroraIconBG = Base.CropIcon(Frame.Icon, Frame)
+        iconBackgrounds[Frame] = Base.CropIcon(Frame.Icon, Frame)
         Frame.HealthBorder:Hide()
         Frame.XPBorder:SetAlpha(0)
         Frame.Border:Hide()
@@ -198,7 +206,7 @@ function private.AddOns.Blizzard_PetBattleUI()
     Skin.PetBattleAuraHolderTemplate(PetBattleFrame.AllyDebuffFrame)
 
     for index, unit in next, {PetBattleFrame.ActiveAlly, PetBattleFrame.ActiveEnemy} do
-        unit._auroraIconBG = Base.CropIcon(unit.Icon, unit)
+        iconBackgrounds[unit] = Base.CropIcon(unit.Icon, unit)
 
         unit.Border:SetAlpha(0)
         unit.HealthBarBG:SetAlpha(0)
