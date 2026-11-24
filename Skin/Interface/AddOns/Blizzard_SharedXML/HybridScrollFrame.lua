@@ -9,17 +9,21 @@ local Aurora = private.Aurora
 local Base = Aurora.Base
 local Hook, Skin = Aurora.Hook, Aurora.Skin
 
+-- B261 (task 5.3): how many of a hybrid scroll frame's buttons are skinned,
+-- keyed by the scroll frame. Was `_auroraNumSkinned` on the Blizzard frame.
+-- HybridScrollFrame_CreateButtons only ever adds buttons and keeps them (no
+-- pool), so the count only grows; weak keys.
+local numSkinned = _G.setmetatable({}, {__mode = "k"})
+
 do --[[ SharedXML\HybridScrollFrame.lua ]]
     function Hook.HybridScrollFrame_CreateButtons(self, buttonTemplate, initialOffsetX, initialOffsetY, initialPoint, initialRelative, offsetX, offsetY, point, relativePoint)
         --print("Hook.HybridScrollFrame_CreateButtons", buttonTemplate)
         if Skin[buttonTemplate] then
             local numButtons = #self.buttons
-            local numSkinned = self._auroraNumSkinned or 0
-
-            for i = numSkinned + 1, numButtons do
+            for i = (numSkinned[self] or 0) + 1, numButtons do
                 Skin[buttonTemplate](self.buttons[i])
             end
-            self._auroraNumSkinned = numButtons
+            numSkinned[self] = numButtons
         end
     end
 end
