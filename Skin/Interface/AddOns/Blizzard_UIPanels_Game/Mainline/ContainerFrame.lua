@@ -10,6 +10,16 @@ local Base, Hook, Skin = Aurora.Base, Aurora.Hook, Aurora.Skin
 local Color = Aurora.Color
 
 local keyColor = Color.Create(0.7254, 0.5490, 0.2235, 0.75)
+
+-- B261 (task 5.3): hook-once marks, kept here, not on Blizzard's frames.
+-- `emptySlotHooked`: item buttons whose empty-slot hooks are in place (was
+-- `_auroraEmptySlotHooked`). The item buttons are pooled (itemButtonPool,
+-- re-acquired on every UpdateItemSlots); the hooks are the button's own and
+-- go with it to whatever slot it fills next, so the mark is right through
+-- release and reuse. `itemSlotsHooked`: bag frames whose UpdateItemSlots is
+-- hooked (was `_auroraItemSlotsHooked`); the bag frames are kept. Weak keys.
+local emptySlotHooked = _G.setmetatable({}, {__mode = "k"})
+local itemSlotsHooked = _G.setmetatable({}, {__mode = "k"})
 do --[[ FrameXML\ContainerFrame.lua ]]
     function Hook.ContainerFrameFilterIcon_SetAtlas(self, atlas)
         self:SetTexture(_G.BAG_FILTER_ICONS[atlas])
@@ -135,8 +145,8 @@ do --[[ FrameXML\ContainerFrame.xml ]]
         -- frame alpha when empty (what Skin.FrameTypeItemButton starts with),
         -- white when an item is in the slot.
         local icon = ItemButton.icon
-        if icon and not ItemButton._auroraEmptySlotHooked then
-            ItemButton._auroraEmptySlotHooked = true
+        if icon and not emptySlotHooked[ItemButton] then
+            emptySlotHooked[ItemButton] = true
 
             local function SetEmpty(isEmpty)
                 icon:SetAlpha(isEmpty and 0 or 1)
@@ -224,8 +234,8 @@ do --[[ FrameXML\ContainerFrame.xml ]]
         -- combined bag kept showing unskinned slots while the individual bags
         -- came out right. Hook it per frame (Mixin() copies the method at
         -- creation, so the mixin table is the wrong target).
-        if Frame.UpdateItemSlots and not Frame._auroraItemSlotsHooked then
-            Frame._auroraItemSlotsHooked = true
+        if Frame.UpdateItemSlots and not itemSlotsHooked[Frame] then
+            itemSlotsHooked[Frame] = true
             _G.hooksecurefunc(Frame, "UpdateItemSlots", private.SkinContainerItems)
         end
 
