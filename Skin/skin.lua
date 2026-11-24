@@ -426,17 +426,31 @@ do -- Button, Layer 2
     It reads `Color.button` when it runs, like `Skin.FrameTypeButton`. A
     second call repaints the same button and makes no second panel.
 
+    The panel sits one frame level below the button, at its parent's level,
+    with its fill at `BACKGROUND -6` and its edge at -5. A texture of the
+    parent's own that the skin leaves in place at -5 or above (a dialog tile,
+    a dark backing) draws over it. Pass `sublevel` to put the fill above that
+    texture; the edge goes one above the fill. It is the same as calling
+    `panel:SetBackdropLayer("BACKGROUND", sublevel)` on the returned panel,
+    the per-file form `ReadyCheck.lua` and `Blizzard_ReportFrame.lua` use.
+
     **Args:**
-    * `Button` - the button to skin _(Button)_
-    * `shape`  - `"panel"` or `"flat"` _(string)_
+    * `Button`   - the button to skin _(Button)_
+    * `shape`    - `"panel"` or `"flat"` _(string)_
+    * `sublevel` - _optional_ the panel's fill sublevel on `BACKGROUND`,
+                   -8 to 6; default -6. Ignored for `"flat"` _(number)_
 
     **Returns:**
     * `panel` - the frame carrying the border and fill, for glyphs and for
                 backdrop options; nil for `"flat"` _(Frame|nil)_
     --]]
-    function Skin.TaintSafeFrameTypeButton(Button, shape)
+    function Skin.TaintSafeFrameTypeButton(Button, shape, sublevel)
         if shape ~= "panel" and shape ~= "flat" then
             _G.error('`shape` must be "panel" or "flat"')
+        end
+        if sublevel ~= nil and (type(sublevel) ~= "number" or sublevel < -8 or sublevel > 6) then
+            -- The edge goes one above the fill, and BACKGROUND ends at 7.
+            _G.error("`sublevel` must be a number from -8 to 6")
         end
 
         local state = GetButtonState(Button)
@@ -469,8 +483,9 @@ do -- Button, Layer 2
             -- -7, backdrop.lua:33-36). A button that is a direct child of a
             -- skinned frame puts its panel at that frame's own level, where
             -- two regions on one layer and sublevel have no defined order,
-            -- and the frame's fill could be drawn over the panel's.
-            panel:SetBackdropLayer("BACKGROUND", -6)
+            -- and the frame's fill could be drawn over the panel's. A caller
+            -- whose parent keeps art of its own above that passes `sublevel`.
+            panel:SetBackdropLayer("BACKGROUND", sublevel or -6)
             r, g, b = panel:GetBackdropColor()
         else
             if panel then
