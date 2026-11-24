@@ -69,9 +69,28 @@ function private.AddOns.Blizzard_ReportFrame()
     ------------------------------------
     -- Buttons
     ------------------------------------
-    -- Report (submit) button
+    -- Report (submit) button. B261 Layer 2 (A-candidate, tasks.md 3.2.5), read
+    -- from wow-ui-source (retail) and wow-ui-source-forever. Every category,
+    -- flag or screenshot change runs UpdateButtonState into ManageButton,
+    -- which is SetEnabled on the button (Blizzard_ReportFrameShared/
+    -- ReportFrameShared.lua:347-351, Blizzard_ReportFrame/ReportFrame.lua:33-35;
+    -- Forever :356-360 and :33-35); its click runs SendReport into
+    -- C_ReportSystem.SendReport (ReportFrameShared.lua:342-343, :218-233;
+    -- Forever :351-352, :227-242), which has restrictions
+    -- (ReportSystemDocumentation.lua:126-129). Shape "panel": a
+    -- UIPanelButtonTemplate in XML (ReportFrameShared.xml:114, both trees),
+    -- not pooled, not a layout frame; Blizzard re-sets only the plates
+    -- (Blizzard_SharedXML/SecureUIPanelTemplates.lua:44-79).
+    -- The panel sits at the report frame's level, and that frame keeps an
+    -- unnamed black texture at alpha 0.9 on BACKGROUND, sublevel 0, over the
+    -- whole frame (ReportFrameShared.xml:47-55, both trees; the skin hides the
+    -- two inset textures at sublevels 1 and 2 by alpha, not this one). A
+    -- panel's fill is at -6 and would draw under it, so the panel's backdrop
+    -- goes to 3, its edge to 4, above all three (the Fable review of step 15,
+    -- finding 7).
     if frame.ReportButton then
-        Skin.FrameTypeButton(frame.ReportButton)
+        local panel = Skin.TaintSafeUIPanelButtonTemplate(frame.ReportButton, "panel")
+        panel:SetBackdropLayer("BACKGROUND", 3)
     end
 
     -- Close button
