@@ -215,7 +215,20 @@ function private.AddOns.Blizzard_PVPMatch()
         tabContainer.tabGroup.tab3,
     })
 
-    Skin.UIPanelButtonTemplate(PVPMatchResults.buttonContainer.requeueButton)
+    --[[ B261 Layer 2 (A-candidate, tasks.md 3.2.5), read from wow-ui-source
+        (retail). The requeue button's click runs Disable and then
+        RequeueSkirmish on consecutive lines
+        (Blizzard_PVPMatch/PVPMatchResults.lua:490-492); Blizzard also sets it
+        on match end (:153) and on the role and ready check events
+        (:226-229). Shape "panel": a UIPanelButtonTemplate in XML
+        (PVPMatchResults.xml:421), not pooled; its parent buttonContainer is a
+        ResizeLayoutFrame (:415), which measures the button, not the panel
+        under it. Blizzard re-sets only the plates
+        (Blizzard_SharedXML/SecureUIPanelTemplates.lua:44-79). Retail only:
+        on Forever the function returns before this point and the button
+        stays Blizzard's, as it was. The leave button only gets text and a
+        width and keeps the Layer 1 skin. ]]
+    Skin.TaintSafeUIPanelButtonTemplate(PVPMatchResults.buttonContainer.requeueButton, "panel")
     Skin.UIPanelButtonTemplate(PVPMatchResults.buttonContainer.leaveButton)
 
 
