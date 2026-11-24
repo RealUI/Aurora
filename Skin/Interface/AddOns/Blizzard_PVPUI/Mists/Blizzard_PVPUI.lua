@@ -175,11 +175,25 @@ function private.AddOns.Blizzard_PVPUI()
             -- paints a floating box+arrow next to the dice button
             end
 
+            --[[ B261 Layer 2 (A-candidate, tasks.md 3.2.5), read from
+                wow-ui-source-classic (Mists 5.5.4). HonorQueueFrame_UpdateQueueButtons
+                enables or disables both buttons (Blizzard_PVPUI/Mists/Blizzard_PVPUI.lua:337,
+                :355-363) on GROUP_ROSTER_UPDATE (:279, :291-292) and on every list
+                update and selection (:429, :676, :710); their clicks run
+                HonorQueueFrame_Queue into C_PvP.JoinBattlefield (:367-379). The
+                retail skin refuses the Layer 1 skin on the same path
+                (Mainline/Blizzard_PVPUI.lua); this brings Mists in line.
+                Shape "panel": MagicButtonTemplate, a UIPanelButtonTemplate
+                (Blizzard_PVPUI.xml:787, :799;
+                Blizzard_SharedXML/Classic/SharedUIPanelTemplates.xml:800), in XML,
+                not pooled, not layout frames; Blizzard re-sets only the plates
+                (SecureUIPanelTemplates.lua:174-209) and, once at load, the magic
+                button separators, which the template hides. ]]
             if Honor.SoloQueueButton then
-                Skin.MagicButtonTemplate(Honor.SoloQueueButton)
+                Skin.TaintSafeUIPanelButtonTemplate(Honor.SoloQueueButton, "panel")
             end
             if Honor.GroupQueueButton then
-                Skin.MagicButtonTemplate(Honor.GroupQueueButton)
+                Skin.TaintSafeUIPanelButtonTemplate(Honor.GroupQueueButton, "panel")
             end
         end
     end
@@ -214,8 +228,13 @@ function private.AddOns.Blizzard_PVPUI()
             if Conquest.ShadowOverlay then
                 Util.HideFrameTextures(Conquest.ShadowOverlay)
             end
+            -- B261 Layer 2 (A-candidate, tasks.md 3.2.5): ConquestQueueFrame_UpdateJoinButton
+            -- enables or disables it (Blizzard_PVPUI.lua:829, :859, :879) on
+            -- GROUP_ROSTER_UPDATE (:769, :802) and on selection (:888); its click
+            -- runs JoinRatedBattlefield or JoinArena (:899-903). Shape "panel", for
+            -- the reasons above (MagicButtonTemplate, Blizzard_PVPUI.xml:918).
             if Conquest.JoinButton then
-                Skin.MagicButtonTemplate(Conquest.JoinButton)
+                Skin.TaintSafeUIPanelButtonTemplate(Conquest.JoinButton, "panel")
             end
             if Conquest.NoSeason and Skin.GlowBoxTemplate then
                 Skin.GlowBoxTemplate(Conquest.NoSeason)
@@ -243,84 +262,18 @@ function private.AddOns.Blizzard_PVPUI()
                 Skin.HybridScrollBarTemplate(_G.WarGamesQueueFrameScrollFrameScrollBar)
             end
 
-            local StripStartButton
-            local startButton = _G.WarGameStartButton
-            if startButton then
-                Skin.MagicButtonTemplate(startButton)
-
-                -- live code restores (or recreates) the RedButton plate art on
-                -- every list update — snapshot which textures the SKIN added
-                -- (they survive), then re-sweep everything else live on every
-                -- state-change path
-                local auroraTextures = {}
-                local highlight = startButton:GetHighlightTexture()
-                for i = 1, _G.select("#", startButton:GetRegions()) do
-                    local region = _G.select(i, startButton:GetRegions())
-                    if region:GetObjectType() == "Texture" and (region == highlight or region:GetAlpha() > 0) then
-                        -- post-skin, only Aurora's backdrop pieces (and the
-                        -- hover highlight) are still visible
-                        auroraTextures[region] = true
-                    end
-                end
-
-                -- the red plate is a NINE-SLICE of anonymous textures the
-                -- client builds ON DEMAND (probe: 9 regions, one fileID,
-                -- created after skin time — and a frame LATER than show, so
-                -- synchronous hooks fire too early). Sweep live, and always
-                -- follow up on the next frame.
-                local function SweepStartButton()
-                    for i = 1, _G.select("#", startButton:GetRegions()) do
-                        local region = _G.select(i, startButton:GetRegions())
-                        if region:GetObjectType() == "Texture" and not auroraTextures[region] then
-                            region:SetAlpha(0)
-                        end
-                    end
-                    -- the actual plate art lives on ANONYMOUS SIBLING frames
-                    -- (probe-verified: the button's parent is a live-only
-                    -- details sub-frame holding the button + two unnamed
-                    -- Frames carrying the plate) — sweep unnamed plain-Frame
-                    -- siblings and any unnamed children
-                    for i = 1, _G.select("#", startButton:GetChildren()) do
-                        local child = _G.select(i, startButton:GetChildren())
-                        Util.HideFrameTextures(child, true)
-                    end
-                    local parent = startButton:GetParent()
-                    if parent then
-                        -- ...their unnamed plain-Frame children, and the
-                        -- parent details frame's OWN regions
-                        if not parent:GetName() then
-                            Util.HideFrameTextures(parent, true)
-                        end
-                        for i = 1, _G.select("#", parent:GetChildren()) do
-                            local child = _G.select(i, parent:GetChildren())
-                            if child:GetObjectType() == "Frame" and not child:GetName() then
-                                Util.HideFrameTextures(child, true)
-                                for j = 1, _G.select("#", child:GetChildren()) do
-                                    local grandchild = _G.select(j, child:GetChildren())
-                                    if not grandchild:GetName() then
-                                        Util.HideFrameTextures(grandchild, true)
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-                StripStartButton = function()
-                    SweepStartButton()
-                    _G.C_Timer.After(0, SweepStartButton)
-                end
-                StripStartButton()
-                WarGames:HookScript("OnShow", StripStartButton)
-                startButton:HookScript("OnShow", StripStartButton)
-                startButton:HookScript("OnEnable", StripStartButton)
-                startButton:HookScript("OnDisable", StripStartButton)
-                _G.hooksecurefunc(startButton, "Enable", StripStartButton)
-                _G.hooksecurefunc(startButton, "Disable", StripStartButton)
-                _G.hooksecurefunc(startButton, "SetEnabled", StripStartButton)
-                if _G.WarGameStartButton_Update then
-                    _G.hooksecurefunc("WarGameStartButton_Update", StripStartButton)
-                end
-            end
+            --[[ B261 (A-candidate, tasks.md 3.2.5): WarGameStartButton stays
+                Blizzard's (shape c), as on retail, which does not skin it.
+                WarGameStartButton_Update enables or disables it
+                (Blizzard_PVPUI/Mists/Blizzard_PVPUI.lua:1096-1101) from the list's
+                own updates (:946, :1061), and its click runs StartWarGame
+                (:1137-1141). The Layer 1 skin needed eight hooks on that path
+                (OnShow, OnEnable and OnDisable scripts, Enable, Disable,
+                SetEnabled, WarGameStartButton_Update and the pane's OnShow) to
+                re-sweep plate art the client rebuilds around list updates, on
+                the button and on unnamed frames beside it; a skin that needs a
+                hook on the state change is not Layer 2. Listed under
+                "Deliberately unskinned" in docs/KnownIssues.md. ]]
             if WarGames.HorizontalBar then
                 Util.HideFrameTextures(WarGames.HorizontalBar)
             end
@@ -364,11 +317,6 @@ function private.AddOns.Blizzard_PVPUI()
             -- rows LAST: least-certain structure, a failure here must not
             -- cost the rest of the pane
             local function SkinWarGameRows()
-                -- the start button's on-demand nine-slice gets rebuilt around
-                -- list updates — this hook fires on every one of them
-                if StripStartButton then
-                    StripStartButton()
-                end
                 if not (scrollFrame and scrollFrame.buttons) then
                     return
                 end
