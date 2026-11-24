@@ -325,13 +325,39 @@ function private.FrameXML.LFGList()
         })
     end
 
+    --[[ B261 Layer 2 (tier A, row A13; click order), read from wow-ui-source
+        (retail). One click execution: LFGListCategorySelection_StartFindGroup
+        (Blizzard_GroupFinder/Mainline/LFGList.lua:785) calls
+        LFGListSearchPanel_Clear (:794, :2777), whose result list update ends
+        in LFGListSearchPanel_UpdateButtonStatus (:2920, :2928): Disable or
+        Enable on SignUpButton (:2936-2959) and on ScrollBox.StartGroupButton
+        (:2995-3010), and SetDataProvider on the scroll box (:2912), which
+        updates the bar's steppers and thumb. The same execution then runs
+        LFGListSearchPanel_DoSearch (:799) into C_LFGList.Search (:2817), a
+        function with restrictions (LFGListInfoDocumentation.lua:572-574). So
+        nothing of Aurora's may run on those buttons' state.
+        Shape "panel" for both buttons: SignUpButton is an LFGListMagicButtonTemplate
+        (LFGList.xml:1235, :527; MagicButtonTemplate, a UIPanelButtonTemplate,
+        Blizzard_SharedXML/Mainline/SharedUIPanelTemplates.xml:722),
+        StartGroupButton an LFGStartGroupButtonTemplate (LFGList.xml:1189, :3,
+        a UIPanelButtonTemplate) and a direct child of the scroll box, not of
+        its scroll target, so not a pooled row. Declared in XML, not layout
+        frames; Blizzard re-sets only the plates
+        (Blizzard_SharedXML/SecureUIPanelTemplates.lua:44-79). Neither button
+        nor any ancestor is protected in XML.
+        SearchPanel.ScrollBar (LFGList.xml:1196) is a MinimalScrollBar: shape
+        c, stock, as the loot window's and the chat frames' bars. Its steppers
+        and thumb redraw their own atlas on every state change
+        (Blizzard_SharedXML/Shared/Scroll/MinimalScrollBar.lua:24-26, :47-52;
+        the bar's Update enables both steppers, Shared/Scroll/ScrollBar.lua:238-239).
+        BackButton (:1217) is only shown or hidden on that path (:3015) and
+        keeps the Layer 1 skin. ]]
     Skin.InsetFrameTemplate(SearchPanel.ResultsInset)
     Skin.WowScrollBoxList(SearchPanel.ScrollBox)
-    Skin.UIPanelButtonTemplate(SearchPanel.ScrollBox.StartGroupButton)
-    Skin.MinimalScrollBar(SearchPanel.ScrollBar)
+    Skin.TaintSafeUIPanelButtonTemplate(SearchPanel.ScrollBox.StartGroupButton, "panel")
 
     Skin.LFGListMagicButtonTemplate(SearchPanel.BackButton)
-    Skin.LFGListMagicButtonTemplate(SearchPanel.SignUpButton)
+    Skin.TaintSafeUIPanelButtonTemplate(SearchPanel.SignUpButton, "panel")
 
     -- ApplicationViewer --
     local ApplicationViewer = LFGListFrame.ApplicationViewer
