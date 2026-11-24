@@ -35,50 +35,20 @@ local Color, Util = Aurora.Color, Aurora.Util
     SpellBookFrame itself, and the UpdateButton hooks on SpellButton1-12
     below (tasks.md 5.4). ]]
 
--- Shape "panel" for the page buttons: plain buttons declared in XML
+-- Shape "panel" for the page buttons, drawn by Skin.TaintSafeNavButton
+-- (Skin/skin.lua): plain buttons declared in XML
 -- (Mists/SpellBookFrame.xml:695-720), not pooled and not layout frames,
 -- their state textures set in XML only; Blizzard only enables and disables
 -- them (above). The box sits 5 inside the button, as the Layer 1 skin
 -- (Skin.NavButtonPrevious) drew it; the arrow is on the panel.
-local function TaintSafePageButton(Button, arrowTexture)
-    local panel = Skin.TaintSafeFrameTypeButton(Button, "panel")
-    panel:ClearAllPoints()
-    panel:SetPoint("TOPLEFT", Button, 5, -5)
-    panel:SetPoint("BOTTOMRIGHT", Button, -5, 5)
 
-    local bg = panel:GetBackdropTexture("bg")
-    local arrow = panel:CreateTexture(nil, "ARTWORK")
-    arrow:SetPoint("TOPLEFT", bg, 8, -5)
-    arrow:SetPoint("BOTTOMRIGHT", bg, -8, 5)
-    Base.SetTexture(arrow, arrowTexture)
-end
-
--- Shape "panel" for the close button: UIPanelCloseButton
+-- Shape "panel" for the close button, drawn by Skin.TaintSafePanelCloseButton
+-- (Skin/skin.lua): UIPanelCloseButton
 -- (Blizzard_SharedXML/Classic/SharedUIPanelTemplates.xml:172-192), 32x32,
 -- named SpellBookFrameCloseButton by PortraitFrameTemplate (:547), its state
 -- textures set in XML only and never re-set. The box and the cross are where
 -- the Layer 1 skin (Skin.UIPanelCloseButtonNoScripts) drew them; the cross is
 -- on the panel.
-local function TaintSafeCloseButton(Button)
-    local panel = Skin.TaintSafeFrameTypeButton(Button, "panel")
-    panel:ClearAllPoints()
-    panel:SetPoint("TOPLEFT", Button, 4, -10)
-    panel:SetPoint("BOTTOMRIGHT", Button, -11, 5)
-
-    local bg = panel:GetBackdropTexture("bg")
-    for i = 1, 2 do
-        local line = panel:CreateLine(nil, "ARTWORK")
-        line:SetColorTexture(1, 1, 1) -- static: not a theme color
-        line:SetThickness(1.2)
-        if i == 1 then
-            line:SetStartPoint("TOPLEFT", bg, 3.6, -3)
-            line:SetEndPoint("BOTTOMRIGHT", bg, -3, 3)
-        else
-            line:SetStartPoint("TOPRIGHT", bg, -3, -3)
-            line:SetEndPoint("BOTTOMLEFT", bg, 3.6, 3)
-        end
-    end
-end
 
 local function SkinSpellButton(button, name)
     -- page-art pieces on the button
@@ -114,7 +84,7 @@ function private.FrameXML.SpellBookFrame()
     -- Skin.ButtonFrameTemplate (Blizzard_SharedXML/Classic/SharedUIPanelTemplates.lua),
     -- written out so its close button gets the Layer 2 skin instead.
     Skin.PortraitFrameTemplateNoCloseButton(SpellBookFrame)
-    TaintSafeCloseButton(SpellBookFrame.CloseButton)
+    Skin.TaintSafePanelCloseButton(SpellBookFrame.CloseButton)
     _G.SpellBookFrameBtnCornerLeft:SetAlpha(0)
     _G.SpellBookFrameBtnCornerRight:SetAlpha(0)
     _G.SpellBookFrameButtonBottomBorder:SetAlpha(0)
@@ -131,8 +101,8 @@ function private.FrameXML.SpellBookFrame()
     if _G.SpellBookPageText then
         _G.SpellBookPageText:SetTextColor(Color.white:GetRGB())
     end
-    TaintSafePageButton(_G.SpellBookPrevPageButton, "arrowLeft")
-    TaintSafePageButton(_G.SpellBookNextPageButton, "arrowRight")
+    Skin.TaintSafeNavButton(_G.SpellBookPrevPageButton, "arrowLeft")
+    Skin.TaintSafeNavButton(_G.SpellBookNextPageButton, "arrowRight")
 
     -- SpellButtonMixin:UpdateButton re-sets parchment-dark colors on every
     -- update (SpellSubName to literal black, RequiredLevelString and
