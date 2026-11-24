@@ -35,10 +35,26 @@ do --[[ SharedXML\ChatFrame.lua ]]
 end
 
 do --[[ SharedXML\ChatFrame.xml ]]
-    function Skin.ChatFrameTemplate(ScrollingMessageFrame)
-        if private.isRetail then
-            Skin.MinimalScrollBar(ScrollingMessageFrame.ScrollBar)
-        end
+    --[[ B261 (tier A, row A4; a secret-value row), read from wow-ui-source
+        (retail) and wow-ui-source-forever. The chat frame's scroll bar is a
+        MinimalScrollBar (Blizzard_ChatFrameBase/Mainline/ChatFrame.xml:5, both
+        trees). ScrollingMessageFrameMixin:RefreshDisplay sets each visible
+        line's text, which can be secret (Blizzard_SharedXML/ScrollingMessageFrame.lua:643),
+        then calls the display-refreshed callbacks (:666), and the one
+        ScrollUtil.InitScrollingMessageFrameWithScrollBar registers updates the
+        bar (Blizzard_SharedXML/Shared/Scroll/ScrollUtil.lua:166-194), whose
+        Update enables or disables both steppers and the thumb
+        (Shared/Scroll/ScrollBar.lua:238-239, :255-256). The same lines on
+        Forever. That runs on every chat line, in combat.
+        Shape c, stock: like the loot window's bar, the steppers and the thumb
+        redraw their own atlas on every enable, disable, hover and press and
+        desaturate when disabled (Shared/Scroll/MinimalScrollBar.lua:10,
+        :24-26, :33, :47-52), so a Layer 2 form would fight Blizzard's art on
+        every state change. Skin.MinimalScrollBar is no longer called here, so
+        nothing of Aurora's is on the bar; the shared template is not changed.
+        Blizzard keeps the bar at alpha 0 until the cursor is over the chat
+        frame (Blizzard_ChatFrameBase/Mainline/ChatFrameOverrides.lua:42-45). ]]
+    function Skin.ChatFrameTemplate(ScrollingMessageFrame) -- luacheck: ignore
     end
     function Skin.ChatFrameEditBoxTemplate(EditBox)
         Skin.FrameTypeEditBox(EditBox)
