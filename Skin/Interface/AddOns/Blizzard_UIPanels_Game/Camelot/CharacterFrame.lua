@@ -10,6 +10,11 @@ local Base = Aurora.Base
 local Skin = Aurora.Skin
 local Color = Aurora.Color
 
+-- B261 (task 5.3): side panes whose AcquireRow is hooked. Was
+-- `_auroraRowsHooked` on the Blizzard frame. The panes are kept, not pooled
+-- (their rows are; SkinRows skins those). Weak keys.
+local rowsHooked = _G.setmetatable({}, {__mode = "k"})
+
 -- Camelot's character panel is a different shape from retail's (T2.0.1):
 --
 --   retail                       Camelot
@@ -90,8 +95,8 @@ do --[[ FrameXML\CharacterFrame.xml ]]
         end
 
         SkinRows()
-        if Frame.AcquireRow and not Frame._auroraRowsHooked then
-            Frame._auroraRowsHooked = true
+        if Frame.AcquireRow and not rowsHooked[Frame] then
+            rowsHooked[Frame] = true
             _G.hooksecurefunc(Frame, "AcquireRow", SkinRows)
         end
     end
