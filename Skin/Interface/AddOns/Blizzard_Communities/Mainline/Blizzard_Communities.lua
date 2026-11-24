@@ -571,11 +571,32 @@ do --[[ AddOns\Blizzard_Communities.xml ]]
         end
     end
     do --[[ GuildRoster ]]
+        --[[ B261 Layer 2 (tier A, row A3; a secret-value row), read from
+            wow-ui-source (retail) and wow-ui-source-forever.
+            CommunitiesGuildMemberDetailMixin:DisplayMember sets the remove
+            button with SetEnabled (Blizzard_Communities/GuildRoster.lua:177;
+            Forever :209) and the group invite button with Enable or Disable
+            in a branch on memberInfo fields that are secret (:179-185, with
+            Blizzard's comment "These fields on memberInfo are secret and
+            SetEnabled does not allow secrets"; Forever :211-217). It runs
+            again on every GUILD_ROSTER_UPDATE while the frame is shown
+            (:63-73; Forever :89-99). So nothing of Aurora's may run on these
+            two buttons' state: Layer 1's repaint ran inside that execution.
+            Shape "panel": plain UIPanelButtonTemplate buttons declared in XML
+            (GuildRoster.xml:81, :99; Forever :93, :111), not pooled and not
+            layout frames; Blizzard re-sets only the plates
+            (Blizzard_SharedXML/SecureUIPanelTemplates.lua:44-79). Their
+            panels sit at the detail frame's own level, the level of its
+            Border (DialogBorderNoCenterTemplate has useParentLevel,
+            Blizzard_SharedXML/Shared/Dialog/DialogTemplates.xml:63), and the
+            panel's backdrop is drawn a sublevel pair above a frame backdrop,
+            so the border's fill cannot cover it. The close button and the
+            rank dropdown are tier C and keep the Layer 1 skin. ]]
         function Skin.CommunitiesGuildMemberDetailFrameTemplate(Frame)
             Skin.DialogBorderDarkTemplate(Frame.Border)
             Skin.UIPanelCloseButton(Frame.CloseButton)
-            Skin.UIPanelButtonTemplate(Frame.RemoveButton)
-            Skin.UIPanelButtonTemplate(Frame.GroupInviteButton)
+            Skin.TaintSafeUIPanelButtonTemplate(Frame.RemoveButton, "panel")
+            Skin.TaintSafeUIPanelButtonTemplate(Frame.GroupInviteButton, "panel")
             Skin.DropdownButton(Frame.RankDropdown)
 
             Skin.FrameTypeFrame(Frame.NoteBackground)
