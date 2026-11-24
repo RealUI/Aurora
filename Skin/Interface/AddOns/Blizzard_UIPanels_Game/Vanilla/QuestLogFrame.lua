@@ -2,7 +2,7 @@ local _, private = ...
 if private.shouldSkip() then return end
 
 --[[ Lua Globals ]]
--- luacheck: globals ipairs
+-- luacheck: globals
 
 --[[ Core ]]
 local Aurora = private.Aurora
@@ -34,16 +34,18 @@ local Color, Util = Aurora.Color, Aurora.Util
 
 -- The quest list's scroll bar, drawn by Skin.TaintSafeUIPanelScrollBar
 -- (Skin/skin.lua). Skin.FauxScrollFrameTemplate would put the
--- Layer 1 skin on its two buttons (and a `direction` key on each). Shape "panel" for both buttons: they are
+-- Layer 1 skin on its two buttons (and a `direction` key on each).
+-- Shape "panel" for both buttons: they are
 -- UIPanelScrollUpButtonTemplate and UIPanelScrollDownButtonTemplate
 -- (Blizzard_SharedXML/SecureUIPanelTemplates.xml:76-90), 18x16, declared in
 -- XML, not pooled and not a layout frame, and their state textures are set
 -- in XML only; Blizzard only enables and disables them: at load
 -- (UIPanelScrollFrame_OnLoad, SecureScrollTemplates.lua:36-37) and in
 -- FauxScrollFrame_Update (above). The list's own OnVerticalScroll
--- (Vanilla/QuestLogFrame.xml:592-594) replaces the template's, so scrolling goes through
--- FauxScrollFrame_OnVerticalScroll (SecureScrollTemplates.lua:227-234) back
--- into QuestLog_Update. The arrow is on the panel. The thumb is a texture of the slider, not a button:
+-- (Vanilla/QuestLogFrame.xml:592-594) replaces the template's, so
+-- scrolling goes through FauxScrollFrame_OnVerticalScroll
+-- (SecureScrollTemplates.lua:227-234) back into QuestLog_Update. The arrow
+-- is on the panel. The thumb is a texture of the slider, not a button:
 -- restyled in place (rule 3), at the 16x24 the Layer 1 skin gives it; no
 -- Blizzard line sets its texture again.
 --
@@ -57,6 +59,8 @@ local Color, Util = Aurora.Color, Aurora.Util
 -- ScrollFrame_OnVerticalScroll, SecureScrollTemplates.lua:64-110, :134-141),
 -- on QuestLog_UpdateQuestDetails' UpdateScrollChildRect (:464) or a scroll.
 -- Same slider template, so the same shapes and the same thumb restyle.
+-- Both calls are in private.FrameXML.QuestLogFrame below.
+
 function private.FrameXML.QuestLogFrame()
     local QuestLogFrame = _G.QuestLogFrame
 
