@@ -10,12 +10,19 @@ local Base = Aurora.Base
 local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Color = Aurora.Color
 
+-- B261 (task 5.3): how many of a frame's dungeon icons or affixes are
+-- skinned, keyed by the ChallengesFrame or the keystone frame. Were
+-- `_skinnedIcons` and `_skinnedAffixes` on the Blizzard frames. The icons
+-- and affixes are created on demand and kept, not pooled; weak keys.
+local skinnedIcons = _G.setmetatable({}, {__mode = "k"})
+local skinnedAffixes = _G.setmetatable({}, {__mode = "k"})
+
 do --[[ AddOns\Blizzard_ChallengesUI.lua ]]
     function Hook.ChallengesFrame_Update(self)
         for i, icon in ipairs(self.DungeonIcons) do
-            if i > (self._skinnedIcons or 0) then
+            if i > (skinnedIcons[self] or 0) then
                 Skin.ChallengesDungeonIconFrameTemplate(icon)
-                self._skinnedIcons = i
+                skinnedIcons[self] = i
             end
         end
     end
@@ -25,9 +32,9 @@ do --[[ AddOns\Blizzard_ChallengesUI.lua ]]
     end
     function Hook.ChallengesKeystoneFrameMixin_OnKeystoneSlotted(self, affixInfo)
         for i, affix in ipairs(self.Affixes) do
-            if i > (self._skinnedAffixes or 0) then
+            if i > (skinnedAffixes[self] or 0) then
                 Skin.ChallengesKeystoneFrameAffixTemplate(affix)
-                self._skinnedAffixes = i
+                skinnedAffixes[self] = i
             end
 
             affix.Portrait:SetTexture(nil)
@@ -78,7 +85,8 @@ do --[[ AddOns\Blizzard_ChallengesUI.xml ]]
     function Skin.ChallengesKeystoneFrameAffixTemplate(Frame)
         Frame.Border:SetAlpha(0)
         Base.CropIcon(Frame.Portrait)
-        Frame.Portrait._auroraResetPortrait = true
+        -- B261 (task 5.3): registered in UIParent.lua, not a field on the texture.
+        Skin.SetPortraitReset(Frame.Portrait)
     end
     function Skin.ChallengesDungeonIconFrameTemplate(Frame)
         Frame:GetRegions():Hide()
