@@ -9,6 +9,11 @@ local Aurora = private.Aurora
 local Hook, Skin = Aurora.Hook, Aurora.Skin
 local Color = Aurora.Color
 
+-- B261 (task 5.2): chat edit boxes whose UpdateHeader is hooked. Was
+-- `_auroraHeaderHooked` on the Blizzard edit box. The edit boxes belong to
+-- the chat frames, which are never released; weak keys all the same.
+local headerHooked = _G.setmetatable({}, {__mode = "k"})
+
 do --[[ SharedXML\ChatFrame.lua ]]
     function Hook.ChatFrameEditBoxMixinUpdateHeader(editBox)
         local chatType = editBox:GetAttribute("chatType")
@@ -81,8 +86,8 @@ function private.SharedXML.ChatFrame()
     -- existing editbox instances, and the mixin table for frames created
     -- later (temporary chat windows).
     local function HookEditBox(editBox)
-        if editBox and editBox.UpdateHeader and not editBox._auroraHeaderHooked then
-            editBox._auroraHeaderHooked = true
+        if editBox and editBox.UpdateHeader and not headerHooked[editBox] then
+            headerHooked[editBox] = true
             _G.hooksecurefunc(editBox, "UpdateHeader", Hook.ChatFrameEditBoxMixinUpdateHeader)
         end
     end
