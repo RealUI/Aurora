@@ -32,10 +32,36 @@ do --[[ AddOns\Blizzard_RaidUI.lua ]]
 end
 
 do --[[ AddOns\Blizzard_RaidUI.xml ]]
+    --[[ B261 Layer 2 (A-candidate, tasks.md 3.2.5), read from wow-ui-source
+        (retail) and wow-ui-source-forever. RaidGroupButton1..40 are
+        protected themselves: SecureUnitButtonTemplate
+        (Blizzard_RaidUI/Mainline/Blizzard_RaidUI.xml:76; Forever :75, the
+        same template). RaidGroupFrame_Update hides, moves and shows them on
+        every roster change (Blizzard_RaidUI.lua:469-484, the same lines on
+        Forever), in combat too. Blizzard never enables or disables them and
+        never re-sets their state textures (only the class filter buttons
+        are enabled and disabled, :108, :110); the only art is the template's
+        NormalTexture and HighlightTexture (Blizzard_RaidUI.xml:205-210;
+        Forever :204-209).
+        Shape "flat": the engine's own state textures and nothing else. Not
+        "panel": that makes a frame of Aurora's a child of the protected
+        button and anchors the button's pressed, disabled and highlight
+        textures to that frame's border pieces, so a region of a protected
+        frame would hang from an unprotected one. What the engine does with
+        that in combat cannot be read from source; "flat" creates no frame
+        and anchors nothing, and the button's own regions are all it uses.
+        This skin itself can run in combat: Blizzard loads Blizzard_RaidUI
+        from GROUP_ROSTER_UPDATE (Blizzard_RaidFrame/Mainline/RaidFrame.lua:61-62;
+        Forever :63-64),
+        so the first roster change of a session runs it. Flat then makes
+        only texture calls on the protected buttons, the kind Layer 1 made
+        there too; the panel would add ClearAllPoints and SetPoint on their
+        state textures in that moment.
+        The name, level and class font strings are ARTWORK regions, as they
+        were over Blizzard's NormalTexture. The Layer 1 class-colour border
+        on hover goes with the backdrop. ]]
     function Skin.RaidGroupButtonTemplate(Button)
-        Skin.FrameTypeButton(Button, function(dialog)
-            dialog:SetBackdropBorderColor(_G.CUSTOM_CLASS_COLORS[dialog.class])
-        end)
+        Skin.TaintSafeFrameTypeButton(Button, "flat")
     end
     function Skin.RaidGroupSlotTemplate(Button)
         Button:ClearHighlightTexture()
