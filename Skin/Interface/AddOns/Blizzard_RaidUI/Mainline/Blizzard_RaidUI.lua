@@ -63,23 +63,76 @@ do --[[ AddOns\Blizzard_RaidUI.xml ]]
     function Skin.RaidGroupButtonTemplate(Button)
         Skin.TaintSafeFrameTypeButton(Button, "flat")
     end
-    function Skin.RaidGroupSlotTemplate(Button)
-        Button:ClearHighlightTexture()
-        Base.SetBackdrop(Button, Color.button, 0)
-        Button:SetBackdropBorderColor(Color.button, 0)
 
-        Button:HookScript("OnEnter", function(dialog)
-            dialog:SetBackdropBorderColor(Color.button, 1)
-        end)
-        Button:HookScript("OnLeave", function(dialog)
-            dialog:SetBackdropBorderColor(Color.button, 0)
-        end)
+    --[[ B261, AT-D20 (tasks.md 5.4.1), read from wow-ui-source (retail) and
+        wow-ui-source-forever (the same template; Forever's lines are given
+        where they differ). RaidGroup1Slot1..RaidGroup8Slot5 are plain buttons
+        (RaidGroupSlotTemplate, Blizzard_RaidUI.xml:212-226; Forever
+        :211-225), but an occupied slot is protected: RaidGroupFrame_Update
+        anchors the secure RaidGroupButton to it (Blizzard_RaidUI.lua:469-470),
+        and a frame that a protected frame is anchored to becomes protected
+        itself, as does its RaidGroup frame. Blizzard re-anchors on every
+        roster change, in combat too, and when a member is dragged (:594,
+        :604; Forever :595, :605).
+        Layer 1 put a backdrop (its methods and fields) and two HookScripts
+        on every slot. Both are gone. What is left is the slot's own
+        highlight texture: the engine shows it on hover, and Blizzard locks
+        it on the drop target while a member is dragged (:532-541). Layer 1
+        had cleared it, so the drop target showed nothing.
+        Aurora sets its file and tint once, when Blizzard_RaidUI loads, which
+        can be in combat (Blizzard_RaidFrame/Mainline/RaidFrame.lua:58-62;
+        Forever :60-64). No call made here is a protected function (none
+        carries IsProtectedFunction in Blizzard_APIDocumentationGenerated).
+        Nothing is anchored to the slot, so its protection is not changed.
+        Look: at rest the slot shows nothing of Aurora's, as before (Layer 1's
+        fill and border were at alpha 0). Hover adds white at the Layer 2
+        hover alpha (LAYER2_HOVER_ALPHA in Skin/skin.lua), as on the member
+        rows. Layer 1's grey border on hover is dropped: it needed the two
+        hooks. ]]
+    local SLOT_HOVER_ALPHA = 0.08
+    function Skin.RaidGroupSlotTemplate(Button)
+        Button:SetHighlightTexture(private.textures.plain, "ADD")
+        local highlight = Button:GetHighlightTexture()
+        highlight:SetVertexColor(1, 1, 1)
+        highlight:SetAlpha(SLOT_HOVER_ALPHA)
     end
+    --[[ B261, AT-D21 (tasks.md 5.4.1), read from wow-ui-source (retail) and
+        wow-ui-source-forever. RaidGroup1..8 (RaidGroupTemplate,
+        Blizzard_RaidUI.xml:227-280; Forever :226-279) are protected in a
+        raid: a group with an occupied slot holds a protected child (see the
+        slots above). RaidGroupFrame_Update calls Show or Hide on every group
+        on every roster change (Blizzard_RaidUI.lua:236, :243), in combat
+        too, and keeps its own nextIndex on them (:250, :306, :477). It
+        never walks a group's children or reads any other field; the drag
+        code reads only GetParent(), GetID(), GetName() and nextIndex
+        (:597-606; Forever :598-607).
+        Layer 1 put Aurora's backdrop on the group frame itself: its methods
+        and fields (_backdropInfo, the palette keys). The box is now drawn
+        by a frame of Aurora's: a child of the group, so it shows and hides
+        with it, at the group's own frame level, so the slots (one level up)
+        and member rows (two up, :567-568) draw over it as they did over the
+        group's own backdrop. It is a plain frame: no mouse, no name.
+        Calls, and what each touches:
+        - Frame:GetRegions():Hide(): the group's outline texture, a region
+          (Region:Hide is not a protected function), as before.
+        - CreateFrame("Frame", nil, Frame): a new frame; the group only gains
+          an unprotected child, which leaves its protection as it was.
+        - box:SetAllPoints(Frame), box:SetFrameLevel(...): calls on Aurora's
+          frame, which is not protected; it is anchored to the group, never
+          the group to it. Frame:GetFrameLevel() only reads.
+        - Base.SetBackdrop(box, ...), box:SetBackdropBorderColor(...): on
+          Aurora's frame; it carries the methods, fields and the palette
+          registration.
+        So nothing here is a protected call on a group, also when the skin
+        runs late (Skin/init.lua:366-369) with a group already protected. ]]
     function Skin.RaidGroupTemplate(Frame)
         Frame:GetRegions():Hide()
 
-        Base.SetBackdrop(Frame, Color.frame)
-        Frame:SetBackdropBorderColor(Color.button)
+        local box = _G.CreateFrame("Frame", nil, Frame)
+        box:SetAllPoints(Frame)
+        box:SetFrameLevel(Frame:GetFrameLevel())
+        Base.SetBackdrop(box, Color.frame)
+        box:SetBackdropBorderColor(Color.button)
 
         local name = Frame:GetName()
         _G[name.."Label"]:SetPoint("TOP", 0, 12)
