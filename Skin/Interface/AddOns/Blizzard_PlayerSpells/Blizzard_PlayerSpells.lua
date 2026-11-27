@@ -736,6 +736,39 @@ function private.AddOns.Blizzard_PlayerSpells()
     -- Camelot-only additions to the talents frame.
     Skin.ClassTalentActiveSpecTemplate(TalentsFrame.ActiveSpec)
 
+    --[[ B261 (AT-D23 a): the search options dropdown right of the talents
+        search box, WoW Forever only. Retail has no such key, so the nil
+        check is the guard. A WowStyle1ArrowDropdownTemplate (Camelot
+        ClassTalents/Blizzard_ClassTalentsFrame.xml:426; the template at
+        Blizzard_Menu/Mainline/MenuTemplates.xml:41-64), 25x25, declared
+        once, never enabled or disabled by its frame; its only art is
+        Arrow, which Blizzard re-atlases on every state change
+        (Blizzard_Menu/Mainline/MenuTemplates.lua:41-49) and never shows or
+        hides, so alpha 0 holds, as on the loadout dropdown above. Blizzard
+        re-anchors the button when a gamepad is set up or removed
+        (Blizzard_PlayerSpellsFrame.lua:1229-1230, :1249); the panel follows
+        it. Panel shape, not Skin.WowStyle1ArrowDropdownTemplate (Layer 1).
+        The box is inset SEARCH_OPTIONS_INSET on each side, so it is about as
+        tall as the search box's own box (20, the InputBoxTemplate offsets
+        on a 30-tall edit box), and raised SEARCH_OPTIONS_RAISE inside the
+        button: Blizzard places the button 2 below the search box's centre
+        (Camelot ClassTalents/Blizzard_ClassTalentsFrame.lua:251), so the
+        raise puts the box level with the search box's. ]]
+    local SearchOptions = TalentsFrame.SearchOptionsDropdown
+    if SearchOptions then
+        local SEARCH_OPTIONS_INSET = 3
+        local SEARCH_OPTIONS_RAISE = 2
+        if SearchOptions.Arrow then SearchOptions.Arrow:SetAlpha(0) end
+        local panel = Skin.TaintSafeFrameTypeButton(SearchOptions, "panel")
+        panel:ClearAllPoints()
+        panel:SetPoint("TOPLEFT", SearchOptions, SEARCH_OPTIONS_INSET, -(SEARCH_OPTIONS_INSET - SEARCH_OPTIONS_RAISE))
+        panel:SetPoint("BOTTOMRIGHT", SearchOptions, -SEARCH_OPTIONS_INSET, SEARCH_OPTIONS_INSET + SEARCH_OPTIONS_RAISE)
+        local arrow = panel:CreateTexture(nil, "ARTWORK")
+        arrow:SetTexture([[Interface\AddOns\Aurora\media\arrow-down-active]])
+        arrow:SetSize(8, 8)
+        arrow:SetPoint("CENTER")
+    end
+
     -- Its own tab strip, separate from PlayerSpellsFrame.TabSystem above.
     --
     -- Hooking AddTab alone was wrong: TabSystemOwnerTemplate adds the Primary
