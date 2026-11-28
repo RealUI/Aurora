@@ -19,12 +19,6 @@ do --[[ SharedXML\FriendsFrame.lua ]]
         -- self.BroadcastButton:UnlockHighlight()
     end
 
-    function Hook.FriendsFrame_UpdateFriendButton(button, elementData)
-        local gameIcon = button.gameIcon
-        if gameIcon._bg then
-            gameIcon._bg:SetShown(gameIcon:IsShown())
-        end
-    end
     function Hook.WhoList_InitButton(button, elementData)
         local info = elementData.info
         if info.filename then
@@ -62,23 +56,95 @@ do --[[ SharedXML\FriendsFrame.xml ]]
     function Skin.FriendsFrameButtonTemplate(Button)
         Skin.UIPanelButtonTemplate(Button)
     end
+    --[[ Skin.FriendsListButtonTemplate(_Button_)
+    B261 (aurora-taint-pass, AT-D25): the travel pass (invite) button at the
+    right end of a Battle.net friend's row, on the Layer 2 panel. Replaces
+    the Layer 1 template that was never called (a FrameTypeButton backdrop,
+    SetSize on the button, a `_bg` field on the game icon and a hook in the
+    list update to show and hide it).
+
+    Blizzard re-stamps the button's three state atlases through its own
+    keys (`NormalTexture`, `PushedTexture`, `DisabledTexture`) on every list
+    update, for the default, Horde and Alliance looks
+    (Blizzard_FriendsFrame/Mainline/FriendsFrame.lua:2078-2091; Forever
+    Camelot/FriendsFrame.lua:1819-1832). So the pressed, disabled and hover
+    looks go on textures of Aurora's own, put in the button's state slots,
+    and Blizzard's four keyed textures are kept at alpha 0, which SetAtlas
+    does not change (rule 2). The engine still shows pressed, disabled and
+    hover itself: Blizzard enables the button only when the friend can be
+    invited (:2015-2019), with no script and no Aurora code involved.
+
+    The game icon beside it stays Blizzard's: Blizzard sets its texture, its
+    alpha and whether it shows on every list update (:1998-2010), so a crop
+    and a border that follow it would need code in that update.
+
+    Nothing is written on the row or the button: no field, no hook, no
+    script, no SetPoint, SetSize or frame level on Blizzard's frames.
+    --]]
+    local TRAVEL_PASS_BOX = 22
+    local TRAVEL_PASS_STATES = {"Pushed", "Disabled", "Highlight"}
     function Skin.FriendsListButtonTemplate(Button)
-        local gameIcon = Button.gameIcon
-        gameIcon._bg = Base.CropIcon(Button.gameIcon, Button)
-        gameIcon:SetSize(22, 22)
-        gameIcon:SetTexCoord(0.15625, 0.84375, 0.15625, 0.84375)
-        gameIcon:SetPoint("TOPRIGHT", -21, -6)
-
         local travelPassButton = Button.travelPassButton
-        Skin.FrameTypeButton(travelPassButton)
-        travelPassButton:SetSize(20, 32)
+        local panel = Skin.TaintSafeFrameTypeButton(travelPassButton, "panel")
 
-        local texture = travelPassButton:CreateTexture(nil, "OVERLAY", nil, 7)
-        texture:SetTexture([[Interface\FriendsFrame\PlusManz-PlusManz]])
-        texture:SetPoint("TOPRIGHT", 1, -4)
-        texture:SetSize(22, 22)
-        texture:SetAlpha(0.75)
-        Skin.SetButtonTextures(travelPassButton, {texture})
+        -- A square box in the middle of the 24x32 button; the button keeps
+        -- Blizzard's size and hit rect. The state textures are anchored to
+        -- the panel's border, so they follow.
+        panel:ClearAllPoints()
+        panel:SetPoint("CENTER", travelPassButton)
+        panel:SetSize(TRAVEL_PASS_BOX, TRAVEL_PASS_BOX)
+
+        local icon = panel:CreateTexture(nil, "ARTWORK")
+        icon:SetTexture([[Interface\FriendsFrame\PlusManz-PlusManz]])
+        icon:SetPoint("CENTER")
+        icon:SetSize(TRAVEL_PASS_BOX - 2, TRAVEL_PASS_BOX - 2)
+        icon:SetAlpha(0.75)
+
+        -- Move each state into a texture of Aurora's own, painted and
+        -- anchored as the primitive left it, so Blizzard's re-stamp cannot
+        -- reach it.
+        for i = 1, #TRAVEL_PASS_STATES do
+            local stateName = TRAVEL_PASS_STATES[i]
+            local getter = travelPassButton["Get" .. stateName .. "Texture"]
+            local setter = travelPassButton["Set" .. stateName .. "Texture"]
+            local painted = getter(travelPassButton)
+
+            local layer, sublevel = painted:GetDrawLayer()
+            local own = travelPassButton:CreateTexture(nil, layer, nil, sublevel)
+            own:SetTexture(private.textures.plain)
+            own:SetBlendMode(painted:GetBlendMode())
+            own:SetVertexColor(painted:GetVertexColor())
+            own:SetAlpha(painted:GetAlpha())
+            for p = 1, painted:GetNumPoints() do
+                own:SetPoint(painted:GetPoint(p))
+            end
+            if stateName == "Highlight" then
+                setter(travelPassButton, own, "ADD")
+            else
+                setter(travelPassButton, own)
+            end
+
+            if getter(travelPassButton) == own then
+                -- The slot holds Aurora's texture. The one the primitive
+                -- painted and Blizzard's keyed one (often the same object)
+                -- are out of it: alpha 0, whether or not the engine still
+                -- draws them.
+                painted:SetAlpha(0)
+                local keyed = travelPassButton[stateName .. "Texture"]
+                if keyed then
+                    keyed:SetAlpha(0)
+                end
+            else
+                -- The client copied instead of taking the texture: keep the
+                -- primitive's look and drop the unused one.
+                own:Hide()
+            end
+        end
+        -- The primitive leaves no normal texture; Blizzard's keyed one is
+        -- re-stamped on every update whether or not it is still in the slot.
+        if travelPassButton.NormalTexture then
+            travelPassButton.NormalTexture:SetAlpha(0)
+        end
     end
     function Skin.WhoFrameColumnHeaderTemplate(Button)
         Button.Left:Hide()
@@ -108,7 +174,6 @@ do --[[ SharedXML\FriendsFrame.xml ]]
 end
 
 function private.FrameXML.FriendsFrame()
-    _G.hooksecurefunc("FriendsFrame_UpdateFriendButton", Hook.FriendsFrame_UpdateFriendButton)
     -- WhoList_InitButton lives in Mainline\FriendsFrame.lua, which Camelot
     -- excludes; the Who list does not exist on Forever. This hook sits above
     -- the guarded WhoFrame block below, so without this check it throws before
@@ -211,6 +276,29 @@ function private.FrameXML.FriendsFrame()
     Skin.UIPanelButtonTemplate(FriendsListFrame.RIDWarning:GetChildren()) -- ContinueButton
     Skin.WowScrollBoxList(FriendsListFrame.ScrollBox)
     Skin.MinimalScrollBar(FriendsListFrame.ScrollBar)
+
+    do -- the friends rows' travel pass buttons (B261, AT-D25)
+        -- The rows are pooled. OnAcquiredFrame fires when the view takes a
+        -- row from the pool, before Blizzard's initializer fills it
+        -- (ScrollBoxListView.lua:392), through the callback registry's
+        -- secureexecuterange (CallbackRegistry.lua:207-213), so nothing here
+        -- taints the list update that goes on. Each row is skinned once and
+        -- remembered in a weak table of this file's; later acquisitions of
+        -- the same row stop at that read. Only friend rows have the button;
+        -- the divider and invite rows of the same list do not.
+        local skinnedRows = _G.setmetatable({}, {__mode = "k"})
+        local function SkinFriendRow(Button)
+            if skinnedRows[Button] or not Button.travelPassButton then
+                return
+            end
+            skinnedRows[Button] = true
+            Skin.FriendsListButtonTemplate(Button)
+        end
+        _G.ScrollUtil.AddAcquiredFrameCallback(FriendsListFrame.ScrollBox, function(_, Button)
+            SkinFriendRow(Button)
+        end, skinnedRows)
+        FriendsListFrame.ScrollBox:ForEachFrame(SkinFriendRow)
+    end
 
 
     ----------------------
