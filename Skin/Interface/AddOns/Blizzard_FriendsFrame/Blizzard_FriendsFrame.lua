@@ -19,6 +19,14 @@ do --[[ SharedXML\FriendsFrame.lua ]]
         -- self.BroadcastButton:UnlockHighlight()
     end
 
+    -- Aurora does nothing here since AT-D25: the game icon's `_bg` went with
+    -- the Layer 1 friends row template. The function and its hooksecurefunc
+    -- below stay because this table entry is a hook point of RealUI's:
+    -- RealUI_Skins hooks it to colour the friends' names
+    -- (RealUI_Skins/FrameXML/FriendsFrame.lua), released versions included,
+    -- and hooksecurefunc throws on a name that is not a function.
+    function Hook.FriendsFrame_UpdateFriendButton(button, elementData)
+    end
     function Hook.WhoList_InitButton(button, elementData)
         local info = elementData.info
         if info.filename then
@@ -174,6 +182,7 @@ do --[[ SharedXML\FriendsFrame.xml ]]
 end
 
 function private.FrameXML.FriendsFrame()
+    _G.hooksecurefunc("FriendsFrame_UpdateFriendButton", Hook.FriendsFrame_UpdateFriendButton)
     -- WhoList_InitButton lives in Mainline\FriendsFrame.lua, which Camelot
     -- excludes; the Who list does not exist on Forever. This hook sits above
     -- the guarded WhoFrame block below, so without this check it throws before
